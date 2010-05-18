@@ -1,4 +1,5 @@
 <?php
+if(!defined('DOKU_INC')) die();
 require_once('mwconfig.php');
 require_once('class.database.php');
 require_once('class.mwmodul_base.php');
@@ -8,8 +9,10 @@ class minwiki {
 
 public $mwdb;
 public $mwmod = array();
+private $UserID;
+private $username;
 
-	public function __construct() {
+	public function __construct($username) {
 	
 		try {
 			$mwdb = new Database();
@@ -17,13 +20,15 @@ public $mwmod = array();
 			echo $e->getMessage(), '<br />';
 		}
 		
+		$this->username = $username;
+		
 	}
 	
 	public function gen_minwiki() {
 	
 		$mwoutput = 'Velkommen til Min Wiki!<br />';
 		
-		$this->lastmoduler();
+		$this->_lastmoduler();
 		$mwdisp = new mwdispatcher('feilmrapport', $this->mwmod, 'show', NULL);
 		
 		$mwoutput .= $mwdisp->dispatch();
@@ -32,7 +37,7 @@ public $mwmod = array();
 		
 	}
 	
-	private function lastmoduler() {
+	private function _lastmoduler() {
 		
 		foreach (mwcfg::$moduler as $modulnavn) {
 			require_once 'moduler/' . $modulnavn . '.mwmodul.php';
@@ -42,6 +47,10 @@ public $mwmod = array();
 	
 	}
 	
+	public function getUserID() {
+		if (!isset($this->username)) { die('Username not set on minwiki create'); }
+	
+	}
 	
 
 }

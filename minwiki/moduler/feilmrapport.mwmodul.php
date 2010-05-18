@@ -17,6 +17,7 @@ class mwmodul_feilmrapport extends mwmodul_base{
 	public function gen_mwmodul($act, $vars){
 		$this->mwmodulact = $act;
 		$this->mwmodulvars = $vars;
+		msg('test',1);
 		$this->frapout = 'Dette er output fra feilmrapport! act er: '. $this->mwmodulact .', vars er: ' . $this->mwmodulvars . '<br />';
 		return $this->frapout;
 	

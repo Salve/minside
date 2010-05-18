@@ -69,7 +69,7 @@ class action_plugin_minwiki_acthandler extends DokuWiki_Action_Plugin {
 			
 			require_once(DOKU_PLUGIN.'minwiki/minwiki/minwiki.php');
 			
-			$mwgen = new minwiki;
+			$mwgen = new minwiki($_SERVER['REMOTE_USER']);
 			print $mwgen->gen_minwiki();
 			
 			
