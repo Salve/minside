@@ -11,11 +11,9 @@ class mwmodul_feilmrapport implements mwmodul{
 	private $mwmodulvars;
 	private $frapout;
 	private $UserID;
-	private $mwdb;
 	
-	public function __construct($UserID, &$dbHandle) {
+	public function __construct($UserID) {
 		$this->UserID = $UserID;
-		$this->mwdb &= $dbHandle;
 	}
 	
 	public function getMwmodulact(){
@@ -26,7 +24,22 @@ class mwmodul_feilmrapport implements mwmodul{
 		$this->mwmodulact = $act;
 		$this->mwmodulvars = $vars;
 		
-		$this->frapout = 'Dette er output fra feilmrapport! act er: '. $this->mwmodulact .', vars er: ' . $this->mwmodulvars . ', userid er: ' . $this->UserID . '<br />';
+		$this->frapout .= 'Dette er output fra feilmrapport! act er: '. $this->mwmodulact .', vars er: ' . $this->mwmodulvars . ', userid er: ' . $this->UserID . '<br />';
+		
+		$skiftID = 2;
+		try{
+			$objSkift = SkiftFactory::getSkift($skiftID);
+		} catch(Exception $e) {
+			die($e->getMessage());
+		}
+		
+		$this->frapout .= $objSkift . '<br />';
+		
+		foreach($objSkift->tellere as $objTeller) {
+			$this->frapout .= $objTeller->getTellerDesc() . ': ' . $objTeller->getTellerVerdi() . '<br />';		
+		}
+		
+		
 		return $this->frapout;
 	
 	}

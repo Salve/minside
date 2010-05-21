@@ -6,12 +6,10 @@ class mwmodul_testmodul implements mwmodul{
 	private $mwmodulvars;
 	private $testmodout;
 	private $UserID;
-	private $mwdb;
 	
-	public function __construct($UserID, &$dbHandle) {
+	public function __construct($UserID) {
 	
 		$this->UserID = $UserID;
-		$this->mwdb &= $dbHandle;
 	}
 	
 	public function gen_mwmodul($act, $vars){

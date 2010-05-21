@@ -21,7 +21,7 @@ class Database {
 	public function assoc($sqlstring) {
 	
 		if ($stmt = $this->hConn->query("$sqlstring")) {
-			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 			return $result;
 		} else {
 			die('sqlfailed');
@@ -31,7 +31,7 @@ class Database {
 	public function num($sqlstring) {
 	
 		if ($stmt = $this->hConn->query("$sqlstring")) {
-			$result = $stmt->fetch(PDO::FETCH_NUM);
+			$result = $stmt->fetchAll(PDO::FETCH_NUM);
 			return $result;
 		} else {
 			die('sqlfailed');

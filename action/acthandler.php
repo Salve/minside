@@ -77,3 +77,4 @@ class action_plugin_minwiki_acthandler extends DokuWiki_Action_Plugin {
     }
     
     }
+	
