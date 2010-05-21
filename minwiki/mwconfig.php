@@ -1,5 +1,5 @@
 <?php
-
+if(!defined('MW_INC')) die();
 class mwcfg {
 
 	public static $db = array(

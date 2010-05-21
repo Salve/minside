@@ -1,4 +1,5 @@
 <?php
+if(!defined('MW_INC')) die();
 require_once('mwconfig.php');
 
 class Database {
@@ -17,13 +18,29 @@ class Database {
 		
 	}
 	
-	public function query($sqlstring) {
+	public function assoc($sqlstring) {
 	
-	if ($result = $this->hConn->query("$sqlstring")) {
-	
-	
-	
+		if ($stmt = $this->hConn->query("$sqlstring")) {
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+			return $result;
+		} else {
+			die('sqlfailed');
+		}
 	}
+	
+	public function num($sqlstring) {
+	
+		if ($stmt = $this->hConn->query("$sqlstring")) {
+			$result = $stmt->fetch(PDO::FETCH_NUM);
+			return $result;
+		} else {
+			die('sqlfailed');
+		}
+	}
+	
+	public function exec($sqlstring) {
+	
+		die('exec ikke implementert enda!');
 	
 	}
 	

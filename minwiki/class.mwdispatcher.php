@@ -1,5 +1,5 @@
 <?php
-
+if(!defined('MW_INC')) die();
 class mwdispatcher {
 
 	private $mw;
