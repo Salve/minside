@@ -11,6 +11,7 @@ class mwcfg {
 	
 	public static $moduler = array(
 	'feilmrapport',
+	'diff',
 	'testmodul',
 	);
 	

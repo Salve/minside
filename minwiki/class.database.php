@@ -34,14 +34,26 @@ class Database {
 			$result = $stmt->fetchAll(PDO::FETCH_NUM);
 			return $result;
 		} else {
-			die('sqlfailed');
+			die("sqlquery failed on: $sqlstring");
 		}
 	}
 	
 	public function exec($sqlstring) {
 	
-		die('exec ikke implementert enda!');
+		$result = $this->hConn->exec("$sqlstring");
 	
+		if ($result === false) {
+			die("sqlexec failed on: $sqlstring");
+		} else {
+			return $result;
+		}
+	
+	}
+	
+	public function quote($inputstring) {
+		
+		return $this->hConn->quote($inputstring);
+		
 	}
 	
 	public function __destruct() {

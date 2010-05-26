@@ -85,6 +85,6 @@ class Collection implements IteratorAggregate {
 	
 	public function getIterator() {
 		$this->_checkCallback;
-		return new CollectionIterator(clone $this);
+		return new CollectionIterator(clone $this); // Iteration skjer på kopi av objekt, endringer kan ikke gjøres i loopen.
 	}
 }

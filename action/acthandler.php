@@ -41,12 +41,21 @@ class action_plugin_minwiki_acthandler extends DokuWiki_Action_Plugin {
      * Handler for ACTION_ACT_PREPROCESS, dersom do-action er 'minwiki' 
      */
     function handleActPreprocess(&$event, $param) {
-        $act = $event->data;
+        global $INFO;
+		$act = $event->data;
         if (is_array($act))
             list($act) = array_keys($act);
      
-        if ($act != 'minwiki')
-            return; // Actions som ikke er 'minwiki' håndteres ikke.
+        if ($act != 'minwiki') {
+			if (!(strrpos($INFO['id'],'mwauth') === false) && $INFO['isadmin'] == false) {
+				die('Kun administratorer har tilgang til mwauth-sider');
+				$event->preventDefault();
+				$event->stopPropagation();
+			} else {
+				return; // Actions som ikke er 'minwiki' håndteres ikke.
+			}
+		
+		}
      
         if (empty($_SERVER['REMOTE_USER'])) {
             $event->data = 'login';
@@ -63,14 +72,21 @@ class action_plugin_minwiki_acthandler extends DokuWiki_Action_Plugin {
      * Gjør nødvendige kall for å starte generering av brukerspesifik side.
      */
     function handleTplActUnknown(&$event, $param) {
-        if ($event->data == 'minwiki') {
+        if (($event->data == 'minwiki') && (auth_quickaclcheck('mwauth:vismeny:info') >= AUTH_READ)) {
             $event->preventDefault(); // Hindrer feilmelding om ukjent action variabel i å vises.
-            $event->stopPropagation(); // Hindrer eventuelle andre plugins fra å behandle eventen (kan ikke garantere at andre plugins får eventen først)
+            $event->stopPropagation(); // Hindrer eventuelle andre plugins fra å behandle eventen (kan ikke garantere at andre plugins ikke får eventen først)
 			
+			$mw_starttime = microtime(true);
+
 			require_once(DOKU_PLUGIN.'minwiki/minwiki/minwiki.php');
 			
 			$mwgen = new minwiki($_SERVER['REMOTE_USER']);
 			print $mwgen->gen_minwiki();
+			
+			$mw_endtime = microtime(true);
+			$mw_gentime = round($mw_endtime - $mw_starttime,3);
+
+			echo "<p>MinWiki generert på $mw_gentime sec!</p>";
 			
 			
         }

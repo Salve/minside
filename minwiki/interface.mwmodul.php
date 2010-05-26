@@ -2,8 +2,10 @@
 if(!defined('MW_INC')) die();
 interface mwmodul{
 	
-	function __construct($UserID);
+	function __construct($UserID, $AdgangsNiva);
 
-	function gen_mwmodul($act, $vars);
+	public function gen_mwmodul($act, $vars);
+	
+	public function registrer_meny(MenyitemCollection &$meny);
 
 }

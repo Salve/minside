@@ -32,7 +32,7 @@ class CollectionIterator implements Iterator {
 	}
 	
 	function valid() {
-		return isset($this->_keys[$this->_currIndex]);
+		return array_key_exists($this->_currIndex, $this->_keys);
 	}
 
 

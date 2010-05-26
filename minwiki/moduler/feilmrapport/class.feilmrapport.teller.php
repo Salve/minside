@@ -10,7 +10,6 @@ class Teller {
 	function __construct($id, $tellerNavn, $tellerDesc, $tellerVerdi = 0) {
 		$this->_id = $id;
 		$this->_tellerNavn = $tellerNavn;
-		$this->_tellerType = $tellerType;
 		$this->_tellerDesc = $tellerDesc;
 		$this->_tellerVerdi = $tellerVerdi;
 	}
