@@ -7,6 +7,7 @@ class Database {
 	private $hConn;
 	public $num_queries;
 	public $querytime;
+	private $debug = false; // sett til true for å vise sql-streng og tid brukt for hver sql-spørring som kjøres
 
 	public function __construct() {
 		
@@ -21,9 +22,6 @@ class Database {
 	}
 	
 	public function assoc($sqlstring, $fetchone = false) {
-	
-		//msg($sqlstring); //debug
-	
 		try {
 			$db_starttime = microtime(true);
 			$stmt = $this->hConn->query("$sqlstring");
@@ -33,6 +31,7 @@ class Database {
 				$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 			}
 			$db_endtime = microtime(true);
+			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
 			$this->querytime += ($db_endtime - $db_starttime);
 			$this->num_queries++;
 			return $result;
@@ -42,8 +41,6 @@ class Database {
 	}
 	
 	public function num($sqlstring, $fetchone = false) {
-		//msg($sqlstring); //debug
-		
 		try {
 			$db_starttime = microtime(true);
 			$stmt = $this->hConn->query("$sqlstring");
@@ -53,7 +50,8 @@ class Database {
 				$result = $stmt->fetchAll(PDO::FETCH_NUM);
 			}
 			$db_endtime = microtime(true);
-			$this->querytime += ($db_endtime - $db_starttime);
+			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+			$this->querytime += $db_endtime - $db_starttime;
 			$this->num_queries++;
 			return $result;
 		} catch (PDOException $e) {
@@ -62,11 +60,11 @@ class Database {
 	}
 	
 	public function exec($sqlstring) {
-		//msg($sqlstring); // debug
 		try {
 			$db_starttime = microtime(true);
 			$result = $this->hConn->exec("$sqlstring");
 			$db_endtime = microtime(true);
+			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
 			$this->querytime += ($db_endtime - $db_starttime);
 			$this->num_queries++;
 			return $result;	

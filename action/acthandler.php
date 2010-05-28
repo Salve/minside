@@ -87,7 +87,7 @@ class action_plugin_minwiki_acthandler extends DokuWiki_Action_Plugin {
 			$mw_gentime = $mw_endtime - $mw_starttime;
 			$db_gentime = $mwgen->getDbGentime();
 			$db_percent = round($db_gentime / $mw_gentime * 100);
-			$mw_gentime = round($mw_gentime,4);
+			$mw_gentime = round($mw_gentime,2);
 			$db_gentime = round($db_gentime,4);
 			$db_queries = $mwgen->getNumDbQueries();
 			print '<br /><br /><br />';

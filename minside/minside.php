@@ -66,11 +66,13 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$mwoutput .= '</div>';
 		
 		
+		/*
 		$mwdisp = new mwdispatcher('testmodul', $this->mwmod, $this, 'show', NULL);
 		$mwoutput .= '<h2>Testmodul</h2>';
 		$mwoutput .= '<div class="level2">';
 		$mwoutput .= $mwdisp->dispatch();
 		$mwoutput .= '</div>';
+		*/
 		
 		
 		

@@ -19,14 +19,14 @@ class SkiftFactory {
 	public static function getTellereForSkift($id, $col) {
 		global $mwdb;
 		$id = $mwdb->quote($id);
-		$sql = "SELECT feilrap_teller.tellerid, feilrap_teller.tellernavn, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$id,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.isactive=1 GROUP BY feilrap_teller.tellerid;";
+		$sql = "SELECT feilrap_teller.tellerid, feilrap_teller.tellertype, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$id,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.isactive=1 GROUP BY feilrap_teller.tellerid;";
 		
 		$data = $mwdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach($data as $datum) {
-			$objTeller = new Teller($datum['tellerid'], $datum['tellernavn'], $datum['tellerdesc'], $datum['tellerverdi']);
-			$col->addItem($objTeller, $objTeller->getTellerNavn());
+			$objTeller = new Teller($datum['tellerid'], $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi']);
+			$col->addItem($objTeller);
 			}
 		}
 	

@@ -28,7 +28,7 @@ class mwmodul_testmodul implements mwmodul{
 		if ($lvl > MWAUTH_NONE) {
 			$toppmeny = new Menyitem('Testmodul','&page=testmodul');
 			
-			//if (isset($this->mwmodulact)) { // Uncomment for å bare vise undermenyer når testmodul faktisk har blitt lastet
+			if (isset($this->mwmodulact)) { // Uncomment for å bare vise undermenyer når testmodul faktisk har blitt lastet
 			
 				if ($lvl == MWAUTH_ADMIN) {
 					$adminmeny = new Menyitem('TestAdmin','&page=testmodul&act=admin');
@@ -42,7 +42,7 @@ class mwmodul_testmodul implements mwmodul{
 					$toppmeny->addChild(new Menyitem('TestSub2','&page=testmodul&act=sub2'));
 				}
 				
-			//}
+			}
 		
 			$meny->addItem($toppmeny);
 		

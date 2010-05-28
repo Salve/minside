@@ -31,6 +31,9 @@ class mwmodul_feilmrapport implements mwmodul{
 		$this->frapout .= 'Output fra feilmrapport: act er: '. $this->mwmodulact . ', userid er: ' . $this->UserID . '<br />';
 		
 		switch($this->mwmodulact) {
+			case "telleradm":
+				$this->frapout .= $this->_genTellerAdm();
+				break;
 			case "closeskift":
 				$this->_closeCurrSkift();
 				$this->frapout .= $this->genSkift();
@@ -75,18 +78,48 @@ class mwmodul_feilmrapport implements mwmodul{
 		
 		$skiftout .= 'Output fra genSkift: ' . $objSkift . '<br />';
 		
+		$skiftout .= '<p>Skift opprettet: ' . $objSkift->getSkiftCreatedTime() . '</p>';
+		
+		$colUlogget = new TellerCollection();
+		$arUlogget = array();
+		
 		$skiftout .= '<table>';	
 		foreach($objSkift->tellere as $objTeller) {
-			$skiftout .= '<tr>';	
-			$skiftout .= '<form action="' . MW_FMR_LINK . '" method="POST">';
-			$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';	
-			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
-			$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />';
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
-			$skiftout .= '</form>';
-			$skiftout .= "</tr>\n\n";
+			switch ($objTeller->getTellerType()) {
+				case 'TELLER':
+					$skiftout .= '<tr>';	
+					$skiftout .= '<form action="' . MW_FMR_LINK . '" method="POST">';
+					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';	
+					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
+					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />';
+					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
+					$skiftout .= '</form>';
+					$skiftout .= "</tr>\n\n";
+					break;
+				case 'ULOGGET':
+					if ($objTeller->getTellerVerdi() > 0) $colUlogget->addItem(clone($objTeller));
+					$arUlogget[$objTeller->getId()] = $objTeller->getTellerDesc();
+					break;
+			}
 		}
-		$skiftout .= '</table>';	
+		$skiftout .= '<tr>';
+		$skiftout .= '<form action="' . MW_FMR_LINK . '" method="POST">';
+		$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
+		$skiftout .= '<td><select name="tellerid">';
+		foreach ($arUlogget as $tellerid => $tellerdesc) {
+			$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+		}
+		$skiftout .= '</select></td><td></td>';
+		$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
+		$skiftout .= '</form>';
+		$skiftout .= "</tr>\n\n";
+		$skiftout .= '</table><br /><br />';
+
+		if ($colUlogget->length() > 0) $skiftout .= 'Uloggede samtaler:<br /><br />';
+		
+		foreach ($colUlogget as $objUlogget) {
+			$skiftout .= $objUlogget . '<br />';
+		}
 		
 		$skiftout .= '<form method="post" action="' . MW_FMR_LINK . '">';
 		$skiftout .= '<input type="hidden" name="act" value="closeskift" />';
@@ -98,6 +131,12 @@ class mwmodul_feilmrapport implements mwmodul{
 		
 		return $skiftout;
 	
+	}
+	
+	private function _genTellerAdm() {
+		$output .= 'TELLERADMIN';
+	
+		return $output;
 	}
 	
 	public function getCurrentSkiftId($userid = false) {
@@ -157,7 +196,7 @@ class mwmodul_feilmrapport implements mwmodul{
 		
 		$result = $mwdb->exec("UPDATE feilrap_skift SET skiftlastupdate=now() WHERE skiftid=" . $mwdb->quote($this->getCurrentSkiftId()) . ";");
 		
-		if ($result != 1) {
+		if ($result === false) {
 			die('Klarte ikke å oppdatere skiftlastupdate!');
 		} else {
 			return true;
@@ -214,8 +253,7 @@ class mwmodul_feilmrapport implements mwmodul{
 		}
 	
 	}
-	
-	
+		
 	private function _checkTellerValue($tellerid, $skiftid) {
 		
 		global $mwdb;
@@ -237,8 +275,17 @@ class mwmodul_feilmrapport implements mwmodul{
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny){
+		$lvl = $this->_accessLvl;
 		
-		if ($this->_accessLvl > MWAUTH_NONE) { $meny->addItem(new Menyitem('FeilM Rapport','&page=feilmrapport')); }
+		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
+		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
+		
+		if ($lvl > MWAUTH_NONE) { 
+			if (($lvl == MWAUTH_ADMIN) && isset($this->mwmodulact)) {
+				$toppmeny->addChild($telleradmin);
+			}
+			$meny->addItem($toppmeny); 
+		}
 		
 	}
 		
