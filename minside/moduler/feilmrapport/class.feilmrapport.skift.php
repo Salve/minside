@@ -1,5 +1,5 @@
 <?php
-if(!defined('MW_INC')) die();
+if(!defined('MS_INC')) die();
 
 class Skift {
 	private $_id;

@@ -1,6 +1,6 @@
 <?php
-if(!defined('MW_INC')) die();
-require_once('mwconfig.php');
+if(!defined('MS_INC')) die();
+require_once('msconfig.php');
 
 class Database {
 
@@ -12,7 +12,7 @@ class Database {
 	public function __construct() {
 		
 		try {
-			$this->hConn = new PDO('mysql:host=' . mwcfg::$db['host'] . ';dbname=' . mwcfg::$db['name'], mwcfg::$db['user'], mwcfg::$db['password']);
+			$this->hConn = new PDO('mysql:host=' . mscfg::$db['host'] . ';dbname=' . mscfg::$db['name'], mscfg::$db['user'], mscfg::$db['password']);
 		}
 		catch(PDOException $e) {
 			throw new Exception("En feil har oppstått ved oppkobling mot database: " . $e->getMessage(), E_USER_ERROR);

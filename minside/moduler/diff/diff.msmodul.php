@@ -1,14 +1,14 @@
 <?php
-if(!defined('MW_INC')) die();
+if(!defined('MS_INC')) die();
 include_once "Text/Diff.php";
 include_once "Text/Diff/Renderer.php";
 include_once "Text/Diff/Renderer/inline.php";
 if (defined('DOKU_INC')) require_once(DOKU_INC.'inc/DifferenceEngine.php');
 
-class mwmodul_diff implements mwmodul{
+class msmodul_diff implements msmodul{
 
-	private $_mwmodulAct;
-	private $_mwmodulVars;
+	private $_msmodulAct;
+	private $_msmodulVars;
 	private $_diffOut;
 	private $_userID;
 	private $_adgang;
@@ -19,13 +19,13 @@ class mwmodul_diff implements mwmodul{
 		$this->_adgang = $adgang;
 	}
 	
-	public function gen_mwmodul($act, $vars){
-		$this->_mwmodulAct = $act;
-		$this->_mwmodulVars = $vars;
+	public function gen_msmodul($act, $vars){
+		$this->_msmodulAct = $act;
+		$this->_msmodulVars = $vars;
 
-		$this->_diffOut = 'Dette er output fra Diff! UserId er: '. $this->_userID . ' act er: ' . $this->_mwmodulAct . '<br /><br />';
+		$this->_diffOut = 'Dette er output fra Diff! UserId er: '. $this->_userID . ' act er: ' . $this->_msmodulAct . '<br /><br />';
 		
-		if ($this->_mwmodulAct == 'dispdiff') {
+		if ($this->_msmodulAct == 'dispdiff') {
 			$text1 = explode ("\n", $_POST['difftext1']);
 			$text2 = explode ("\n", $_POST['difftext2']);
 			
@@ -42,7 +42,7 @@ class mwmodul_diff implements mwmodul{
 				$this->_diffOut .= '<pre>' . $renderer->render($diff) . '</pre>';
 			}
 			
-			$this->_diffOut .= '<form action="' . MW_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<form action="' . MS_LINK . '&page=diff" method="POST">';
 			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="44">';
 			$this->_diffOut .= implode($text1);
 			$this->_diffOut .= '</textarea>';
@@ -50,7 +50,7 @@ class mwmodul_diff implements mwmodul{
 			$this->_diffOut .= implode($text2);
 			$this->_diffOut .= '</textarea>';
 		} else {
-			$this->_diffOut .= '<form action="' . MW_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<form action="' . MS_LINK . '&page=diff" method="POST">';
 			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="40"></textarea>';
 			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="40"></textarea>';
 		}
@@ -67,7 +67,7 @@ class mwmodul_diff implements mwmodul{
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MWAUTH_NONE) { $meny->addItem(new Menyitem('Diff','&page=diff')); }
+		if ($this->_adgang > MSAUTH_NONE) { $meny->addItem(new Menyitem('Diff','&page=diff')); }
 	}
 	
 	

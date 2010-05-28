@@ -1,15 +1,15 @@
 <?php
-if(!defined('MW_INC')) die();
-define(MW_FMR_LINK, MW_LINK . "&page=feilmrapport");
+if(!defined('MS_INC')) die();
+define(MS_FMR_LINK, MS_LINK . "&page=feilmrapport");
 require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.tellercollection.php');
 
-class mwmodul_feilmrapport implements mwmodul{
+class msmodul_feilmrapport implements msmodul{
 
-	private $mwmodulact;
-	private $mwmodulvars;
+	private $msmodulact;
+	private $msmodulvars;
 	private $frapout;
 	private $UserID;
 	private $_accessLvl;
@@ -20,17 +20,17 @@ class mwmodul_feilmrapport implements mwmodul{
 		$this->_accessLvl = $accesslvl;
 	}
 	
-	public function getMwmodulact(){
-		return $this->mwmodulact;
+	public function getMsmodulact(){
+		return $this->msmodulact;
 	}
 	
-	public function gen_mwmodul($act, $vars){
-		$this->mwmodulact = $act;
-		$this->mwmodulvars = $vars;
+	public function gen_msmodul($act, $vars){
+		$this->msmodulact = $act;
+		$this->msmodulvars = $vars;
 		
-		$this->frapout .= 'Output fra feilmrapport: act er: '. $this->mwmodulact . ', userid er: ' . $this->UserID . '<br />';
+		$this->frapout .= 'Output fra feilmrapport: act er: '. $this->msmodulact . ', userid er: ' . $this->UserID . '<br />';
 		
-		switch($this->mwmodulact) {
+		switch($this->msmodulact) {
 			case "telleradm":
 				$this->frapout .= $this->_genTellerAdm();
 				break;
@@ -57,7 +57,7 @@ class mwmodul_feilmrapport implements mwmodul{
 				$this->frapout .= $this->genSkift();
 		}
 		
-		//$this->frapout .= '<br /><img width="600" height="200" src="lib/plugins/minwiki/minwiki/moduler/diff/chartimg.php">';
+		//$this->frapout .= '<br /><img width="600" height="200" src="lib/plugins/minside/minside/moduler/diff/chartimg.php">';
 						
 		return $this->frapout;
 	
@@ -88,7 +88,7 @@ class mwmodul_feilmrapport implements mwmodul{
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
 					$skiftout .= '<tr>';	
-					$skiftout .= '<form action="' . MW_FMR_LINK . '" method="POST">';
+					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';	
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />';
@@ -103,7 +103,7 @@ class mwmodul_feilmrapport implements mwmodul{
 			}
 		}
 		$skiftout .= '<tr>';
-		$skiftout .= '<form action="' . MW_FMR_LINK . '" method="POST">';
+		$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 		$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
 		$skiftout .= '<td><select name="tellerid">';
 		foreach ($arUlogget as $tellerid => $tellerdesc) {
@@ -121,7 +121,7 @@ class mwmodul_feilmrapport implements mwmodul{
 			$skiftout .= $objUlogget . '<br />';
 		}
 		
-		$skiftout .= '<form method="post" action="' . MW_FMR_LINK . '">';
+		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$skiftout .= '<input type="hidden" name="act" value="closeskift" />';
 		$skiftout .= '<input type="submit" value="Avslutt skift" />';
 		$skiftout .= '</form>';
@@ -143,10 +143,10 @@ class mwmodul_feilmrapport implements mwmodul{
 		if ($userid === false) $userid = $this->UserID;
 		if (isset($this->_currentSkiftId) && $userid == $this->UserID) return $this->_currentSkiftId;
 		
-		global $mwdb;
-		$userid = $mwdb->quote($userid);
+		global $msdb;
+		$userid = $msdb->quote($userid);
 
-		$result = $mwdb->num("SELECT skiftid FROM feilrap_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid ORDER BY skiftid DESC LIMIT 1;");
+		$result = $msdb->num("SELECT skiftid FROM feilrap_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid ORDER BY skiftid DESC LIMIT 1;");
 	
 		if (is_numeric($result[0][0])) {
 			$this->_currentSkiftId = $result[0][0];
@@ -157,9 +157,9 @@ class mwmodul_feilmrapport implements mwmodul{
 	}
 	
 	public function getParamValue($param, &$fromrequest = false){
-		if (array_key_exists($param, $this->mwmodulvars)) {
+		if (array_key_exists($param, $this->msmodulvars)) {
 			$fromrequest = false;
-			return $this->mwmodulvars[$param];
+			return $this->msmodulvars[$param];
 		} else if (array_key_exists($param, $_REQUEST)) {
 			$fromrequest = true;
 			return $_REQUEST[$param];
@@ -171,13 +171,13 @@ class mwmodul_feilmrapport implements mwmodul{
 	
 	private function _changeTeller($id, $decrease = false) {
 	
-		global $mwdb;
+		global $msdb;
 		
-		$id = $mwdb->quote($id);
+		$id = $msdb->quote($id);
 		$skiftid = $this->getCurrentSkiftId();
 		if ($skiftid === false) die('Forsøk på å endre teller uten å ha et aktivt skift!');
 		$verdi = ($decrease === false) ? 1 : -1;
-		$result = $mwdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), '$skiftid', $id, '$verdi');");
+		$result = $msdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), '$skiftid', $id, '$verdi');");
 
 		if ($result != 1) {
 			die('Klarte ikke å endre tellerverdi!');
@@ -190,11 +190,11 @@ class mwmodul_feilmrapport implements mwmodul{
 	
 	private function _updateCurrSkift(){
 	
-		global $mwdb;
+		global $msdb;
 		
 		if ($this->getCurrentSkiftId() === false) { die('Kan ikke oppdatere skift når du ikke har et aktivt skift.'); }
 		
-		$result = $mwdb->exec("UPDATE feilrap_skift SET skiftlastupdate=now() WHERE skiftid=" . $mwdb->quote($this->getCurrentSkiftId()) . ";");
+		$result = $msdb->exec("UPDATE feilrap_skift SET skiftlastupdate=now() WHERE skiftid=" . $msdb->quote($this->getCurrentSkiftId()) . ";");
 		
 		if ($result === false) {
 			die('Klarte ikke å oppdatere skiftlastupdate!');
@@ -213,7 +213,7 @@ class mwmodul_feilmrapport implements mwmodul{
 		$output .= '<li>Skiftet ditt har blitt inkludert i en rapport</li>';
 		//$output .= '<li>Skiftet ditt har ikke blitt oppdatert på over 9 timer og er utløpt</li>'; // Ikke implementert
 		$output .= '</ul><br/>';
-		$output .= '<form method="post" action="' . MW_FMR_LINK . '">';
+		$output .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$output .= '<input type="hidden" name="act" value="nyttskift" />';
 		$output .= '<input type="submit" value="Start nytt skift!" />';
 		$output .= '</form>';
@@ -225,10 +225,10 @@ class mwmodul_feilmrapport implements mwmodul{
 	}
 	
 	private function _createNyttSkift() {
-		global $mwdb;
+		global $msdb;
 		if (!$this->getCurrentSkiftId() === false) { die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.'); }
 		
-		$result = $mwdb->exec("INSERT INTO feilrap_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $mwdb->quote($this->UserID) . ", now());");
+		$result = $msdb->exec("INSERT INTO feilrap_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->UserID) . ", now());");
 		if ($result != 1) {
 			die('Klarte ikke å opprette skift!');
 		} else {
@@ -241,10 +241,10 @@ class mwmodul_feilmrapport implements mwmodul{
 	}
 	
 	private function _closeCurrSkift() {
-		global $mwdb;
+		global $msdb;
 		if ($this->getCurrentSkiftId() === false) { die('Kan ikke avslutte skift: Finner ikke aktivt skift.'); }
 		
-		$result = $mwdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=" . $mwdb->quote($this->getCurrentSkiftId()) . ";");
+		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=" . $msdb->quote($this->getCurrentSkiftId()) . ";");
 		if ($result != 1) {
 			die('Klarte ikke å lukke skift med id: ' . $this->getCurrentSkiftId());
 		} else {
@@ -256,14 +256,14 @@ class mwmodul_feilmrapport implements mwmodul{
 		
 	private function _checkTellerValue($tellerid, $skiftid) {
 		
-		global $mwdb;
+		global $msdb;
 		
-		$tellerid = $mwdb->quote($tellerid);
-		$skiftid = $mwdb->quote($skiftid);
+		$tellerid = $msdb->quote($tellerid);
+		$skiftid = $msdb->quote($skiftid);
 		
 		$sql = "SELECT SUM(IF(feilrap_tellerakt.skiftid=$skiftid,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.tellerid=$tellerid;";
 				
-		$result = $mwdb->num($sql);
+		$result = $msdb->num($sql);
 		
 		if (is_numeric($result[0][0])) {
 			return $result[0][0];
@@ -280,8 +280,8 @@ class mwmodul_feilmrapport implements mwmodul{
 		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
 		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
 		
-		if ($lvl > MWAUTH_NONE) { 
-			if (($lvl == MWAUTH_ADMIN) && isset($this->mwmodulact)) {
+		if ($lvl > MSAUTH_NONE) { 
+			if (($lvl == MSAUTH_ADMIN) && isset($this->msmodulact)) {
 				$toppmeny->addChild($telleradmin);
 			}
 			$meny->addItem($toppmeny); 

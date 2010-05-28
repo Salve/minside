@@ -1,9 +1,9 @@
 <?php
-if(!defined('MW_INC')) die();
-class mwmodul_testmodul implements mwmodul{
+if(!defined('MS_INC')) die();
+class msmodul_testmodul implements msmodul{
 
-	private $mwmodulact;
-	private $mwmodulvars;
+	private $msmodulact;
+	private $msmodulvars;
 	private $testmodout;
 	private $UserID;
 	private $_adgangsNiva;
@@ -14,10 +14,10 @@ class mwmodul_testmodul implements mwmodul{
 		$this->_adgangsNiva = $AdgangsNiva;
 	}
 	
-	public function gen_mwmodul($act, $vars){
-		$this->mwmodulact = $act;
-		$this->mwmodulvars = $vars;
-		$this->testmodout = 'Dette er output fra testmodul! UserId er: '. $this->UserID . ' act er: ' . $this->mwmodulact . '<br />';
+	public function gen_msmodul($act, $vars){
+		$this->msmodulact = $act;
+		$this->msmodulvars = $vars;
+		$this->testmodout = 'Dette er output fra testmodul! UserId er: '. $this->UserID . ' act er: ' . $this->msmodulact . '<br />';
 		return $this->testmodout;
 	
 	}
@@ -25,19 +25,19 @@ class mwmodul_testmodul implements mwmodul{
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_adgangsNiva;
 	
-		if ($lvl > MWAUTH_NONE) {
+		if ($lvl > MSAUTH_NONE) {
 			$toppmeny = new Menyitem('Testmodul','&page=testmodul');
 			
-			if (isset($this->mwmodulact)) { // Uncomment for å bare vise undermenyer når testmodul faktisk har blitt lastet
+			if (isset($this->msmodulact)) { // Uncomment for å bare vise undermenyer når testmodul faktisk har blitt lastet
 			
-				if ($lvl == MWAUTH_ADMIN) {
+				if ($lvl == MSAUTH_ADMIN) {
 					$adminmeny = new Menyitem('TestAdmin','&page=testmodul&act=admin');
 					$adminmeny->addChild(new Menyitem('Slett alt!','&page=testmodul&act=adminsub1'));
 					$adminmeny->addChild(new Menyitem('Spis snop!','&page=testmodul&act=adminsub2'));
 					$toppmeny->addChild($adminmeny);
 				}
 				
-				if ($lvl >= MWAUTH_2) {
+				if ($lvl >= MSAUTH_2) {
 					$toppmeny->addChild(new Menyitem('TestSub1','&page=testmodul&act=sub1'));
 					$toppmeny->addChild(new Menyitem('TestSub2','&page=testmodul&act=sub2'));
 				}

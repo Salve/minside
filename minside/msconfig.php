@@ -1,6 +1,6 @@
 <?php
-if(!defined('MW_INC')) die();
-class mwcfg {
+if(!defined('MS_INC')) die();
+class mscfg {
 
 	public static $db = array(
 	'host' => 'localhost',

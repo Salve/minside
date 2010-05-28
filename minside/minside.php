@@ -1,35 +1,35 @@
 <?php
 if(!defined('DOKU_INC')) die(); // Dette scriptet kan kun kjøres via dokuwiki
-define('MW_INC', true); // Alle underscript sjekker om denne er definert
-define(MW_LINK, "?do=minwiki");
-define('MWAUTH_NONE',0); // Matcher dokuwiki sine auth verdier
-define('MWAUTH_1',1);
-define('MWAUTH_2',2);
-define('MWAUTH_3',4);
-define('MWAUTH_4',8);
-define('MWAUTH_5',16);
-define('MWAUTH_ADMIN',255);
+define('MS_INC', true); // Alle underscript sjekker om denne er definert
+define(MS_LINK, "?do=minside");
+define('MSAUTH_NONE',0); // Matcher dokuwiki sine auth verdier
+define('MSAUTH_1',1);
+define('MSAUTH_2',2);
+define('MSAUTH_3',4);
+define('MSAUTH_4',8);
+define('MSAUTH_5',16);
+define('MSAUTH_ADMIN',255);
 
-require_once('mwconfig.php');
+require_once('msconfig.php');
 require_once('class.database.php');
-require_once('interface.mwmodul.php');
-require_once('class.mwdispatcher.php');
+require_once('interface.msmodul.php');
+require_once('class.msdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 
 
-class minwiki { // denne classen instansieres og gen_minwiki() kjøres for å generere minwiki
+class minside { // denne classen instansieres og gen_minside() kjøres for å generere minside
 
-private $mwmod = array(); // array som holder alle lastede moduler som objekter
-private $UserID; // settes til brukerens interne minwiki-id når og hvis den sjekkes
+private $_msmod = array(); // array som holder alle lastede moduler som objekter
+private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
 
 	public function __construct($username) { // kalles når class instansieres
 	
 		try {
-			$GLOBALS['mwdb'] = new Database(); // $mwdb blir en globalt tilgjengelig db-class, se class.database.php
+			$GLOBALS['msdb'] = new Database(); // $msdb blir en globalt tilgjengelig db-class, se class.database.php
 		} catch(Exception $e) {
 			die($e->getMessage());
 		}
@@ -37,15 +37,15 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 	}
 	
-	public function gen_minwiki() { // returnerer all nødvendig xhtml for å vise minwiki som en streng
-		$this->_lastmoduler(); // alle moduler definert i mwconfig.php instansieres, se funksjonen
+	public function gen_minside() { // returnerer all nødvendig xhtml for å vise minside som en streng
+		$this->_lastmoduler(); // alle moduler definert i msconfig.php instansieres, se funksjonen
 		
 		// Kode under er midlertidig hack for å vise "et eller annet" på forsiden
 		
-		$mwpremenu .= '<div class="minwiki">'; 
+		$mspremenu .= '<div class="minside">'; 
 		
-		$mwoutput .= '<h1>MinWiki</h1>';
-		$mwoutput .= 'Output fra minwiki! Navn: ' . $this->username . ' ID: ' . $this->getUserID() . '<br />';
+		$msoutput .= '<h1>Min Side</h1>';
+		$msoutput .= 'Output fra minside! Navn: ' . $this->username . ' ID: ' . $this->getUserID() . '<br />';
 		
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
@@ -59,46 +59,46 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 			$act = 'show';
 		}
 		
-		$mwdisp = new mwdispatcher($page, $this->mwmod, $this, $act, NULL);
-		$mwoutput .= '<h2>' . ucfirst($page) . '</h2>';
-		$mwoutput .= '<div class="level2">';
-		$mwoutput .= $mwdisp->dispatch();
-		$mwoutput .= '</div>';
+		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
+		$msoutput .= '<h2>' . ucfirst($page) . '</h2>';
+		$msoutput .= '<div class="level2">';
+		$msoutput .= $msdisp->dispatch();
+		$msoutput .= '</div>';
 		
 		
 		/*
-		$mwdisp = new mwdispatcher('testmodul', $this->mwmod, $this, 'show', NULL);
-		$mwoutput .= '<h2>Testmodul</h2>';
-		$mwoutput .= '<div class="level2">';
-		$mwoutput .= $mwdisp->dispatch();
-		$mwoutput .= '</div>';
+		$msdisp = new msdispatcher('testmodul', $this->_msmod, $this, 'show', NULL);
+		$msoutput .= '<h2>Testmodul</h2>';
+		$msoutput .= '<div class="level2">';
+		$msoutput .= $msdisp->dispatch();
+		$msoutput .= '</div>';
 		*/
 		
 		
 		
-		$mwoutput .= '</div>';
+		$msoutput .= '</div>';
 		
-		$mwoutput = $mwpremenu . $this->_genMeny() . $mwoutput; // meny genereres til slutt for å gi moduler mest mulig
+		$msoutput = $mspremenu . $this->_genMeny() . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
 																// valgfrihet i hvilke menyitems som skal vises, men
-		return $mwoutput;										// legges i starten av output.
+		return $msoutput;										// legges i starten av output.
 		
 		
 	}
 	
 	private function _lastmoduler() {
 		
-		foreach (mwcfg::$moduler as $modulnavn) { 											// se mwconfig.php
-			require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.mwmodul.php';		// f.eks. moduler/testmodul/testmodul.mwmodul.php
-			$mwclassnavn = 'mwmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. mwmodul_testmodul
-			$this->mwmod[$modulnavn] = new $mwclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
-			// $this->mwmod holder alle lastede moduler
+		foreach (mscfg::$moduler as $modulnavn) { 											// se msconfig.php
+			require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.msmodul.php';		// f.eks. moduler/testmodul/testmodul.msmodul.php
+			$msclassnavn = 'msmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. msmodul_testmodul
+			$this->_msmod[$modulnavn] = new $msclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
+			// $this->_msmod holder alle lastede moduler
 		}
 	
 	}
 	
 	public function getUserID($recursion = false) { // returnerer nåværende brukers interne userid, forsøker å opprette ny bruker om den ikke finnes
 		
-		if ($this->username == '') { die('Username not set on minwiki create'); } // skal i utgangspunktet aldri skje
+		if ($this->username == '') { die('Username not set on minside create'); } // skal i utgangspunktet aldri skje
 			
 		if (isset($this->UserID)) {
 			return $this->UserID;			// dersom denne funksjonen allerede er kjørt er det bare å svare samme som sist gang
@@ -117,10 +117,10 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	}
 	
 	private function _lookupUserID($username) {  // sjekker db for gitt username, returnerer userid eller false
-		global $mwdb;
+		global $msdb;
 		if ($username == '') { die('Kan ikke sjekke id til tomt brukernavn'); }
 		
-		$result = $mwdb->assoc('SELECT id FROM internusers WHERE wikiname = ' . $mwdb->quote($this->username) . ' LIMIT 1;');
+		$result = $msdb->assoc('SELECT id FROM internusers WHERE wikiname = ' . $msdb->quote($this->username) . ' LIMIT 1;');
 		
 		if ($result[0]['id'] != 0) {
 			return $result[0]['id']; // fant userid
@@ -130,10 +130,10 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	}
 	
 	private function _createUser($username){ // forsøker å opprette ny userid for gitt username
-		global $mwdb;
+		global $msdb;
 		if ($username == '') { die('Kan ikke opprette bruker med tomt brukernavn'); }
 	
-		$result = $mwdb->exec("INSERT INTO internusers (wikiname, createtime, lastlogin, isactive) VALUES (" . $mwdb->quote($username) . ", now(), now(), '1');");
+		$result = $msdb->exec("INSERT INTO internusers (wikiname, createtime, lastlogin, isactive) VALUES (" . $msdb->quote($username) . ", now(), now(), '1');");
 		if ($result = 1) {
 			msg("Opprettet ny brukerid for bruker: $username",1); //debug
 			return true;
@@ -147,12 +147,12 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 		$meny = new MenyitemCollection(); // collection-variabel som sendes til alle lastede moduler
 		
-		foreach ($this->mwmod as $mwmod) {
-			$mwmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
+		foreach ($this->_msmod as $msmod) {
+			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
 	
 		$output .= '<div class="toc">';
-		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Wiki Meny</div>';
+		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Side - Meny</div>';
 		$output .= '<div id="toc__inside">';
 		$output .= $this->_genMenyitem($meny, 1); // recursive funksjon som kaller seg selv dersom et item har underitems
 		$output .= '</div>';
@@ -168,7 +168,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$output .= '<ul class="toc">';
 		foreach ($col as $menyitem) {
 			$output .= '<li class="level$lvl">';
-			$output .= '<div class="li"><span class="li"><a href="' . MW_LINK . $menyitem->getHref() . '" class="toc">' . $menyitem->getTekst() . '</a></span></div>';
+			$output .= '<div class="li"><span class="li"><a href="' . MS_LINK . $menyitem->getHref() . '" class="toc">' . $menyitem->getTekst() . '</a></span></div>';
 			$output .= '</li>';
 			if ($menyitem->hasChildren()) {
 				$output .= $this->_genMenyitem($menyitem->getChildren(), $lvl+1);
@@ -181,22 +181,22 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 	public function sjekkAdgang($modul = '') { // returnerer en int (se definisjon på toppen av denne filen, samt dokuwikis auth.php
 	
-		$id = 'mwauth:' . $modul . ':info'; // siden mwauth:modulnavn:info må opprettes i dokuwiki for hver modul. ACL må settes opp mot denne siden.
+		$id = 'MSAUTH:' . $modul . ':info'; // siden MSAUTH:modulnavn:info må opprettes i dokuwiki for hver modul. ACL må settes opp mot denne siden.
 		// echo 'Sjekker adgang til: ', $id, '. Adgangsnivå er: ', auth_quickaclcheck($id), '<br />'; // Debug.
 		return auth_quickaclcheck($id);	
 	
 	}
 	
 	public function getDbGentime(){
-		global $mwdb;
+		global $msdb;
 		
-		return $mwdb->querytime;
+		return $msdb->querytime;
 	}
 	
 	public function getNumDbQueries(){
-		global $mwdb;
+		global $msdb;
 		
-		return $mwdb->num_queries;
+		return $msdb->num_queries;
 	}
 	
 

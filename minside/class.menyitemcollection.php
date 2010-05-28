@@ -1,5 +1,5 @@
 <?php
-if(!defined('MW_INC')) die();
+if(!defined('MS_INC')) die();
 
 class MenyitemCollection extends Collection {
 	public function addItem(Menyitem $obj, $key = null) {
