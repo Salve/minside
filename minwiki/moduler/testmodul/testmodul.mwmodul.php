@@ -28,19 +28,23 @@ class mwmodul_testmodul implements mwmodul{
 		if ($lvl > MWAUTH_NONE) {
 			$toppmeny = new Menyitem('Testmodul','&page=testmodul');
 			
-			if ($lvl == MWAUTH_ADMIN) {
-				$adminmeny = new Menyitem('TestAdmin','&page=testmodul&act=admin');
-				$adminmeny->addChild(new Menyitem('Slett alt!','&page=testmodul&act=adminsub1'));
-				$adminmeny->addChild(new Menyitem('Spis snop!','&page=testmodul&act=adminsub2'));
-				$toppmeny->addChild($adminmeny);
-			}
+			//if (isset($this->mwmodulact)) { // Uncomment for å bare vise undermenyer når testmodul faktisk har blitt lastet
 			
-			if ($lvl >= MWAUTH_2) {
-				$toppmeny->addChild(new Menyitem('TestSub1','&page=testmodul&act=sub1'));
-				$toppmeny->addChild(new Menyitem('TestSub2','&page=testmodul&act=sub2'));
-			}
+				if ($lvl == MWAUTH_ADMIN) {
+					$adminmeny = new Menyitem('TestAdmin','&page=testmodul&act=admin');
+					$adminmeny->addChild(new Menyitem('Slett alt!','&page=testmodul&act=adminsub1'));
+					$adminmeny->addChild(new Menyitem('Spis snop!','&page=testmodul&act=adminsub2'));
+					$toppmeny->addChild($adminmeny);
+				}
+				
+				if ($lvl >= MWAUTH_2) {
+					$toppmeny->addChild(new Menyitem('TestSub1','&page=testmodul&act=sub1'));
+					$toppmeny->addChild(new Menyitem('TestSub2','&page=testmodul&act=sub2'));
+				}
+				
+			//}
 		
-		$meny->addItem($toppmeny);
+			$meny->addItem($toppmeny);
 		
 		}
 		

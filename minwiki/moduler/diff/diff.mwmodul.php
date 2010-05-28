@@ -22,22 +22,32 @@ class mwmodul_diff implements mwmodul{
 		$this->_mwmodulAct = $act;
 		$this->_mwmodulVars = $vars;
 
-		/*
-		if (isset($_POST['submit'])) {
+		$this->_diffOut = 'Dette er output fra Diff! UserId er: '. $this->_userID . ' act er: ' . $this->_mwmodulAct . '<br /><br />';
+		
+		if ($this->_mwmodulAct == 'dispdiff') {
 			$text1 = explode ("\n", $_POST['difftext1']);
 			$text2 = explode ("\n", $_POST['difftext2']);
 			$diff = &new Text_Diff($text1, $text2);
 			$renderer = &new Text_Diff_Renderer_inline();
-			echo "<pre>".$renderer->render($diff)."</pre>";
-			echo "<form action='saker.php?view=diff' method='POST'><textarea name='text1' rows='20' cols='40'>".implode($text1)."</textarea><textarea name='text2' rows='20' cols='40'>".implode($text2)."</textarea><br><input type='submit' name='submit'></form>";	
+			$this->_diffOut .= '<pre>' . $renderer->render($diff) . '</pre>';
+			$this->_diffOut .= '<form action="' . MW_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="44">';
+			$this->_diffOut .= implode($text1);
+			$this->_diffOut .= '</textarea>';
+			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="44">';
+			$this->_diffOut .= implode($text2);
+			$this->_diffOut .= '</textarea>';
+			$this->_diffOut .= '<input type="hidden" name="act" value="dispdiff" />';
+			$this->_diffOut .= '<br><input type="submit" value="Sjekk diff" class="button" /></form>';	
 		} else {
-			echo "<form action='saker.php?view=diff' method='POST'><textarea name='text1' rows='20' cols='40'></textarea><textarea name='text2' rows='20' cols='40'></textarea><br><input type='submit' name='submit'></form>";
+			$this->_diffOut .= '<form action="' . MW_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="40"></textarea>';
+			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="40"></textarea>';
+			$this->_diffOut .= '<input type="hidden" name="act" value="dispdiff" />';
+			$this->_diffOut .= '<br><input type="submit" value="Sjekk diff" class="button" /></form>';
 		}
 		
-		*/
-
-
-	return $this->_diffOut;
+		return $this->_diffOut;
 	
 	}
 	
