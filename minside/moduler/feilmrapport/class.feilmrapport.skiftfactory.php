@@ -15,6 +15,25 @@ class SkiftFactory {
 		}
 		
 	}
+	
+	public static function getTeller($tellerid, $skiftid) {
+		global $msdb;
+		$safeskiftid = $msdb->quote($skiftid);
+		$safetellerid = $msdb->quote($tellerid);
+		
+		$sql = "SELECT feilrap_teller.tellertype, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$safeskiftid,feilrap_tellerakt.verdi,0)) AS 'tellerverdi', feilrap_teller.isactive FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.tellerid=$safetellerid LIMIT 1;";
+		
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			$objTeller = new Teller($tellerid, $skiftid, $data[0]['tellerdesc'], $data[0]['tellertype'], $data[0]['tellerverdi'], $data[0]['isactive']);
+			return $objTeller;
+		} else {
+			die("Klarte ikke å laste tellerid: $tellerid for skift: $skiftid.");
+		}
+	
+	
+	}
 
 	public static function getTellereForSkift($id, $col) {
 		global $msdb;
@@ -25,7 +44,7 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach($data as $datum) {
-			$objTeller = new Teller($datum['tellerid'], $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi']);
+			$objTeller = new Teller($datum['tellerid'], $id, $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi']);
 			$col->addItem($objTeller);
 			}
 		}

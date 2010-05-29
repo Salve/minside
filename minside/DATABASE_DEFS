@@ -1,0 +1,92 @@
+DROP TABLE IF EXISTS `feilrap_skift`;
+CREATE TABLE `feilrap_skift` (
+  `skiftid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `skiftcreated` datetime NOT NULL,
+  `skiftclosed` datetime DEFAULT NULL,
+  `israpportert` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `userid` int(10) unsigned NOT NULL,
+  `rapportid` int(10) unsigned DEFAULT NULL,
+  `skiftlastupdate` datetime DEFAULT NULL,
+  PRIMARY KEY (`skiftid`),
+  UNIQUE KEY `skiftid_UNIQUE` (`skiftid`),
+  KEY `skift_eier` (`userid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `feilrap_teller`;
+CREATE TABLE `feilrap_teller` (
+  `tellerid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tellernavn` varchar(45) NOT NULL DEFAULT 'TELLER UTEN NAVN',
+  `tellerdesc` varchar(200) DEFAULT NULL,
+  `tellertype` varchar(20) NOT NULL,
+  `isactive` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`tellerid`),
+  UNIQUE KEY `tellerid_UNIQUE` (`tellerid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `feilrap_tellerakt`;
+CREATE TABLE `feilrap_tellerakt` (
+  `telleraktid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tidspunkt` datetime NOT NULL,
+  `skiftid` int(10) unsigned NOT NULL,
+  `tellerid` int(10) unsigned NOT NULL,
+  `verdi` tinyint(4) NOT NULL,
+  PRIMARY KEY (`telleraktid`),
+  UNIQUE KEY `telleraktid_UNIQUE` (`telleraktid`),
+  KEY `skiftid` (`skiftid`),
+  KEY `tellertypeid` (`tellerid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `internusers`;
+CREATE TABLE `internusers` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `wikiname` varchar(45) NOT NULL DEFAULT 'MANGLER NAVN',
+  `createtime` datetime NOT NULL,
+  `lastlogin` datetime DEFAULT NULL,
+  `isactive` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `fullname_UNIQUE` (`wikiname`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSPT', 'SPT', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSERV', 'Serviceoppdrag', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSVF', 'ks@vf', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSOF', 'ks@of', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLDLS', 'DLS', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLFRAUD', 'Fraud', 'TELLER', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULBKK', 'BKK', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULEB', 'EB', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKLEPP', 'Klepp', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKRAGERO', 'Kragerø', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLIER', 'Lier', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLOFOT', 'Lofotkraft', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSE', 'Lyse', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSEBED', 'Lyse Bedrift', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNOTODDEN', 'Notodden', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNTE', 'NTE', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSIGNAL', 'Signal', 'ULOGGET', '0');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSKAGERAK', 'Skagerak', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVKBB', 'Vesterålskraft', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVIKEN', 'Viken', 'ULOGGET', '1');
+
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULOSTFOLD', 'Østfold', 'ULOGGET', '1');

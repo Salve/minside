@@ -43,14 +43,15 @@ class msmodul_feilmrapport implements msmodul{
 				$this->frapout .= $this->genSkift();
 				break;
 			case "mod_teller":
-				if(array_key_exists('inc_teller', $_REQUEST)) {
-					$this->_changeTeller($_REQUEST['tellerid'], false);
-				} elseif(array_key_exists('dec_teller', $_REQUEST)) {
-					if($this->_checkTellerValue($_REQUEST['tellerid'], $this->getCurrentSkiftId()) > 0) {
+				try {
+					if(array_key_exists('inc_teller', $_REQUEST)) {
+						$this->_changeTeller($_REQUEST['tellerid'], false);
+					} elseif(array_key_exists('dec_teller', $_REQUEST)) {
 						$this->_changeTeller($_REQUEST['tellerid'], true);
-					} else {
-						msg("Tellerverdi er 0, kan ikke redusere teller",-1);
 					}
+				}
+				catch (Exception $e) {
+					msg($e->getMessage(), -1);
 				}
 			case "show":
 			default:
@@ -102,17 +103,21 @@ class msmodul_feilmrapport implements msmodul{
 					break;
 			}
 		}
-		$skiftout .= '<tr>';
-		$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-		$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
-		$skiftout .= '<td><select name="tellerid">';
-		foreach ($arUlogget as $tellerid => $tellerdesc) {
-			$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+		
+		if (!empty($arUlogget)){
+			$skiftout .= '<tr>';
+			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
+			$skiftout .= '<td><select name="tellerid">';
+			foreach ($arUlogget as $tellerid => $tellerdesc) {
+				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+			}
+			$skiftout .= '</select></td><td></td>';
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
+			$skiftout .= '</form>';
+			$skiftout .= "</tr>\n\n";
 		}
-		$skiftout .= '</select></td><td></td>';
-		$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
-		$skiftout .= '</form>';
-		$skiftout .= "</tr>\n\n";
+		
 		$skiftout .= '</table><br /><br />';
 
 		if ($colUlogget->length() > 0) $skiftout .= 'Uloggede samtaler:<br /><br />';
@@ -170,40 +175,21 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _changeTeller($id, $decrease = false) {
-	
-		global $msdb;
 		
-		$id = $msdb->quote($id);
+		$tellerid = $id;
 		$skiftid = $this->getCurrentSkiftId();
+		
 		if ($skiftid === false) die('Forsøk på å endre teller uten å ha et aktivt skift!');
-		$verdi = ($decrease === false) ? 1 : -1;
-		$result = $msdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), '$skiftid', $id, '$verdi');");
-
-		if ($result != 1) {
-			die('Klarte ikke å endre tellerverdi!');
-		} else {
-			$this->_updateCurrSkift();
-			return true;
-		}	
 		
-	}
-	
-	private function _updateCurrSkift(){
-	
-		global $msdb;
-		
-		if ($this->getCurrentSkiftId() === false) { die('Kan ikke oppdatere skift når du ikke har et aktivt skift.'); }
-		
-		$result = $msdb->exec("UPDATE feilrap_skift SET skiftlastupdate=now() WHERE skiftid=" . $msdb->quote($this->getCurrentSkiftId()) . ";");
-		
-		if ($result === false) {
-			die('Klarte ikke å oppdatere skiftlastupdate!');
-		} else {
-			return true;
+		try {
+			$objTeller = SkiftFactory::getTeller($tellerid, $skiftid);
+			$objTeller->modTeller($decrease);
+		} 
+		catch (Exception $e){
+			throw new Exception($e->getMessage());
 		}
-		
 	}
-	
+		
 	private function _genNoCurrSkift() {
 	
 		$output .= '<div class="noskift">';
@@ -253,27 +239,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 	
 	}
-		
-	private function _checkTellerValue($tellerid, $skiftid) {
-		
-		global $msdb;
-		
-		$tellerid = $msdb->quote($tellerid);
-		$skiftid = $msdb->quote($skiftid);
-		
-		$sql = "SELECT SUM(IF(feilrap_tellerakt.skiftid=$skiftid,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.tellerid=$tellerid;";
-				
-		$result = $msdb->num($sql);
-		
-		if (is_numeric($result[0][0])) {
-			return $result[0][0];
-		} else {
-			return false;
-		}
-		
-	
-	}
-	
+			
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;
 		

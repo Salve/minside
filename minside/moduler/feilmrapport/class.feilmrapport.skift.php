@@ -6,6 +6,8 @@ class Skift {
 	private $_skiftCreatedTime;
 	private $_skiftClosedTime;
 	private $_skiftOwnerId;
+	private $_skiftLastUpdate;
+	public $checkedLastUpdate = false;
 	
 	public $tellere;
 	
@@ -45,6 +47,21 @@ class Skift {
 	
 	public function _loadTellere(Collection $col) {
 		$arTellere = SkiftFactory::getTellereForSkift($this->_id, $col);
+	}
+	
+	public function getSkiftLastUpdate() {
+		if ($this->checkedLastUpdate) {
+			return $this->_skiftLastUpdate;
+		} else {
+			global $msdb;
+			$safeskiftid = $msdb->quote($this->_id);
+			$result = $msdb->num("SELECT tidspunkt FROM feilrap_tellerakt WHERE skiftid=$safeskiftid ORDER BY telleraktid DESC LIMIT 1;");
+			$this->_skiftLastUpdate = $result[0][0];
+			$this->checkedLastUpdate = true;
+			return $this->getSkiftLastUpdate();
+		}
+	
+	
 	}
 
 
