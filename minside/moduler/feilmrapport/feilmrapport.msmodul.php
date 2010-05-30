@@ -8,39 +8,39 @@ require_once('class.feilmrapport.tellercollection.php');
 
 class msmodul_feilmrapport implements msmodul{
 
-	private $msmodulact;
-	private $msmodulvars;
-	private $frapout;
-	private $UserID;
+	private $_msmodulact;
+	private $_msmodulvars;
+	private $_frapout;
+	private $_userId;
 	private $_accessLvl;
 	private $_currentSkiftId;
 	
 	public function __construct($UserID, $accesslvl) {
-		$this->UserID = $UserID;
+		$this->_userId = $UserID;
 		$this->_accessLvl = $accesslvl;
 	}
 	
 	public function getMsmodulact(){
-		return $this->msmodulact;
+		return $this->_msmodulact;
 	}
 	
 	public function gen_msmodul($act, $vars){
-		$this->msmodulact = $act;
-		$this->msmodulvars = $vars;
+		$this->_msmodulact = $act;
+		$this->_msmodulvars = $vars;
 		
-		$this->frapout .= 'Output fra feilmrapport: act er: '. $this->msmodulact . ', userid er: ' . $this->UserID . '<br />';
+		$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
-		switch($this->msmodulact) {
+		switch($this->_msmodulact) {
 			case "telleradm":
-				$this->frapout .= $this->_genTellerAdm();
+				$this->_frapout .= $this->_genTellerAdm();
 				break;
 			case "closeskift":
 				$this->_closeCurrSkift();
-				$this->frapout .= $this->genSkift();
+				$this->_frapout .= $this->genSkift();
 				break;
 			case "nyttskift":
 				$this->_createNyttSkift();
-				$this->frapout .= $this->genSkift();
+				$this->_frapout .= $this->genSkift();
 				break;
 			case "mod_teller":
 				try {
@@ -55,12 +55,12 @@ class msmodul_feilmrapport implements msmodul{
 				}
 			case "show":
 			default:
-				$this->frapout .= $this->genSkift();
+				$this->_frapout .= $this->genSkift();
 		}
 		
-		//$this->frapout .= '<br /><img width="600" height="200" src="lib/plugins/minside/minside/moduler/diff/chartimg.php">';
+		//$this->_frapout .= '<br /><img width="600" height="200" src="lib/plugins/minside/minside/moduler/diff/chartimg.php">';
 						
-		return $this->frapout;
+		return $this->_frapout;
 	
 	}
 	
@@ -145,8 +145,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	public function getCurrentSkiftId($userid = false) {
-		if ($userid === false) $userid = $this->UserID;
-		if (isset($this->_currentSkiftId) && $userid == $this->UserID) return $this->_currentSkiftId;
+		if ($userid === false) $userid = $this->_userId;
+		if (isset($this->_currentSkiftId) && $userid == $this->_userId) return $this->_currentSkiftId;
 		
 		global $msdb;
 		$userid = $msdb->quote($userid);
@@ -162,9 +162,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	public function getParamValue($param, &$fromrequest = false){
-		if (array_key_exists($param, $this->msmodulvars)) {
+		if (array_key_exists($param, $this->_msmodulvars)) {
 			$fromrequest = false;
-			return $this->msmodulvars[$param];
+			return $this->_msmodulvars[$param];
 		} else if (array_key_exists($param, $_REQUEST)) {
 			$fromrequest = true;
 			return $_REQUEST[$param];
@@ -214,7 +214,7 @@ class msmodul_feilmrapport implements msmodul{
 		global $msdb;
 		if (!$this->getCurrentSkiftId() === false) { die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.'); }
 		
-		$result = $msdb->exec("INSERT INTO feilrap_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->UserID) . ", now());");
+		$result = $msdb->exec("INSERT INTO feilrap_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->_userId) . ", now());");
 		if ($result != 1) {
 			die('Klarte ikke å opprette skift!');
 		} else {
@@ -247,7 +247,7 @@ class msmodul_feilmrapport implements msmodul{
 		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
 		
 		if ($lvl > MSAUTH_NONE) { 
-			if (($lvl == MSAUTH_ADMIN) && isset($this->msmodulact)) {
+			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($telleradmin);
 			}
 			$meny->addItem($toppmeny); 
