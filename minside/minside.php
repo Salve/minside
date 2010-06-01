@@ -181,7 +181,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 	public function sjekkAdgang($modul = '') { // returnerer en int (se definisjon på toppen av denne filen, samt dokuwikis auth.php
 	
-		$id = 'MSAUTH:' . $modul . ':info'; // siden MSAUTH:modulnavn:info må opprettes i dokuwiki for hver modul. ACL må settes opp mot denne siden.
+		$id = 'msauth:' . $modul . ':info'; // siden msauth:modulnavn:info må opprettes i dokuwiki for hver modul. ACL må settes opp mot denne siden.
 		// echo 'Sjekker adgang til: ', $id, '. Adgangsnivå er: ', auth_quickaclcheck($id), '<br />'; // Debug.
 		return auth_quickaclcheck($id);	
 	
