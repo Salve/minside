@@ -22,55 +22,70 @@ class Database {
 	}
 	
 	public function assoc($sqlstring, $fetchone = false) {
+		$db_starttime = microtime(true);
+		
 		try {
-			$db_starttime = microtime(true);
-			$stmt = $this->hConn->query("$sqlstring");
-			if ($fetchone) {
-				$result = $stmt->fetch(PDO::FETCH_ASSOC);
-			} else {
-				$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-			}
-			$db_endtime = microtime(true);
-			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
-			$this->querytime += ($db_endtime - $db_starttime);
-			$this->num_queries++;
-			return $result;
-		} catch (PDOException $e) {
+			$stmt = $this->hConn->prepare("$sqlstring");
+			$stmt->execute();
+		} catch (Exception $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
+		if ($fetchone) {
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		} else {
+			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+		
+		$db_endtime = microtime(true);
+		
+		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		
+		$this->querytime += ($db_endtime - $db_starttime);
+		$this->num_queries++;
+		
+		return $result;
 	}
 	
 	public function num($sqlstring, $fetchone = false) {
+		$db_starttime = microtime(true);
+		
 		try {
-			$db_starttime = microtime(true);
-			$stmt = $this->hConn->query("$sqlstring");
-			if ($fetchone) {
-				$result = $stmt->fetch(PDO::FETCH_NUM);	
-			} else {
-				$result = $stmt->fetchAll(PDO::FETCH_NUM);
-			}
-			$db_endtime = microtime(true);
-			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
-			$this->querytime += $db_endtime - $db_starttime;
-			$this->num_queries++;
-			return $result;
-		} catch (PDOException $e) {
+			$stmt = $this->hConn->prepare("$sqlstring");
+			$stmt->execute();
+		} catch (Exception $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
+		if ($fetchone) {
+			$result = $stmt->fetch(PDO::FETCH_NUM);	
+		} else {
+			$result = $stmt->fetchAll(PDO::FETCH_NUM);
+		}
+		
+		$db_endtime = microtime(true);
+		
+		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		$this->querytime += $db_endtime - $db_starttime;
+		$this->num_queries++;
+		
+		return $result;
 	}
 	
 	public function exec($sqlstring) {
+		$db_starttime = microtime(true);
+		
 		try {
-			$db_starttime = microtime(true);
 			$result = $this->hConn->exec("$sqlstring");
-			$db_endtime = microtime(true);
-			if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
-			$this->querytime += ($db_endtime - $db_starttime);
-			$this->num_queries++;
-			return $result;	
-		} catch (PDOException $e) {
+		} catch (Exception $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
+		
+		$db_endtime = microtime(true);
+		
+		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		$this->querytime += ($db_endtime - $db_starttime);
+		$this->num_queries++;
+		
+		return $result;	
 	}
 	
 	public function quote($inputstring) {
