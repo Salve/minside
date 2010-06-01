@@ -3,6 +3,7 @@ if(!defined('MS_INC')) die();
 define(MS_FMR_LINK, MS_LINK . "&page=feilmrapport");
 require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
+require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.tellercollection.php');
 
