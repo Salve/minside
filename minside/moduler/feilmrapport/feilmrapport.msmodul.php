@@ -84,6 +84,9 @@ class msmodul_feilmrapport implements msmodul{
 		$colUlogget = new TellerCollection();
 		$arUlogget = array();
 		
+		$colSecTeller = new TellerCollection();
+		$arSecTeller = array();
+		
 		$skiftout .= '<table>';	
 		foreach($objSkift->tellere as $objTeller) {
 			switch ($objTeller->getTellerType()) {
@@ -101,14 +104,34 @@ class msmodul_feilmrapport implements msmodul{
 					if ($objTeller->getTellerVerdi() > 0) $colUlogget->addItem(clone($objTeller));
 					$arUlogget[$objTeller->getId()] = $objTeller->getTellerDesc();
 					break;
+				case 'SECTELLER':
+					if ($objTeller->getTellerVerdi() > 0) $colSecTeller->addItem(clone($objTeller));
+					$arSecTeller[$objTeller->getId()] = $objTeller->getTellerDesc();
+					break;
 			}
 		}
+		
+		if (!empty($arSecTeller)){
+			$skiftout .= '<tr>';
+			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
+			$skiftout .= '<td><select name="tellerid">';
+			$skiftout .= '<option value="NOSEL">Annet: </option>';
+			foreach ($arSecTeller as $tellerid => $tellerdesc) {
+				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+			}
+			$skiftout .= '</select></td><td></td>';
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
+			$skiftout .= '</form>';
+			$skiftout .= "</tr>\n\n";
+		}		
 		
 		if (!empty($arUlogget)){
 			$skiftout .= '<tr>';
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
 			$skiftout .= '<td><select name="tellerid">';
+			$skiftout .= '<option value="NOSEL">Ulogget: </option>';
 			foreach ($arUlogget as $tellerid => $tellerdesc) {
 				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
 			}
@@ -120,12 +143,27 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$skiftout .= '</table><br /><br />';
 
-		if ($colUlogget->length() > 0) $skiftout .= 'Uloggede samtaler:<br /><br />';
-		
-		foreach ($colUlogget as $objUlogget) {
-			$skiftout .= $objUlogget . '<br />';
+		if ($colSecTeller->length() > 0) {
+			$skiftout .= '<p>';
+			$skiftout .= '<strong>Annet:</strong><br />';
+			
+			foreach ($colSecTeller as $objTeller) {
+				$skiftout .= $objTeller . '<br />';
+			}
+			$skiftout .= '</p>';
 		}
 		
+		if ($colUlogget->length() > 0) {
+			$skiftout .= '<p>';
+			$skiftout .= '<strong>Uloggede samtaler:</strong><br />';
+			
+			foreach ($colUlogget as $objTeller) {
+				$skiftout .= $objTeller . '<br />';
+			}
+			$skiftout .= '</p>';
+		}
+
+		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$skiftout .= '<input type="hidden" name="act" value="closeskift" />';
 		$skiftout .= '<input type="submit" value="Avslutt skift" />';
@@ -181,13 +219,21 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($skiftid === false) die('Forsøk på å endre teller uten å ha et aktivt skift!');
 		
+		if ($id == 'NOSEL') {
+			throw new Exception('Du må gjøre et valg i listen!');
+			return false;
+		}
+		
 		try {
 			$objTeller = SkiftFactory::getTeller($tellerid, $skiftid);
 			$objTeller->modTeller($decrease);
 		} 
 		catch (Exception $e){
 			throw new Exception($e->getMessage());
+			return false;
 		}
+		
+		return true;
 	}
 		
 	private function _genNoCurrSkift() {
