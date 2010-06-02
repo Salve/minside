@@ -26,8 +26,8 @@ class msmodul_nyhetgen implements msmodul{
 		$overskrift = $_POST['overskrift'];
 		$bread = $_POST['ingress'];
 		$tekst = $_POST['tekst'];
-		$signatur = '---//[['.$INFO['userinfo']['mail'].'|'.$INFO['userinfo']['name'].']] '.$dato.' // <br>';
-		$this->_nyhetgenOut .= nl2br('&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.' **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n");
+		$signatur = '---//[['.$INFO['userinfo']['mail'].'|'.$INFO['userinfo']['name'].']] '.$dato.' // ';
+		$this->_nyhetgenOut .= nl2br('&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.'\\\ **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n");
 		$this->_nyhetgenOut .= '
 			<fieldset style="width: 600px;">
 				<legend>
