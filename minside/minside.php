@@ -38,6 +38,11 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	}
 	
 	public function gen_minside() { // returnerer all nødvendig xhtml for å vise minside som en streng
+		if (!($this->sjekkAdgang('vismeny') > MSAUTH_NONE)) {
+			return '<h1>Ingen adgang</h1><p>Brukeren ' . $this->username . ' har ikke tilgang til å vise Min Side. ' . 
+				'Kontakt en teamleder dersom du har spørsmål til dette.</p>';
+		}
+		
 		$this->_lastmoduler(); // alle moduler definert i msconfig.php instansieres, se funksjonen
 		
 		// Kode under er midlertidig hack for å vise "et eller annet" på forsiden
