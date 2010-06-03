@@ -6,17 +6,15 @@ class Notat {
 	private $_skiftId;
 	private $_isActive;
 	private $_notatTekst;
-	private $_notatDesc;
 	private $_notatType;
 	private $_isSaved;
 	private $_isRapportert;
 	
-	function __construct($id, $skiftid, $notatDesc, $notatType, $notatTekst, $issaved, $isactive = true, $israpportert = false) {
+	function __construct($id, $skiftid, $notatType, $notatTekst, $issaved, $isactive = true, $israpportert = false) {
 		$this->_id = $id;
 		$this->_skiftId = $skiftid;
 		$this->_isActive = $isactive;
-		$this->_notatDesc = $notatDesc;
-		$this->_notatVerdi = $notatTekst;
+		$this->_notatTekst = $notatTekst;
 		$this->_notatType = $notatType;
 		$this->_isSaved = $issaved;
 		$this->_isRapportert = $israpportert;
@@ -28,10 +26,6 @@ class Notat {
 	
 	public function getSkiftId() {
 		return $this->_skiftId;
-	}
-		
-	public function getNotatDesc() {
-		return $this->_notatDesc;
 	}
 	
 	public function getNotatTekst() {
@@ -55,7 +49,7 @@ class Notat {
 	}
 
 	public function __toString() {
-		return $this->_notatTekst;
+		return (string) $this->_notatTekst;
 	}
 	
 	public function setNotatTekst($inputtekst) {

@@ -6,6 +6,7 @@ require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.tellercollection.php');
+require_once('class.feilmrapport.notatcollection.php');
 
 class msmodul_feilmrapport implements msmodul{
 
@@ -65,6 +66,24 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
+	private function genNotat(Notat &$objNotat, $edit = false) {
+		if ($edit) {
+			$output .= '<p>';
+			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$output .= '<input type="hidden" name="act" value="modnotat" />';
+			$output .= '<textarea name="difftext1" rows="3" cols="40">';
+			$output .= $objNotat;
+			$output .= '</textarea>';
+			$output .= '<input type="submit" value="edit" class="button">';
+			$output .= '</form>';
+			$output .= '</p>';
+		} else {
+			$output .= '<li>' . $objNotat . '</li>';
+		}		
+		
+		return $output;
+	}
+	
 	public function genSkift(){
 	
 		$skiftID = $this->getCurrentSkiftId();
@@ -81,6 +100,21 @@ class msmodul_feilmrapport implements msmodul{
 		$skiftout .= 'Output fra genSkift: ' . $objSkift . '<br />';
 		
 		$skiftout .= '<p>Skift opprettet: ' . $objSkift->getSkiftCreatedTime() . '</p>';
+		
+		
+		// Vis notater
+		if ($objSkift->notater->length() > 0) {
+			$skiftout .= '<fieldset style="float:right;align:left;"><legend>Notater</legend><ul>';
+			foreach($objSkift->notater as $objNotat) {
+				$skiftout .= $this->genNotat($objNotat);
+			}
+			if (($this->_msmodulact == 'modnotat') && isset($_POST['tellerid'])) {
+				$objNotat = $objSkift->getItem($_POST['tellerid']);
+				$skiftout .= $this->genNotat($objNotat, true);
+			}
+			$skiftout .= '</ul></fieldset>';
+		}
+		// Vis tellere
 		
 		$colUlogget = new TellerCollection();
 		$arUlogget = array();

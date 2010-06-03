@@ -35,7 +35,7 @@ class SkiftFactory {
 	
 	}
 
-	public static function getTellereForSkift($id, $col) {
+	public static function getTellereForSkift($id, &$col) {
 		global $msdb;
 		$id = $msdb->quote($id);
 		$sql = "SELECT feilrap_teller.tellerid, feilrap_teller.tellertype, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$id,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.isactive=1 GROUP BY feilrap_teller.tellerid;";
@@ -44,11 +44,31 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach($data as $datum) {
-			$objTeller = new Teller($datum['tellerid'], $id, $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi']);
-			$col->addItem($objTeller);
+				$objTeller = new Teller($datum['tellerid'], $id, $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi']);
+				$col->addItem($objTeller);
 			}
 		}
 	
+	}
+	
+	public static function getNotaterForSkift($skiftid, &$col) {
+		global $msdb;
+		$safeskiftid = $msdb->quote($skiftid);
+		$sql = "SELECT notatid, isactive, notattype, notattekst, inrapport FROM feilrap_notat WHERE skiftid=$safeskiftid;";
+		
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach($data as $datum) {
+				if ($datum['inrapport'] == 1) {
+					$rapportert = true;
+				} else {
+					$rapportert = false;
+				}
+				$objNotat = new Notat($datum['notatid'], $skiftid, $datum['notattype'], $datum['notattekst'], true, $rapportert);
+				$col->addItem($objNotat, $datum['notatid']);
+			}
+		}
 	}
 	
 }

@@ -10,6 +10,7 @@ class Skift {
 	public $checkedLastUpdate = false;
 	
 	public $tellere;
+	public $notater;
 	
 	public function __construct($id, $createdtime, $ownerid, $closedtime = null) {
 		$this->_id = $id;
@@ -19,6 +20,9 @@ class Skift {
 		
 		$this->tellere = new TellerCollection();
 		$this->tellere->setLoadCallback('_loadTellere', $this);
+		
+		$this->notater = new NotatCollection();
+		$this->notater->setLoadCallback('_loadNotater', $this);
 	}
 	
 	public function getId() {
@@ -47,6 +51,10 @@ class Skift {
 	
 	public function _loadTellere(Collection $col) {
 		$arTellere = SkiftFactory::getTellereForSkift($this->_id, $col);
+	}
+	
+	public function _loadNotater(Collection $col) {
+		$arNotater = SkiftFactory::getNotaterForSkift($this->_id, $col);
 	}
 	
 	public function getSkiftLastUpdate() {
