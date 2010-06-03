@@ -29,7 +29,7 @@ class msmodul_nyhetgen implements msmodul{
 		$tekst = $_POST['tekst'];
 	
 		$signatur = '---//[['.$INFO['userinfo']['mail'].'|'.$INFO['userinfo']['name'].']] '.$dato.' // ';
-		$this->_nyhetgenOut .= nl2br('&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.' **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n");
+		$this->_nyhetgenOut .= nl2br('<pre style="width:600px; font-size:12px;">&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.' **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n</pre>");
 	}
 		$this->_nyhetgenOut .= '
 			<div style="margin-left:0px; width:600px;">
