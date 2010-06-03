@@ -44,6 +44,14 @@ class msmodul_feilmrapport implements msmodul{
 				$this->_createNyttSkift();
 				$this->_frapout .= $this->genSkift();
 				break;
+			case "savenotat":
+				$this->_lagreNotat();
+				$this->_frapout .= $this->genSkift();
+				break;
+			case "delnotat":
+				$this->_slettNotat();
+				$this->_frapout .= $this->genSkift();
+				break;
 			case "mod_teller":
 				try {
 					if(array_key_exists('inc_teller', $_REQUEST)) {
@@ -66,19 +74,27 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
-	private function genNotat(Notat &$objNotat, $edit = false) {
+	private function genNotat($objNotat, $edit = false) {
 		if ($edit) {
 			$output .= '<p>';
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-			$output .= '<input type="hidden" name="act" value="modnotat" />';
-			$output .= '<textarea name="difftext1" rows="3" cols="40">';
+			$output .= '<input type="hidden" name="act" value="savenotat" />';
+			if ($objNotat instanceof Notat) {
+				$output .= '<input type="hidden" name="notatid" value="' .  $objNotat->getId() . '" />';
+			}
+			$output .= '<textarea name="notattekst" rows="3" cols="40">';
 			$output .= $objNotat;
 			$output .= '</textarea>';
-			$output .= '<input type="submit" value="edit" class="button">';
+			$output .= '<input type="submit" name="lagre" value="lagre" class="button">';
+			$output .= '<input type="submit" name="lagre" value="angre" class="button">';
 			$output .= '</form>';
 			$output .= '</p>';
 		} else {
-			$output .= '<li>' . $objNotat . '</li>';
+			if ($objNotat instanceof Notat) {
+				$stredit = ' (<a href="' . MS_FMR_LINK . '&act=modnotat&notatid=' . $objNotat->getId() . '">rediger</a>)';
+				$strslett = ' (<a href="' . MS_FMR_LINK . '&act=delnotat&notatid=' . $objNotat->getId() . '">slett</a>)';
+			}
+			$output .= '<li>' . $objNotat . $stredit . $strslett . '</li>';
 		}		
 		
 		return $output;
@@ -103,17 +119,20 @@ class msmodul_feilmrapport implements msmodul{
 		
 		
 		// Vis notater
-		if ($objSkift->notater->length() > 0) {
-			$skiftout .= '<fieldset style="float:right;align:left;"><legend>Notater</legend><ul>';
-			foreach($objSkift->notater as $objNotat) {
-				$skiftout .= $this->genNotat($objNotat);
-			}
-			if (($this->_msmodulact == 'modnotat') && isset($_POST['tellerid'])) {
-				$objNotat = $objSkift->getItem($_POST['tellerid']);
-				$skiftout .= $this->genNotat($objNotat, true);
-			}
-			$skiftout .= '</ul></fieldset>';
+		
+		$skiftout .= '<fieldset style="float:right;text-align:left;"><legend>Notater</legend><ul>';
+		
+		foreach($objSkift->notater as $objNotat) {
+			if ($objNotat->isActive()) $skiftout .= $this->genNotat($objNotat);
 		}
+		if (($this->_msmodulact == 'modnotat') && isset($_REQUEST['notatid'])) {
+			$objNotat = $objSkift->notater->getItem($_REQUEST['notatid']);
+			$skiftout .= $this->genNotat($objNotat, true);
+		} else {
+			$skiftout .= $this->genNotat(null, true);
+		}
+		$skiftout .= '</ul></fieldset>';
+		
 		// Vis tellere
 		
 		$colUlogget = new TellerCollection();
@@ -270,6 +289,67 @@ class msmodul_feilmrapport implements msmodul{
 		
 		return true;
 	}
+	
+	private function _lagreNotat() {
+		if ($_REQUEST['lagre'] == 'angre') {
+			return false;
+		}
+		$skiftid = $this->getCurrentSkiftId();
+		$notattype = 'ANNET';
+		$notattekst = $_POST['notattekst'];
+		$notatid = $_POST['notatid'];
+		
+		if (isset($notatid)) {
+			try {
+				$objNotat = SkiftFactory::getNotat($notatid);
+			} catch(Exception $e) {
+				die($e->getMessage());
+			}
+		} else {
+			$objNotat = new Notat(null, $skiftid, $notattype, '', false);
+		}
+		
+		if ($objNotat->getSkiftId() == $skiftid) {
+			try {
+				$objNotat->setNotatTekst($notattekst);
+			}
+			catch (Exception $e) {
+				msg($e->getMessage(),-1);
+				return false;
+			}
+		}
+		
+		unset($objNotat);
+		return true;
+		
+	}
+	
+	private function _slettNotat() {
+		$notatid = $_REQUEST['notatid'];
+		
+		if (isset($notatid)) {
+			try {
+				$objNotat = SkiftFactory::getNotat($notatid);
+			} 
+			catch(Exception $e) {
+				die($e->getMessage());
+			}
+			
+			try {
+				$objNotat->modActive(false);
+			}
+			catch(Exception $e) {
+				msg('Klarte ikke å slette notat: ' . $e->getMessage());
+				return false;
+			}
+			
+			return true;
+			
+		} else {
+			msg('Kan ikke slette notat, notatid ikke angitt',-1);
+			return false;
+		}
+	}
 		
 	private function _genNoCurrSkift() {
 	
@@ -320,7 +400,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 	
 	}
-			
+
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;
 		
@@ -335,7 +415,6 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 	}
-		
 	
 }
 

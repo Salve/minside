@@ -49,16 +49,21 @@ class Notat {
 	}
 
 	public function __toString() {
-		return (string) $this->_notatTekst;
+		return nl2br(trim($this->_notatTekst));
 	}
 	
 	public function setNotatTekst($inputtekst) {
 		global $msdb;
 		
+		$inputtekst = trim($inputtekst);
+		
 		$tekst = htmlspecialchars($inputtekst, ENT_QUOTES, 'UTF-8');
 		
-		if (!$this->_isActive) throw new Exception('Kan ikke endre notat som er slettet');
-		if ($tekst == '') throw new Exception('Kan ikke lagre tomt notat, slett notatet om ønsket');
+		if (!$this->isActive()) throw new Exception('Kan ikke endre notat som er slettet');
+		if ($this->isRapportert()) throw new Exception('Kan ikke endre notat som er inkludert i en rapport');
+		if (($tekst == '') && ($this->_isSaved == true)) throw new Exception('Kan ikke lagre tomt notat, slett notatet om ønsket');
+		if ($tekst == '') throw new Exception('Kan ikke lagre tomt notat');
+		if ($tekst == $this->_notatTekst) throw new Exception('Innhold i notat er ikke endret');
 		
 		$safeskiftid = $msdb->quote($this->_skiftId);
 		$safenotatid = $msdb->quote($this->_id);
@@ -73,11 +78,36 @@ class Notat {
 		}
 		
 		if ($result != 1) {
-			throw new Exception('Klarte ikke å endre tellerverdi!');
+			throw new Exception('Klarte ikke å lagre notat!');
 			return false;
 		} else {
+			$this->_notatTekst = $tekst;
 			return true;
 		}	
+	}
+	
+	public function modActive($active) {
+		global $msdb;
+		
+		if ($active && $this->_isActive) throw new Exception('Notat er allerede aktivt');
+		if ((!$active) && (!$this->_isActive)) throw new Exception('Kan ikke slette inaktiv notat');
+		
+		$safeactive = $msdb->quote(($active) ? 1 : 0);
+		$safenotatid = $msdb->quote($this->_id);
+		
+		$sql = "UPDATE feilrap_notat SET isactive=$safeactive WHERE notatid=$safenotatid;";
+		
+		$result = $msdb->exec($sql);
+		
+		if ($result != 1) {
+			throw new Exception('Klarte ikke å slette notat!');
+			return false;
+		} else {
+			$this->_isActive = (bool) $active;
+			return true;
+		}	
+		
+		
 	}
 	
 }

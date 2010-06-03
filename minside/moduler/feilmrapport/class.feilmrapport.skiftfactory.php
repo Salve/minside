@@ -51,6 +51,26 @@ class SkiftFactory {
 	
 	}
 	
+	public static function getNotat($notatid) {
+		global $msdb;
+		$safenotatid = $msdb->quote($notatid);
+		
+		$sql = "SELECT skiftid, isactive, notattype, notattekst, inrapport FROM feilrap_notat WHERE notatid=$safenotatid;";
+		
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach($data as $datum) {		
+				$rapportert = ($datum['inrapport'] == 1) ? true : false;
+				$active = ($datum['isactive'] == 1) ? true : false;
+								
+				$objNotat = new Notat($notatid, $datum['skiftid'], $datum['notattype'], $datum['notattekst'], true, $active, $rapportert);
+				
+				return $objNotat;
+			}
+		}	
+	}
+	
 	public static function getNotaterForSkift($skiftid, &$col) {
 		global $msdb;
 		$safeskiftid = $msdb->quote($skiftid);
@@ -60,12 +80,10 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach($data as $datum) {
-				if ($datum['inrapport'] == 1) {
-					$rapportert = true;
-				} else {
-					$rapportert = false;
-				}
-				$objNotat = new Notat($datum['notatid'], $skiftid, $datum['notattype'], $datum['notattekst'], true, $rapportert);
+				$rapportert = ($datum['inrapport'] == 1) ? true : false;
+				$active = ($datum['isactive'] == 1) ? true : false;
+
+				$objNotat = new Notat($datum['notatid'], $skiftid, $datum['notattype'], $datum['notattekst'], true, $active, $rapportert);
 				$col->addItem($objNotat, $datum['notatid']);
 			}
 		}
