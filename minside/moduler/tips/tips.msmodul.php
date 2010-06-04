@@ -24,7 +24,7 @@ class msmodul_tips implements msmodul{
 
 		if ($this->_msmodulAct == 'sendtips') { 
 			$dato = date("d/m/Y H:i");
-			$tipsbody = 'Sendt via WikiTips '. $dato . '.<br><br>'. $tipsbody;
+			$tipsbody = 'Sendt via WikiTips '. $dato . '.<br><br>'. $tipsbody.'<br><br>Sendt av: '.$INFO['name'];
 			$this->_tipsOut .= $tipsbody;
 			try {
 				if (send_mail($tipsbody)) {
