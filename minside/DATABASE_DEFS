@@ -90,3 +90,16 @@ INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactiv
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVIKEN', 'Viken', 'ULOGGET', '1');
 
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULOSTFOLD', 'Østfold', 'ULOGGET', '1');
+
+DROP TABLE IF EXISTS `feilrap_notat`;
+CREATE TABLE `feilrap_notat` (
+  `notatid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `isactive` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `notattype` varchar(45) NOT NULL,
+  `notattekst` text,
+  `skiftid` int(10) unsigned NOT NULL,
+  `inrapport` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`notatid`),
+  UNIQUE KEY `notatid_UNIQUE` (`notatid`),
+  KEY `skiftid_KEY` (`skiftid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

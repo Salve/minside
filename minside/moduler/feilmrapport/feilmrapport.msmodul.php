@@ -145,9 +145,9 @@ class msmodul_feilmrapport implements msmodul{
 		foreach($objSkift->tellere as $objTeller) {
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
-					$skiftout .= '<tr>';	
+					$skiftout .= '<tr>';
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';	
+					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />';
 					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
@@ -406,8 +406,12 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
 		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
+		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapport');
 		
 		if ($lvl > MSAUTH_NONE) { 
+			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
+				$toppmeny->addChild($genrapport);
+			}
 			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($telleradmin);
 			}
