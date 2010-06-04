@@ -72,7 +72,7 @@ class msmodul_tips implements msmodul{
 	
 	public function send_mail($tipstext){
 		$this->getSettings();
-		mail($this->_cfg['epost'],'WikiTips', $tipstext);	
+		mail($this->_cfg['epost'],'WikiTips', $tipstext, 'From: wikitips@igrudge.net');	
 	}
 	
 	public function getSettings(){
