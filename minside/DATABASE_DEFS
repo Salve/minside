@@ -50,43 +50,26 @@ CREATE TABLE `internusers` (
 
 
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSPT', 'SPT', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSERV', 'Serviceoppdrag', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSVF', 'ks@vf', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSOF', 'ks@of', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLDLS', 'DLS', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLFRAUD', 'Fraud', 'TELLER', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULBKK', 'BKK', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULEB', 'EB', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKLEPP', 'Klepp', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKRAGERO', 'Kragerø', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLIER', 'Lier', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLOFOT', 'Lofotkraft', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSE', 'Lyse', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSEBED', 'Lyse Bedrift', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNOTODDEN', 'Notodden', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNTE', 'NTE', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSIGNAL', 'Signal', 'ULOGGET', '0');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSKAGERAK', 'Skagerak', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVKBB', 'Vesterålskraft', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVIKEN', 'Viken', 'ULOGGET', '1');
-
 INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULOSTFOLD', 'Østfold', 'ULOGGET', '1');
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLDEKODER', 'Utlevert dekoder', 'SECTELLER', '1');
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLSTRØM', 'Utlevert strømforsyning', 'SECTELLER', '1');
+INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLFJERN', 'Utlevert fjernkontroll', 'SECTELLER', '1');
