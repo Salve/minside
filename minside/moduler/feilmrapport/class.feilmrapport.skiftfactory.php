@@ -34,6 +34,22 @@ class SkiftFactory {
 	
 	
 	}
+	
+	public static function getSkiftForRapport($rapportid, &$col) {
+		global $msdb;
+		
+		$saferapportid = $msdb->quote($rapportid);
+		
+		$sql = "SELECT skiftid FROM feilrap_skift WHERE rapportid=$saferapportid;";
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach ($data as $datum) {
+				$objSkift = self::getSkift($datum['skiftid']);
+				$col->addItem($objSkift);
+			}
+		}
+	}
 
 	public static function getTellereForSkift($id, &$col) {
 		global $msdb;

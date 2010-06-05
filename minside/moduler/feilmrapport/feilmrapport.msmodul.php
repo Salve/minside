@@ -4,9 +4,11 @@ define(MS_FMR_LINK, MS_LINK . "&page=feilmrapport");
 require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
+require_once('class.feilmrapport.rapport.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
+require_once('class.feilmrapport.skiftcollection.php');
 
 class msmodul_feilmrapport implements msmodul{
 
@@ -33,6 +35,9 @@ class msmodul_feilmrapport implements msmodul{
 		$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
 		switch($this->_msmodulact) {
+			case "genrapport":
+				$this->_frapout .= $this->_genRapport();
+				break;
 			case "telleradm":
 				$this->_frapout .= $this->_genTellerAdm();
 				break;
@@ -96,6 +101,12 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			$output .= '<li>' . $objNotat . $stredit . $strslett . '</li>';
 		}		
+		
+		return $output;
+	}
+	
+	private function _genRapport(){
+		$output .= 'Velg hvilke skift som skal benyttes: <br />';
 		
 		return $output;
 	}
@@ -220,7 +231,7 @@ class msmodul_feilmrapport implements msmodul{
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$skiftout .= '<input type="hidden" name="act" value="closeskift" />';
-		$skiftout .= '<input type="submit" value="Avslutt skift" />';
+		$skiftout .= '<input type="submit" class="button" value="Avslutt skift" />';
 		$skiftout .= '</form>';
 		
 		$skiftout .= '</div>'; // skift_full
