@@ -5,13 +5,31 @@ class SkiftFactory {
 	public static function getSkift($id) {
 		global $msdb;
 		
-		$sql = "SELECT skiftcreated, userid, skiftclosed FROM feilrap_skift WHERE skiftid = " . $msdb->quote($id) . ";";
+		$sql = "SELECT feilrap_skift.skiftcreated, feilrap_skift.userid, feilrap_skift.skiftclosed, feilrap_skift.israpportert, internusers.wikiname FROM feilrap_skift LEFT JOIN internusers ON feilrap_skift.userid = internusers.id WHERE skiftid = " . $msdb->quote($id) . ";";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			return new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed']);
+			$objSkift = new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed']);
+			$objSkift->setSkiftOwnerName($data[0]['wikiname']);
+			return $objSkift;
 		} else {
 			throw new Exception("Skift med id: $id finnes ikke i database");
+		}
+		
+	}
+	
+	public static function getRapport($rapportid) {
+		global $msdb;
+		
+		$saferapportid = $msdb->quote($rapportid);
+		
+		$sql = "SELECT createtime, issent, rapportfratid, rapporttiltid, rapportowner FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			return new Skift($rapportid, $data[0]['createtime'], $data[0]['userid'], $data[0]['rapportfratid'], $data[0]['rapporttiltid'], true);
+		} else {
+			throw new Exception("Rapport med id: $rapportid finnes ikke i database");
 		}
 		
 	}
@@ -49,6 +67,25 @@ class SkiftFactory {
 				$col->addItem($objSkift);
 			}
 		}
+	}
+	
+	public static function getMuligeSkiftForRapport() {
+		global $msdb;
+		
+		$sql = "SELECT skiftid FROM feilrap_skift WHERE skiftcreated > (now() - INTERVAL 14 HOUR)";
+		$data = $msdb->assoc($sql);
+		
+		$col = new SkiftCollection();
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach ($data as $datum) {
+				$objSkift = self::getSkift($datum['skiftid']);
+				$col->addItem($objSkift);
+			}
+		}
+		
+		return $col;
+		
 	}
 
 	public static function getTellereForSkift($id, &$col) {

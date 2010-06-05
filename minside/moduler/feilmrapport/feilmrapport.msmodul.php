@@ -106,7 +106,31 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapport(){
-		$output .= 'Velg hvilke skift som skal benyttes: <br />';
+	
+
+		$skiftcol = SkiftFactory::getMuligeSkiftForRapport();
+	
+		$output .= '
+			<div style="margin-left:0px; width:600px;">
+			<fieldset style="width: 600px;text-align:left;">
+				<legend>
+					Velg skift som skal inkluderes i rapport
+				</legend>
+				<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">
+					<input type="hidden" name="act" value="genrapport" />';
+		
+		foreach ($skiftcol as $objSkift) {
+			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
+			$output .= $objSkift . '(' . $objSkift->getSkiftOwnerName() . ") <br />\n";
+		}			
+					
+		$output .=	'
+					<input type="submit" name="subvelgskift" class="button" value="Gå videre">
+				</form>
+			</fieldset>
+			</div>';
+		
+		
 		
 		return $output;
 	}

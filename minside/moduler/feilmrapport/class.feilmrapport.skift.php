@@ -6,6 +6,7 @@ class Skift {
 	private $_skiftCreatedTime;
 	private $_skiftClosedTime;
 	private $_skiftOwnerId;
+	private $_skiftOwnerName;
 	private $_skiftLastUpdate;
 	public $checkedLastUpdate = false;
 	
@@ -31,6 +32,14 @@ class Skift {
 	
 	public function getSkiftCreatedTime() {
 		return $this->_skiftCreatedTime;
+	}
+	
+	public function getSkiftOwnerName() {
+		return $this->_skiftOwnerName;
+	}
+	
+	public function setSkiftOwnerName($ownername) {
+		$this->_skiftOwnerName = (string) $ownername;
 	}
 	
 	public function getSkiftClosedTime() {
