@@ -13,7 +13,8 @@ class mscfg {
 	'feilmrapport',
 	'diff',
 	'testmodul',
-	'nyhetgen'
+	'nyhetgen',
+	'tips'
 	);
 	
 	
