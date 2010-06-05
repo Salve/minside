@@ -35,8 +35,11 @@ class msmodul_feilmrapport implements msmodul{
 		$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
 		switch($this->_msmodulact) {
-			case "genrapport":
-				$this->_frapout .= $this->_genRapport();
+			case "genrapportsel":
+				$this->_frapout .= $this->_genRapportSelectSkift();
+				break;
+			case "genrapportmod":
+				$this->_frapout .= $this->_genRapportSelectNotat();
 				break;
 			case "telleradm":
 				$this->_frapout .= $this->_genTellerAdm();
@@ -105,9 +108,50 @@ class msmodul_feilmrapport implements msmodul{
 		return $output;
 	}
 	
-	private function _genRapport(){
+	private function _genRapportSelectNotat(){
+			
+			$skiftcol = new SkiftCollection();
+			$tellere = array();
+			
+			foreach ($_POST['selskift'] as $skiftid) {
+				try {
+					$objSkift = SkiftFactory::getSkift($skiftid);
+					$skiftcol->addItem($objSkift);
+				}
+				catch (Exception $e) {
+					msg($e->getMessage,-1);
+					return false;
+				}
+			}
+			
+			foreach ($skiftcol as $objSkift) {
+				foreach ($objSkift->notater as $objNotat) {
+					$notatoutput .= '<input type="checkbox" name="selskift[]" value="' . $objNotat->getId() . '" /> ';
+					$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
+				}
+				foreach ($objSkift->tellere as $objTeller) {
+					if ($objTeller->getTellerVerdi() > 0) {
+						$tellere[$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
+					}
+				}
+			}
+			
+			foreach ($tellere as $tellerdesc => $tellertotal) {
+				$telleroutput .= $tellerdesc . ': ' . $tellertotal . "<br />\n";
+			}
+			
+			$output .= '<p>';
+			$output .= $telleroutput;
+			$output .= '</p><p>';
+			$output .= $notatoutput;
+			$output .= '</p>';
+			
+			return $output;
+			
+	}
 	
-
+	private function _genRapportSelectSkift(){
+	
 		$skiftcol = SkiftFactory::getMuligeSkiftForRapport();
 	
 		$output .= '
@@ -117,7 +161,7 @@ class msmodul_feilmrapport implements msmodul{
 					Velg skift som skal inkluderes i rapport
 				</legend>
 				<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">
-					<input type="hidden" name="act" value="genrapport" />';
+					<input type="hidden" name="act" value="genrapportmod" />';
 		
 		foreach ($skiftcol as $objSkift) {
 			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
@@ -441,7 +485,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
 		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
-		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapport');
+		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
 		
 		if ($lvl > MSAUTH_NONE) { 
 			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
