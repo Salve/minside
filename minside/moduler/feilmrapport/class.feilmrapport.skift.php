@@ -51,7 +51,7 @@ class Skift {
 	}
 	
 	public function isClosed() {
-		return ($this->_skiftClosedTime == null);
+		return (bool)($this->_skiftClosedTime != null);
 	}
 	
 	public function __toString() {

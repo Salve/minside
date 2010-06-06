@@ -35,8 +35,10 @@ class msmodul_feilmrapport implements msmodul{
 		$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
 		switch($this->_msmodulact) {
+			case "stengskift":
+				if (isset($_REQUEST[skiftid])) $this->_closeSkift($_REQUEST[skiftid]);
 			case "genrapportsel":
-				$this->_frapout .= $this->_genRapportSelectSkift();
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectSkift();
 				break;
 			case "genrapportmod":
 				$this->_frapout .= $this->_genRapportSelectNotat();
@@ -111,7 +113,8 @@ class msmodul_feilmrapport implements msmodul{
 	private function _genRapportSelectNotat(){
 			
 			$skiftcol = new SkiftCollection();
-			$tellere = array();
+			$totaltellere = array();
+			$brukertellere = array();
 			
 			foreach ($_POST['selskift'] as $skiftid) {
 				try {
@@ -126,18 +129,25 @@ class msmodul_feilmrapport implements msmodul{
 			
 			foreach ($skiftcol as $objSkift) {
 				foreach ($objSkift->notater as $objNotat) {
-					$notatoutput .= '<input type="checkbox" name="selskift[]" value="' . $objNotat->getId() . '" /> ';
+					$notatoutput .= '<input type="checkbox" name="selnotat[]" value="' . $objNotat->getId() . '" /> ';
 					$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
 				}
 				foreach ($objSkift->tellere as $objTeller) {
 					if ($objTeller->getTellerVerdi() > 0) {
-						$tellere[$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
+						$totaltellere[$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
+						$brukertellere[$objSkift->getSkiftOwnerName()][$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
 					}
 				}
 			}
 			
-			foreach ($tellere as $tellerdesc => $tellertotal) {
-				$telleroutput .= $tellerdesc . ': ' . $tellertotal . "<br />\n";
+			foreach ($totaltellere as $tellerdesc => $tellertotal) {
+				$prosentnotat = '';
+				foreach ($brukertellere as $brukernavn => $brukertotaler) {
+					if ($brukertotaler[$tellerdesc] > 0) {
+						$prosentnotat .= $brukernavn . ': ' . $brukertotaler[$tellerdesc] . ' (' . round($brukertotaler[$tellerdesc] / $tellertotal * 100) . '%) ';
+					}
+				}
+				$telleroutput .= '<span title="' . $prosentnotat . '">' . $tellerdesc . ': ' . $tellertotal . "</span><br />\n";
 			}
 			
 			$output .= '<p>';
@@ -165,7 +175,8 @@ class msmodul_feilmrapport implements msmodul{
 		
 		foreach ($skiftcol as $objSkift) {
 			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
-			$output .= $objSkift . '(' . $objSkift->getSkiftOwnerName() . ") <br />\n";
+			$output .= $objSkift . '(' . $objSkift->getSkiftOwnerName() . ') ';
+			$output .= '(' . (($objSkift->isClosed()) ? 'avsluttet' : '<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">steng</a>') . ")<br />\n";
 		}			
 					
 		$output .=	'
@@ -467,14 +478,31 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _closeCurrSkift() {
-		global $msdb;
 		if ($this->getCurrentSkiftId() === false) { die('Kan ikke avslutte skift: Finner ikke aktivt skift.'); }
 		
-		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=" . $msdb->quote($this->getCurrentSkiftId()) . ";");
-		if ($result != 1) {
-			die('Klarte ikke å lukke skift med id: ' . $this->getCurrentSkiftId());
+		if (!$this->_closeSkift($this->getCurrentSkiftId())) {
+			msg('Klarte ikke å lukke skift med id: ' . $this->getCurrentSkiftId());
+			return false;
 		} else {
 			if (isset($this->_currentSkiftId)) { unset($this->_currentSkiftId); }
+			return true;
+		}
+	
+	}
+	
+	private function _closeSkift($skiftid) {
+		global $msdb;
+		
+		if (($skiftid != $this->getCurrentSkiftId()) && ($this->_accessLvl < MSAUTH_3)) {
+			msg('Du har ikke adgang til å lukke skift som ikke er ditt eget aktive skift', -1);
+			return false;
+		}
+		
+		$safeskiftid = $msdb->quote($skiftid);
+		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=$safeskiftid;");
+		if ($result != 1) {
+			return false;
+		} else {
 			return true;
 		}
 	
@@ -488,7 +516,7 @@ class msmodul_feilmrapport implements msmodul{
 		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
 		
 		if ($lvl > MSAUTH_NONE) { 
-			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
+			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);
 			}
 			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulact)) {
