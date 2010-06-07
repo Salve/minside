@@ -80,6 +80,21 @@ class Skift {
 	
 	
 	}
+	
+	public function closeSkift() {
+		global $msdb;
+		
+		if ($this->isClosed()) return false;
+				
+		$safeskiftid = $msdb->quote($this->_id);
+		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=$safeskiftid;");
+		if ($result != 1) {
+			return false;
+		} else {
+			return true;
+		}
+	
+	}
 
 
 

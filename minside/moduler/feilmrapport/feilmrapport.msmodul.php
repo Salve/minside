@@ -46,7 +46,7 @@ class msmodul_feilmrapport implements msmodul{
 			case "telleradm":
 				$this->_frapout .= $this->_genTellerAdm();
 				break;
-			case "closeskift":
+			case "stengegetskift":
 				$this->_closeCurrSkift();
 				$this->_frapout .= $this->genSkift();
 				break;
@@ -174,7 +174,7 @@ class msmodul_feilmrapport implements msmodul{
 					<input type="hidden" name="act" value="genrapportmod" />';
 		
 		foreach ($skiftcol as $objSkift) {
-			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
+			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '"' . (($objSkift->isClosed()) ? '' : 'disabled') . ' />';
 			$output .= $objSkift . '(' . $objSkift->getSkiftOwnerName() . ') ';
 			$output .= '(' . (($objSkift->isClosed()) ? 'avsluttet' : '<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">steng</a>') . ")<br />\n";
 		}			
@@ -309,7 +309,7 @@ class msmodul_feilmrapport implements msmodul{
 
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">';
-		$skiftout .= '<input type="hidden" name="act" value="closeskift" />';
+		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />';
 		$skiftout .= '<input type="submit" class="button" value="Avslutt skift" />';
 		$skiftout .= '</form>';
 		
@@ -490,23 +490,36 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
-	private function _closeSkift($skiftid) {
-		global $msdb;
-		
-		if (($skiftid != $this->getCurrentSkiftId()) && ($this->_accessLvl < MSAUTH_3)) {
-			msg('Du har ikke adgang til å lukke skift som ikke er ditt eget aktive skift', -1);
+	private function _closeSkift($skiftid) {	
+		try {
+			$objSkift = SkiftFactory::getSkift($skiftid);
+		}
+		catch (Exception $e) {
+			msg($e->getMessage(), -1);
 			return false;
 		}
 		
-		$safeskiftid = $msdb->quote($skiftid);
-		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=$safeskiftid;");
-		if ($result != 1) {
+		if ($objSkift->isClosed()) {
+			msg('Skift er allerede avsluttet', -1);
 			return false;
+		}
+		
+		if ($objSkift->getSkiftOwnerId() != $this->_userId) {
+			if ($this->_accessLvl < MSAUTH_3) {
+				msg('Du har ikke adgang til å lukke skift som ikke er ditt eget.', -1);
+				return false;
+			}
+			
+			return $objSkift->closeSkift();
+			
 		} else {
-			return true;
+			return $objSkift->closeSkift();
 		}
+		
 	
 	}
+	
+	
 
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;
