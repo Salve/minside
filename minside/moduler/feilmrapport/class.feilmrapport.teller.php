@@ -6,14 +6,16 @@ class Teller {
 	private $_skiftId;
 	private $_isActive;
 	private $_tellerVerdi;
+	private $_tellerName;
 	private $_tellerDesc;
 	private $_tellerType;
 	
-	function __construct($id, $skiftid, $tellerDesc, $tellerType, $tellerVerdi = 0, $isactive = true) {
+	function __construct($id, $skiftid, $tellerName, $tellerDesc, $tellerType, $tellerVerdi = 0, $isactive = true) {
 		$this->_id = $id;
 		$this->_skiftId = $skiftid;
 		$this->_isActive = $isactive;
 		$this->_tellerDesc = $tellerDesc;
+		$this->_tellerName = $tellerName;
 		$this->_tellerVerdi = $tellerVerdi;
 		$this->_tellerType = $tellerType;
 	}
@@ -30,8 +32,16 @@ class Teller {
 		return $this->_tellerDesc;
 	}
 	
+	public function getTellerName() {
+		return $this->_tellerName;
+	}
+	
 	public function getTellerVerdi() {
 		return $this->_tellerVerdi;
+	}
+	
+	public function setTellerVerdi($input) {
+		$this->_tellerVerdi = $input;
 	}
 	
 	public function getTellerType() {

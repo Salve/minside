@@ -27,7 +27,7 @@ class Collection implements IteratorAggregate {
 		if(isset($this->_members[$key])) {
 			unset($this->_members[$key]);
 		} else {
-			throw new KeyInvalidException("Ugjyldig key \"$key\"");
+			throw new KeyInvalidException("Ugyldig key \"$key\"");
 		}
 	
 	}
@@ -38,7 +38,7 @@ class Collection implements IteratorAggregate {
 		if(isset($this->_members[$key])) {
 			return $this->_members[$key];
 		} else {
-			throw new KeyInvalidException("Ugjyldig key \"$key\"");
+			//throw new KeyInvalidException("Ugyldig key \"$key\"");
 		}
 		
 	}

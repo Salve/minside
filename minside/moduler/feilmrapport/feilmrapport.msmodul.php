@@ -6,6 +6,7 @@ require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.rapport.php');
 require_once('class.feilmrapport.skiftfactory.php');
+require_once('class.feilmrapport.rapporttemplate.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
 require_once('class.feilmrapport.skiftcollection.php');
@@ -41,10 +42,19 @@ class msmodul_feilmrapport implements msmodul{
 				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectSkift();
 				break;
 			case "genrapportmod":
-				$this->_frapout .= $this->_genRapportSelectNotat();
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectNotat();
 				break;
+			case "genmodraptpl":
+				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModRapportTemplates();
+				break;
+			case "modraptpl":
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_saveRapportTemplate();
+					$this->_frapout .= $this->_genModRapportTemplates();
+				}
+				break;	
 			case "telleradm":
-				$this->_frapout .= $this->_genTellerAdm();
+				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
 				break;
 			case "stengegetskift":
 				$this->_closeCurrSkift();
@@ -111,10 +121,15 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportSelectNotat(){
-			
+			global $INFO;
 			$skiftcol = new SkiftCollection();
 			$totaltellere = array();
 			$brukertellere = array();
+			
+			$tellercol = new TellerCollection();
+			$notatcol = new NotatCollection();
+			
+			$tplErstatter = new Erstatter();
 			
 			foreach ($_POST['selskift'] as $skiftid) {
 				try {
@@ -129,32 +144,71 @@ class msmodul_feilmrapport implements msmodul{
 			
 			foreach ($skiftcol as $objSkift) {
 				foreach ($objSkift->notater as $objNotat) {
-					$notatoutput .= '<input type="checkbox" name="selnotat[]" value="' . $objNotat->getId() . '" /> ';
-					$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
+					if ($objNotat->isActive()) {
+						$notatoutput .= '<input type="checkbox" name="selnotat[]" value="' . $objNotat->getId() . '" /> ';
+						$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
+					}
 				}
 				foreach ($objSkift->tellere as $objTeller) {
 					if ($objTeller->getTellerVerdi() > 0) {
-						$totaltellere[$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
-						$brukertellere[$objSkift->getSkiftOwnerName()][$objTeller->getTellerDesc()] += $objTeller->getTellerVerdi();
+						if ($tellercol->exists($objTeller->getTellerName())) {
+							$objColTeller = $tellercol->getItem($objTeller->getTellerName());
+							$objColTeller->setTellerVerdi($objColTeller->getTellerVerdi() + $objTeller->getTellerVerdi());
+						} else {
+							$objColTeller = new Teller($objTeller->getId(), $objSkift->getId(), $objTeller->getTellerName(), $objTeller->getTellerDesc(), $objTeller->getTellerType(), $objTeller->getTellerVerdi());
+							$tellercol->addItem($objColTeller, $objTeller->getTellerName());
+						}
+						
+						if ($objTeller->getTellerType() == 'ULOGGET') {
+							$uloggettotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();
+						}
+						
+						$tellertotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();						
+						$brukertellere[$objTeller->getTellerName()][$objSkift->getSkiftOwnerName()] += $objTeller->getTellerVerdi();
 					}
 				}
 			}
 			
-			foreach ($totaltellere as $tellerdesc => $tellertotal) {
-				$prosentnotat = '';
-				foreach ($brukertellere as $brukernavn => $brukertotaler) {
-					if ($brukertotaler[$tellerdesc] > 0) {
-						$prosentnotat .= $brukernavn . ': ' . $brukertotaler[$tellerdesc] . ' (' . round($brukertotaler[$tellerdesc] / $tellertotal * 100) . '%) ';
+			
+			foreach ($brukertellere as $tellername => $bruker) {
+				
+				foreach ($bruker as $brukernavn => $brukertotal) {
+					if ($brukertotal > 0) {
+						$brukertellernotater[$tellername] .= $brukernavn . ': ' . $brukertotal . ' (' . round($brukertotal / $tellertotaler[$tellername] * 100) . '%) ';
 					}
 				}
-				$telleroutput .= '<span title="' . $prosentnotat . '">' . $tellerdesc . ': ' . $tellertotal . "</span><br />\n";
+				
+				if ($uloggettotaler[$tellername] > 0) {
+					$objTeller = $tellercol->getItem($tellername);
+					$uloggetoutput .= '<span title="' . $brukertellernotater[$tellername] . '">' . $objTeller->getTellerDesc() . ': ' . $objTeller->getTellerVerdi() . "</span><br />\n";
+				}
+						
 			}
 			
-			$output .= '<p>';
-			$output .= $telleroutput;
-			$output .= '</p><p>';
-			$output .= $notatoutput;
-			$output .= '</p>';
+			
+			$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
+			$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
+			
+			
+			$tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $notatoutput);
+			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/ue', '\'<span title="\' . $brukertellernotater[$1] . \'">\' . ((@call_user_func(array($tellercol->getItem($1), getTellerVerdi)))?:\'0\') . \'</span>\''); // FIXME dette funker, men call_user_func gir error (suppressed nå)
+			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', '<select name="rappinn[$1]"><option>Velg:</option><option>Ja</option><option>Nei</option></select>');
+			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', '<input type="text" maxlength="250" name="rappinn[$1]">');
+			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', '<input type="text" maxlength="3" size="2" name="rappinn[$1]">');
+			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/ue', '$tpldata[\'$1\']');			
+			$tplErstatter->addErstattning('/\[\[ulogget\]\]/u', $uloggetoutput);
+				
+			
+			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">';
+			$output .= '<input type="hidden" name="act" value="genrapport" />';
+			
+			$output .= preg_replace($tplErstatter->getPatterns(), $tplErstatter->getReplacements(), RapportTemplate::getRawTemplate());
+			
+			$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" DISABLED />';
+			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" DISABLED />';
+			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />';
+			$output .= '</form>';
+			
 			
 			return $output;
 			
@@ -321,7 +375,7 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genTellerAdm() {
-		$output .= 'TELLERADMIN';
+		$output .= 'Teller-administrasjon ikke implementert enda :(';
 	
 		return $output;
 	}
@@ -425,16 +479,20 @@ class msmodul_feilmrapport implements msmodul{
 				die($e->getMessage());
 			}
 			
-			try {
-				$objNotat->modActive(false);
-			}
-			catch(Exception $e) {
-				msg('Klarte ikke å slette notat: ' . $e->getMessage());
+			if ($objNotat->getSkiftId() == $this->getCurrentSkiftId()) {
+				try {
+					$objNotat->modActive(false);
+				}
+				catch(Exception $e) {
+					msg('Klarte ikke å slette notat: ' . $e->getMessage());
+					return false;
+				}
+				
+				return true;
+			} else {
+				msg('Kan ikke slette notat som ikke tilhører ditt aktive skift.', -1);
 				return false;
 			}
-			
-			return true;
-			
 		} else {
 			msg('Kan ikke slette notat, notatid ikke angitt',-1);
 			return false;
@@ -519,6 +577,24 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
+	private function _saveRapportTemplate() {
+		if (isset($_REQUEST['inputtpl'])) {
+			RapportTemplate::saveTemplate($_REQUEST['inputtpl'], 1);
+		}
+	}
+	
+	private function _genModRapportTemplates() {
+	
+		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+		$output .= '<input type="hidden" name="act" value="modraptpl" />';
+		$output .= '<textarea name="inputtpl" cols="60" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
+		$output .= '<input type="submit" class="button" name="savetpl" value="Lagre" />';
+		$output .= '</form>';
+	
+	
+		return $output;
+	}
+	
 	
 
 	public function registrer_meny(MenyitemCollection &$meny){
@@ -527,13 +603,17 @@ class msmodul_feilmrapport implements msmodul{
 		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
 		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
 		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
+		$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
 		
 		if ($lvl > MSAUTH_NONE) { 
 			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);
 			}
-			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulact)) {
+			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($telleradmin);
+			}
+			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
+				$toppmeny->addChild($tpladmin);
 			}
 			$meny->addItem($toppmeny); 
 		}

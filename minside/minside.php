@@ -16,6 +16,7 @@ require_once('interface.msmodul.php');
 require_once('class.msdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
+require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 
