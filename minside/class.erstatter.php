@@ -6,13 +6,8 @@ class Erstatter {
 	private $_arReplacements = array();
 	
 	public function addErstattning($pattern, $replacement) {
-		if (is_string($pattern) && is_string($replacement)) {
-			$this->_arPatterns[] = $pattern;
-			$this->_arReplacements[] = $replacement;
-			return true;
-		} else {
-			return false;
-		}
+		$this->_arPatterns[] = $pattern;
+		$this->_arReplacements[] = $replacement;
 	}
 	
 	public function erstatt($inputstreng) {
@@ -28,6 +23,14 @@ class Erstatter {
 	
 	public function getReplacements() {
 		return $this->_arReplacements;
+	}
+	
+	public function getReplacement($key) {
+		if (isset($this->_arReplacements[$key])) {
+			return $this->_arReplacements[$key];
+		} else {
+			return false;
+		}
 	}
 
 }

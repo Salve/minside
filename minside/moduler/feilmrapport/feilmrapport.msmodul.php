@@ -41,6 +41,9 @@ class msmodul_feilmrapport implements msmodul{
 			case "genrapportsel":
 				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectSkift();
 				break;
+			case "genrapport":
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_lagreRapport();
+				break;
 			case "genrapportmod":
 				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectNotat();
 				break;
@@ -140,12 +143,17 @@ class msmodul_feilmrapport implements msmodul{
 					msg($e->getMessage,-1);
 					return false;
 				}
+				
+				if ($objSkift instanceof Skift) {
+					$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
+				}
+				
 			}
 			
 			foreach ($skiftcol as $objSkift) {
 				foreach ($objSkift->notater as $objNotat) {
 					if ($objNotat->isActive()) {
-						$notatoutput .= '<input type="checkbox" name="selnotat[]" value="' . $objNotat->getId() . '" /> ';
+						$notatoutput .= '<input type="checkbox" name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> ';
 						$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
 					}
 				}
@@ -182,36 +190,107 @@ class msmodul_feilmrapport implements msmodul{
 					$objTeller = $tellercol->getItem($tellername);
 					$uloggetoutput .= '<span title="' . $brukertellernotater[$tellername] . '">' . $objTeller->getTellerDesc() . ': ' . $objTeller->getTellerVerdi() . "</span><br />\n";
 				}
-						
+
 			}
 			
 			
 			$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
 			$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
 			
+			if (!$notatoutput) $notatoutput = 'Ingen notater.';
+			if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
 			
-			$tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $notatoutput);
-			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/ue', '\'<span title="\' . $brukertellernotater[$1] . \'">\' . ((@call_user_func(array($tellercol->getItem($1), getTellerVerdi)))?:\'0\') . \'</span>\''); // FIXME dette funker, men call_user_func gir error (suppressed nå)
-			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', '<select name="rappinn[$1]"><option>Velg:</option><option>Ja</option><option>Nei</option></select>');
-			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', '<input type="text" maxlength="250" name="rappinn[$1]">');
-			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', '<input type="text" maxlength="3" size="2" name="rappinn[$1]">');
-			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/ue', '$tpldata[\'$1\']');			
-			$tplErstatter->addErstattning('/\[\[ulogget\]\]/u', $uloggetoutput);
-				
+	
 			
-			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">';
-			$output .= '<input type="hidden" name="act" value="genrapport" />';
+			// Erstatter [[notater:annet]] med notat-output. 
+			$funcErstattNotat = function ($matches) use (&$notatoutput) {
+				return $notatoutput;
+			};
+			$tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $funcErstattNotat);
 			
-			$output .= preg_replace($tplErstatter->getPatterns(), $tplErstatter->getReplacements(), RapportTemplate::getRawTemplate());
+			// Erstatter [[ulogget]] med ulogget-output. 
+			$funcErstattUlogget = function ($matches) use (&$uloggetoutput) {
+				return $uloggetoutput;
+			};
+			$tplErstatter->addErstattning('/\[\[ulogget\]\]/u', $funcErstattUlogget);
 			
-			$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" DISABLED />';
-			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" DISABLED />';
-			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />';
-			$output .= '</form>';
+			// Erstatter [[teller:TELLERNAVN]] med tallverdien til telleren
+			$funcErstattTeller = function ($matches) use (&$brukertellernotater, &$tellercol) {
+				$key = $matches[1];
+				$objTeller = $tellercol->getItem($key);
+				if ($objTeller instanceof Teller) {
+					$telleroutput = '<span title="' . $brukertellernotater[$key] . '">' . ((string) $objTeller->getTellerVerdi()) . '</span>';
+				} else {
+					$telleroutput = '<span>0</span>';
+				}
+				return $telleroutput;
+			};
+			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/u', $funcErstattTeller); 
+			
+			// Erstatter [[inputbool:varname]] med ja/nei dropdown input
+			$funcErstattInputBool = function ($matches) {
+				$varname = $matches[1];
+				$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
+				return $output;
+			};
+			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
+			
+			// Erstatter [[inputtekst:varname]] med tekst-input felt
+			$funcErstattInputTekst = function ($matches) {
+				$varname = $matches[1];
+				$output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
+				return $output;
+			};
+			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
+			
+			// Erstatter [[inputlitetall:varname]] med 3-siffret tekst-input
+			$funcErstattInputLiteTall = function ($matches) {
+				$varname = $matches[1];
+				$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
+				return $output;
+			};
+			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
+
+			// Erstatter [[data:varname]] med $tpldata[varname]
+			$funcErstattData = function ($matches) use (&$tpldata) {
+				$varname = $matches[1];
+				if (isset($tpldata[$varname])) {
+					return $tpldata[$varname];
+				} else {
+					return "Verdi av \"$varname\" ikke funnet";
+				}
+			};
+			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
+		
+			
+			
+
+			
+			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$output .= '<input type="hidden" name="act" value="genrapport" />' . "\n";
+			$output .= $hiddenSkiftider;
+			
+			
+			$tmpOutput = RapportTemplate::getRawTemplate();
+			
+			foreach ($tplErstatter->getPatterns() as $key => $pattern) {
+				$tmpOutput = preg_replace_callback($pattern, $tplErstatter->getReplacement($key), $tmpOutput);
+			}
+			
+			$output .= $tmpOutput;
+			
+			$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
+			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" DISABLED />' . "\n";
+			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />' . "\n";
+			$output .= '</form>' . "\n";
 			
 			
 			return $output;
 			
+	}
+	
+	private function _lagreRapport() {
+		var_dump($_REQUEST);
 	}
 	
 	private function _genRapportSelectSkift(){
@@ -229,7 +308,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		foreach ($skiftcol as $objSkift) {
 			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '"' . (($objSkift->isClosed()) ? '' : 'disabled') . ' />';
-			$output .= $objSkift . '(' . $objSkift->getSkiftOwnerName() . ') ';
+			$output .= 'SkiftID: ' . $objSkift->getId() . ' (' . $objSkift->getSkiftOwnerName() . ') ';
 			$output .= '(' . (($objSkift->isClosed()) ? 'avsluttet' : '<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">steng</a>') . ")<br />\n";
 		}			
 					
@@ -387,7 +466,7 @@ class msmodul_feilmrapport implements msmodul{
 		global $msdb;
 		$userid = $msdb->quote($userid);
 
-		$result = $msdb->num("SELECT skiftid FROM feilrap_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid ORDER BY skiftid DESC LIMIT 1;");
+		$result = $msdb->num("SELECT skiftid FROM feilrap_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid AND skiftcreated > (now() - INTERVAL 14 HOUR) ORDER BY skiftid DESC LIMIT 1;");
 	
 		if (is_numeric($result[0][0])) {
 			$this->_currentSkiftId = $result[0][0];
@@ -506,11 +585,11 @@ class msmodul_feilmrapport implements msmodul{
 		$output .= '<ul>';
 		$output .= '<li>Du har avsluttet skiftet ditt</li>';
 		$output .= '<li>Skiftet ditt har blitt inkludert i en rapport</li>';
-		//$output .= '<li>Skiftet ditt har ikke blitt oppdatert på over 9 timer og er utløpt</li>'; // Ikke implementert
+		$output .= '<li>Skiftet ditt er utløpt &ndash; det har gått mer enn 14 timer siden det ble opprettet</li>';
 		$output .= '</ul><br/>';
 		$output .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$output .= '<input type="hidden" name="act" value="nyttskift" />';
-		$output .= '<input type="submit" value="Start nytt skift!" />';
+		$output .= '<input type="submit" class="button" value="Start nytt skift!" />';
 		$output .= '</form>';
 		$output .= '</div>';
 		
