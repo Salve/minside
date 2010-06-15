@@ -6,6 +6,7 @@ require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.rapport.php');
 require_once('class.feilmrapport.skiftfactory.php');
+require_once('class.feilmrapport.rappvalidator.php');
 require_once('class.feilmrapport.rapporttemplate.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
@@ -41,11 +42,9 @@ class msmodul_feilmrapport implements msmodul{
 			case "genrapportsel":
 				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectSkift();
 				break;
-			case "genrapport":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_lagreRapport();
-				break;
+			case "gensaverapport":
 			case "genrapportmod":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectNotat();
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genModRapport();
 				break;
 			case "genmodraptpl":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModRapportTemplates();
@@ -123,7 +122,7 @@ class msmodul_feilmrapport implements msmodul{
 		return $output;
 	}
 	
-	private function _genRapportSelectNotat(){
+	private function _genModRapport(){
 			global $INFO;
 			$skiftcol = new SkiftCollection();
 			$totaltellere = array();
@@ -134,27 +133,111 @@ class msmodul_feilmrapport implements msmodul{
 			
 			$tplErstatter = new Erstatter();
 			
+			$validinput = array();
+			$invalidinput = array();
+			$validationerrors = 0;
+			
 			foreach ($_POST['selskift'] as $skiftid) {
 				try {
 					$objSkift = SkiftFactory::getSkift($skiftid);
-					$skiftcol->addItem($objSkift);
 				}
 				catch (Exception $e) {
 					msg($e->getMessage,-1);
 					return false;
-				}
+				}				
 				
 				if ($objSkift instanceof Skift) {
-					$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
+					if ($objSkift->isClosed() && !$objSkift->isRapportert()) {
+						$skiftcol->addItem($objSkift, $objSkift->getId());
+						$validinput['selskift'][] = $objSkift->getId();
+						$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
+					}
+				}		
+			}
+			
+			
+			if ($_REQUEST['genrap'] == 'Generer rapport') {
+				// Valider input
+				if (is_array($_POST['rappinn']['bool'])) {
+					foreach ($_POST['rappinn']['bool'] as $varname => $inputitem) {
+						$valOutput = '';
+						$valError = '';
+						$valResult = RappValidator::ValBool($inputitem, $valOutput, $valError);
+						
+						if ($valResult === true) {
+							$validinput['bool'][$varname] = $valOutput;
+						} else {
+							$validationerrors++;
+							$invalidinput['bool'][$varname] = $valError;
+						}
+					}
 				}
 				
+				if (is_array($_POST['rappinn']['litetall'])) {
+					foreach ($_POST['rappinn']['litetall'] as $varname => $inputitem) {
+						$valOutput = '';
+						$valError = '';
+						$valResult = RappValidator::ValLiteTall($inputitem, $valOutput, $valError);
+						
+						if ($valResult === true) {
+							$validinput['litetall'][$varname] = $valOutput;
+						} else {
+							$validationerrors++;
+							$invalidinput['litetall'][$varname] = $valError;
+						}
+					}
+				}
+				
+				if (is_array($_POST['rappinn']['tekst'])) {
+					foreach ($_POST['rappinn']['tekst'] as $varname => $inputitem) {
+						$valOutput = '';
+						$valError = '';
+						$valResult = RappValidator::ValTekst($inputitem, $valOutput, $valError);
+						
+						if ($valResult === true) {
+							$validinput['tekst'][$varname] = $valOutput;
+						} else {
+							$validationerrors++;
+							$invalidinput['tekst'][$varname] = $valError;
+						}
+					}
+				}
+				
+				
+				
+				if (is_array($_POST['rappinn']['selnotat'])) {
+					foreach ($_POST['rappinn']['selnotat'] as $notatid) {
+						$objNotat = SkiftFactory::getNotat($notatid);
+						if ($skiftcol->exists($objNotat->getSkiftId())) { // Sjekker om skiftiden til notatet er en av de som er valgt for denne rapporten
+							$validinput['selnotat'][] = $notatid;
+						} else {
+							die('Forsøk på å inkludere notat som ikke hører til rapporten');
+						}
+					}
+				}
+				// Slutt validation
+				
+				if ($validationerrors === 0) {
+					$saverapport = true;
+				}
+							
 			}
+			
+			
+			
 			
 			foreach ($skiftcol as $objSkift) {
 				foreach ($objSkift->notater as $objNotat) {
 					if ($objNotat->isActive()) {
-						$notatoutput .= '<input type="checkbox" name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> ';
+						if (is_array($validinput['selnotat']) && in_array($objNotat->getId(), $validinput['selnotat'])) {
+							$checked = 'checked="yes" ';
+							$notatsaveoutput .= '<li>' . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")</li>\n";
+						} else {
+							$checked = '';
+						}
+						$notatoutput .= '<input type="checkbox" ' . $checked . 'name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> ';
 						$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
+						
 					}
 				}
 				foreach ($objSkift->tellere as $objTeller) {
@@ -198,13 +281,22 @@ class msmodul_feilmrapport implements msmodul{
 			$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
 			
 			if (!$notatoutput) $notatoutput = 'Ingen notater.';
+			if (!$notatsaveoutput) {
+				$notatsaveoutput = 'Ingen notater.';
+			} else {
+				$notatsaveoutput = '<ul>' . $notatsaveoutput . '</ul>';
+			}
 			if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
 			
 	
 			
 			// Erstatter [[notater:annet]] med notat-output. 
-			$funcErstattNotat = function ($matches) use (&$notatoutput) {
-				return $notatoutput;
+			$funcErstattNotat = function ($matches) use (&$notatoutput, &$notatsaveoutput, $saverapport) {
+				if ($saverapport) {
+					return $notatsaveoutput;
+				} else {
+					return $notatoutput;
+				}
 			};
 			$tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $funcErstattNotat);
 			
@@ -228,25 +320,58 @@ class msmodul_feilmrapport implements msmodul{
 			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/u', $funcErstattTeller); 
 			
 			// Erstatter [[inputbool:varname]] med ja/nei dropdown input
-			$funcErstattInputBool = function ($matches) {
+			$funcErstattInputBool = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
 				$varname = $matches[1];
-				$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
+				if ($saverapport) {
+					$output = ($validinput['bool']["$varname"]) ? 'Ja' : 'Nei';
+				} else {
+					if (isset($validinput['bool']["$varname"])) {
+						$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True" ' . (($validinput['bool']["$varname"]) ? 'selected="yes"' : '') . '>Ja</option><option value="False"' . (($validinput['bool']["$varname"]) ? '' : 'selected="yes"') . '>Nei</option></select>';
+					} else {
+						$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
+						if (isset($invalidinput['bool']["$varname"])) {
+							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['bool']["$varname"] . '">';
+						}
+					}
+				}
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
 			
 			// Erstatter [[inputtekst:varname]] med tekst-input felt
-			$funcErstattInputTekst = function ($matches) {
+			$funcErstattInputTekst = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
 				$varname = $matches[1];
-				$output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
+				if ($saverapport) {
+					$output = $validinput['tekst']["$varname"];
+				} else {
+					if (isset($validinput['tekst']["$varname"])) {
+						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" value="' . $validinput['tekst']["$varname"] . '" />';
+					} else {
+						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
+						if (isset($invalidinput['tekst']["$varname"])) {
+							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
+						}
+					}
+				}
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
 			
 			// Erstatter [[inputlitetall:varname]] med 3-siffret tekst-input
-			$funcErstattInputLiteTall = function ($matches) {
+			$funcErstattInputLiteTall = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
 				$varname = $matches[1];
-				$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
+				if ($saverapport) {
+					$output = $validinput['litetall']["$varname"];
+				} else {
+					if (isset($validinput['litetall']["$varname"])) {
+						$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname .  ']" value="' . $validinput['litetall']["$varname"] . '" />';
+					} else {
+						$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
+						if (isset($invalidinput['litetall']["$varname"])) {
+							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['litetall']["$varname"] . '">';
+						}
+					}
+				}
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
@@ -267,7 +392,7 @@ class msmodul_feilmrapport implements msmodul{
 
 			
 			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-			$output .= '<input type="hidden" name="act" value="genrapport" />' . "\n";
+			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
 			$output .= $hiddenSkiftider;
 			
 			
@@ -280,8 +405,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= $tmpOutput;
 			
 			$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
-			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" DISABLED />' . "\n";
-			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />' . "\n";
+			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
+			//$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />' . "\n";
 			$output .= '</form>' . "\n";
 			
 			
@@ -289,9 +414,8 @@ class msmodul_feilmrapport implements msmodul{
 			
 	}
 	
-	private function _lagreRapport() {
-		var_dump($_REQUEST);
-	}
+	
+	
 	
 	private function _genRapportSelectSkift(){
 	
@@ -307,9 +431,29 @@ class msmodul_feilmrapport implements msmodul{
 					<input type="hidden" name="act" value="genrapportmod" />';
 		
 		foreach ($skiftcol as $objSkift) {
-			$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '"' . (($objSkift->isClosed()) ? '' : 'disabled') . ' />';
-			$output .= 'SkiftID: ' . $objSkift->getId() . ' (' . $objSkift->getSkiftOwnerName() . ') ';
-			$output .= '(' . (($objSkift->isClosed()) ? 'avsluttet' : '<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">steng</a>') . ")<br />\n";
+		
+			try {
+				$starttid = new DateTime($objSkift->getSkiftCreatedTime());
+			} catch (Exception $e) {
+				msg($e->getMessage());
+			}
+			
+			try {
+				$slutttid = new DateTime($objSkift->getSkiftClosedTime());
+			} catch (Exception $e) {
+				msg($e->getMessage());
+			}
+			
+			if ($objSkift->isClosed()) {			
+				
+				
+				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
+				$output .= '&nbsp;' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; ' . $this->LesbarTid($slutttid) . "<br />\n";
+			} else {
+				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" disabled />';
+				$output .= '&nbsp;' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; Ikke avsluttet! '; 
+				$output .= '(<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . "<br />\n";
+			}
 		}			
 					
 		$output .=	'
@@ -322,6 +466,21 @@ class msmodul_feilmrapport implements msmodul{
 		
 		return $output;
 	}
+	
+	public static function LesbarTid(DateTime $inntid) {
+		$dagensdato = date('Y-m-d');
+		$inndato = $inntid->format('Y-m-d');
+		
+		if ($dagensdato === $inndato) {
+			$uttid = $inntid->format('H:i');
+		} else {
+			$uttid = $inntid->format('j.n - H:i');
+		}
+		
+		return $uttid;
+		
+	}
+	
 	
 	public function genSkift(){
 	

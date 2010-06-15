@@ -5,11 +5,11 @@ class SkiftFactory {
 	public static function getSkift($id) {
 		global $msdb;
 		
-		$sql = "SELECT feilrap_skift.skiftcreated, feilrap_skift.userid, feilrap_skift.skiftclosed, feilrap_skift.israpportert, internusers.wikiname FROM feilrap_skift LEFT JOIN internusers ON feilrap_skift.userid = internusers.id WHERE skiftid = " . $msdb->quote($id) . ";";
+		$sql = "SELECT feilrap_skift.skiftcreated, feilrap_skift.userid, feilrap_skift.skiftclosed, feilrap_skift.israpportert, feilrap_skift.rapportid, internusers.wikiname FROM feilrap_skift LEFT JOIN internusers ON feilrap_skift.userid = internusers.id WHERE skiftid = " . $msdb->quote($id) . ";";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			$objSkift = new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed']);
+			$objSkift = new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed'], $data[0]['israpportert'], $data[0]['rapportid']);
 			$objSkift->setSkiftOwnerName($data[0]['wikiname']);
 			return $objSkift;
 		} else {

@@ -8,16 +8,20 @@ class Skift {
 	private $_skiftOwnerId;
 	private $_skiftOwnerName;
 	private $_skiftLastUpdate;
+	private $_skiftIsRapportert;
+	private $_skiftRapportId;
 	public $checkedLastUpdate = false;
 	
 	public $tellere;
 	public $notater;
 	
-	public function __construct($id, $createdtime, $ownerid, $closedtime = null) {
+	public function __construct($id, $createdtime, $ownerid, $closedtime = null, $rapportert = null, $rapportid = null) {
 		$this->_id = $id;
 		$this->_skiftCreatedTime = $createdtime;
 		$this->_skiftOwnerId = $ownerid;
 		$this->_skiftClosedTime = $closedtime;
+		$this->_skiftIsRapportert = $rapportert;
+		$this->_skiftRapportId = $rapportid;
 		
 		$this->tellere = new TellerCollection();
 		$this->tellere->setLoadCallback('_loadTellere', $this);
@@ -52,6 +56,14 @@ class Skift {
 	
 	public function isClosed() {
 		return (bool)($this->_skiftClosedTime != null);
+	}
+	
+	public function isRapportert() {
+		return (bool)($this->_skiftIsRapportert);
+	}
+	
+	public function getSkiftRapportId() {
+		return $this->_skiftRapportId;
 	}
 	
 	public function __toString() {
