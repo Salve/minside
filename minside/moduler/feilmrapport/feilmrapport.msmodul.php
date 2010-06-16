@@ -36,7 +36,7 @@ class msmodul_feilmrapport implements msmodul{
 		$this->_msmodulact = $act;
 		$this->_msmodulvars = $vars;
 		
-		$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
+		//$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
 		switch($this->_msmodulact) {
 			case "stengskift":
@@ -868,7 +868,7 @@ class msmodul_feilmrapport implements msmodul{
 		$lvl = $this->_accessLvl;
 		
 		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
-		$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
+		//$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
 		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
 		$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
 		
@@ -876,9 +876,9 @@ class msmodul_feilmrapport implements msmodul{
 			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);
 			}
-			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
+			/*if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($telleradmin);
-			}
+			}*/
 			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($tpladmin);
 			}

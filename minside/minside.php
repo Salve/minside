@@ -39,6 +39,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	}
 	
 	public function gen_minside() { // returnerer all nødvendig xhtml for å vise minside som en streng
+		global $INFO;
 		if (!($this->sjekkAdgang('vismeny') > MSAUTH_NONE)) {
 			return '<h1>Ingen adgang</h1><p>Brukeren ' . $this->username . ' har ikke tilgang til å vise Min Side. ' . 
 				'Kontakt en teamleder dersom du har spørsmål til dette.</p>';
@@ -51,7 +52,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$mspremenu .= '<div class="minside">'; 
 		
 		$msoutput .= '<h1>Min Side</h1>';
-		$msoutput .= 'Output fra minside! Navn: ' . $this->username . ' ID: ' . $this->getUserID() . '<br />';
+		$msoutput .= 'Velkommen til din side, ' . $INFO['userinfo']['name'] . '!<br />';
 		
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
