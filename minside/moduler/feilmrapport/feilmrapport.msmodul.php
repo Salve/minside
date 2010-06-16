@@ -406,9 +406,19 @@ class msmodul_feilmrapport implements msmodul{
 			
 			$output .= $tmpOutput;
 			
-			$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
-			$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
-			//$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" DISABLED />' . "\n";
+			if (!$saverapport) {
+				$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
+				$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
+			}
+
+			$output .= '</form>' . "\n";
+			$output .= '<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			if ($saverapport) {
+				$output .= '<input type="hidden" name="act" value="show" />' . "\n";
+			} else {
+				$output .= '<input type="hidden" name="act" value="genrapportsel" />' . "\n";
+			}
+			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" />' . "\n";
 			$output .= '</form>' . "\n";
 			
 			
