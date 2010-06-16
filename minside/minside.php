@@ -1,7 +1,7 @@
 <?php
 if(!defined('DOKU_INC')) die(); // Dette scriptet kan kun kjøres via dokuwiki
 define('MS_INC', true); // Alle underscript sjekker om denne er definert
-define(MS_LINK, "?do=minside");
+define('MS_LINK', "?do=minside");
 define('MSAUTH_NONE',0); // Matcher dokuwiki sine auth verdier
 define('MSAUTH_1',1);
 define('MSAUTH_2',2);
