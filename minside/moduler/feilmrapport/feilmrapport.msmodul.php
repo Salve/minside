@@ -412,6 +412,21 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '</form>' . "\n";
 			
 			
+			if ($saverapport) {
+								
+				$mailto = $INFO['userinfo']['mail'];
+				$subject = 'Rapport feilmeldingstjenesten ' . date('d.m.Y');
+				$headers = 'From: ' . $INFO['userinfo']['mail'] . "\r\n" .
+					'Reply-To: noreply@lyse.no' . "\r\n" .
+					'X-Mailer: PHP/LyseWiki/MinSide/FeilMRapport' . "\r\n" .
+					'MIME-Version: 1.0' . "\r\n" .
+					'Content-type: text/html; charset=utf-8' . "\r\n";
+					
+				mail($mailto, $subject, $tmpOutput, $headers);
+			
+			}
+			
+			
 			return $output;
 			
 	}
