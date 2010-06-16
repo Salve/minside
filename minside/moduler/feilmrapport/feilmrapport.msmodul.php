@@ -867,8 +867,8 @@ class msmodul_feilmrapport implements msmodul{
 				$toppmeny->addChild($genrapport);
 			}
 			/*if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
-				$toppmeny->addChild($telleradmin);*/
-			}
+				$toppmeny->addChild($telleradmin);
+			}*/
 			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($tpladmin);
 			}
