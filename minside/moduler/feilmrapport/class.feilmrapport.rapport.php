@@ -12,7 +12,7 @@ class Rapport {
 	
 	public $skift;
 	
-	public function __construct($id, $createdtime, $ownerid, $fromtime, $totime, $issaved = false) {
+	public function __construct($id, $createdtime, $ownerid, $issaved = false) {
 		$this->_id = $id;
 		$this->_rapportCreatedTime = $createdtime;
 		$this->_rapportOwnerId = $ownerid;
@@ -21,7 +21,7 @@ class Rapport {
 		$this->_isSaved = (bool) $issaved;
 		
 		$this->skift = new SkiftCollection();
-		$this->skift->setLoadCallback('_loadSkift', $this);
+		if ($issaved) $this->skift->setLoadCallback('_loadSkift', $this);
 	}
 	
 	public function getId() {

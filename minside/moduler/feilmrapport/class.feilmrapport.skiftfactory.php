@@ -23,11 +23,11 @@ class SkiftFactory {
 		
 		$saferapportid = $msdb->quote($rapportid);
 		
-		$sql = "SELECT createtime, issent, rapportfratid, rapporttiltid, rapportowner FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
+		$sql = "SELECT createtime, issent, rapportowner FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			return new Skift($rapportid, $data[0]['createtime'], $data[0]['userid'], $data[0]['rapportfratid'], $data[0]['rapporttiltid'], true);
+			return new Skift($rapportid, $data[0]['createtime'], $data[0]['userid'], true);
 		} else {
 			throw new Exception("Rapport med id: $rapportid finnes ikke i database");
 		}
@@ -72,7 +72,7 @@ class SkiftFactory {
 	public static function getMuligeSkiftForRapport() {
 		global $msdb;
 		
-		$sql = "SELECT skiftid FROM feilrap_skift WHERE skiftcreated > (now() - INTERVAL 14 HOUR)";
+		$sql = "SELECT skiftid FROM feilrap_skift WHERE skiftcreated > (now() - INTERVAL 48 HOUR)";
 		$data = $msdb->assoc($sql);
 		
 		$col = new SkiftCollection();

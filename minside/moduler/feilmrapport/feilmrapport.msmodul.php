@@ -5,11 +5,13 @@ require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.rapport.php');
+require_once('class.feilmrapport.rapportdatum.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.rappvalidator.php');
 require_once('class.feilmrapport.rapporttemplate.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
+require_once('class.feilmrapport.rapportdatumcollection.php');
 require_once('class.feilmrapport.skiftcollection.php');
 
 class msmodul_feilmrapport implements msmodul{
@@ -471,10 +473,12 @@ class msmodul_feilmrapport implements msmodul{
 		$dagensdato = date('Y-m-d');
 		$inndato = $inntid->format('Y-m-d');
 		
-		if ($dagensdato === $inndato) {
-			$uttid = $inntid->format('H:i');
-		} else {
-			$uttid = $inntid->format('j.n - H:i');
+		$ukedager = array('søn.', 'man.', 'tirs.', 'ons.', 'tors.', 'fre.', 'lør.', );
+		$uttid = $inntid->format('H:i');
+		
+		if ($dagensdato != $inndato) {
+			$dag = $ukedager[$inntid->format('w')];
+			$uttid = $dag . ' ' . $inntid->format('H:i');
 		}
 		
 		return $uttid;
@@ -825,8 +829,8 @@ class msmodul_feilmrapport implements msmodul{
 	
 		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 		$output .= '<input type="hidden" name="act" value="modraptpl" />';
-		$output .= '<textarea name="inputtpl" cols="60" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
-		$output .= '<input type="submit" class="button" name="savetpl" value="Lagre" />';
+		$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
+		$output .= '<br /><input type="submit" class="button" name="savetpl" value="Lagre" />';
 		$output .= '</form>';
 	
 	
