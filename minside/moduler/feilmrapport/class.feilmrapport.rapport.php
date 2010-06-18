@@ -251,16 +251,10 @@ class Rapport {
 		
 			
 			
-
+			
+			$tmpOutput = RapportTemplate::getTemplate($tplErstatter);
 			
 			
-			
-			
-			$tmpOutput = RapportTemplate::getRawTemplate();
-			
-			foreach ($tplErstatter->getPatterns() as $key => $pattern) {
-				$tmpOutput = preg_replace_callback($pattern, $tplErstatter->getReplacement($key), $tmpOutput);
-			}
 			
 			
 			$output .= $hiddenSkiftider;

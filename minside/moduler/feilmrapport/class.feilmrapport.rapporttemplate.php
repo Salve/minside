@@ -16,6 +16,14 @@ class RapportTemplate {
 	
 	}
 	
+	public function getTemplate(Erstatter $objErstatter, $tplid = null) {
+
+		$rawtpl = self::getRawTemplate($tplid);
+		
+		return $objErstatter->erstatt($rawtpl);
+	
+	}
+	
 	public static function getCurrentTplId() {
 	
 		return (integer) 1;

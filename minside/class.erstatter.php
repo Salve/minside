@@ -12,8 +12,13 @@ class Erstatter {
 	
 	public function erstatt($inputstreng) {
 		
-		$output = preg_replace($this->_arPatterns, $this->_arReplacements, $inputstreng);
-		return $output;
+		$workingstr = $inputstreng;
+		
+		foreach ($this->_arPatterns as $key => $pattern) {
+				$workingstr = preg_replace_callback($pattern, $this->_arReplacements[$key], $workingstr);
+		}
+		
+		return $workingstr;
 	
 	}
 	
