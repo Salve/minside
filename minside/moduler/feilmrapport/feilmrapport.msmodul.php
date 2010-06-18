@@ -125,21 +125,15 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genModRapport(){
-			global $INFO;
 			$skiftcol = new SkiftCollection();
-			$totaltellere = array();
-			$brukertellere = array();
-			
-			$tellercol = new TellerCollection();
-			$notatcol = new NotatCollection();
-			
-			$tplErstatter = new Erstatter();
 			
 			$validinput = array();
 			$invalidinput = array();
 			$validationerrors = 0;
 			
 			foreach ($_POST['selskift'] as $skiftid) {
+				if (trim($skiftid, '0123456789') != '') die('Ugyldig skiftid oppdaget!');
+				
 				try {
 					$objSkift = SkiftFactory::getSkift($skiftid);
 				}
@@ -152,18 +146,23 @@ class msmodul_feilmrapport implements msmodul{
 					if ($objSkift->isClosed() && !$objSkift->isRapportert()) {
 						$skiftcol->addItem($objSkift, $objSkift->getId());
 						$validinput['selskift'][] = $objSkift->getId();
-						$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
 					}
 				}		
 			}
 			
-			
+			/*
+			 *	Input validation
+			 * 
+			 * All data som gis til objRapport skal være validert
+			 */
+			// Validerer kun dersom bruker har submittet form
 			if ($_REQUEST['genrap'] == 'Generer rapport') {
-				// Valider input
+			
+			
 				if (is_array($_POST['rappinn']['bool'])) {
 					foreach ($_POST['rappinn']['bool'] as $varname => $inputitem) {
-						$valOutput = '';
-						$valError = '';
+						$valOutput = ''; // Sendes by ref til validator funksjon, inneholder output, som kan være endret fra $inputitem selv om validation er ok. (f.eks. stripping av spaces osv)
+						$valError = '';  // Sendes by ref til validator funksjon, inneholder error message for gitt varname dersom validation failer.
 						$valResult = RappValidator::ValBool($inputitem, $valOutput, $valError);
 						
 						if ($valResult === true) {
@@ -217,194 +216,22 @@ class msmodul_feilmrapport implements msmodul{
 						}
 					}
 				}
-				// Slutt validation
+				
 				
 				if ($validationerrors === 0) {
 					$saverapport = true;
 				}
 							
 			}
+			// Slutt validation
 			
+			$objRapport = new Rapport($this->_userId);
 			
-			
-			
-			foreach ($skiftcol as $objSkift) {
-				foreach ($objSkift->notater as $objNotat) {
-					if ($objNotat->isActive()) {
-						if (is_array($validinput['selnotat']) && in_array($objNotat->getId(), $validinput['selnotat'])) {
-							$checked = 'checked="yes" ';
-							$notatsaveoutput .= '<li>' . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")</li>\n";
-						} else {
-							$checked = '';
-						}
-						$notatoutput .= '<input type="checkbox" ' . $checked . 'name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> ';
-						$notatoutput .= $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
-						
-					}
-				}
-				foreach ($objSkift->tellere as $objTeller) {
-					if ($objTeller->getTellerVerdi() > 0) {
-						if ($tellercol->exists($objTeller->getTellerName())) {
-							$objColTeller = $tellercol->getItem($objTeller->getTellerName());
-							$objColTeller->setTellerVerdi($objColTeller->getTellerVerdi() + $objTeller->getTellerVerdi());
-						} else {
-							$objColTeller = new Teller($objTeller->getId(), $objSkift->getId(), $objTeller->getTellerName(), $objTeller->getTellerDesc(), $objTeller->getTellerType(), $objTeller->getTellerVerdi());
-							$tellercol->addItem($objColTeller, $objTeller->getTellerName());
-						}
-						
-						if ($objTeller->getTellerType() == 'ULOGGET') {
-							$uloggettotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();
-						}
-						
-						$tellertotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();						
-						$brukertellere[$objTeller->getTellerName()][$objSkift->getSkiftOwnerName()] += $objTeller->getTellerVerdi();
-					}
-				}
-			}
-			
-			
-			foreach ($brukertellere as $tellername => $bruker) {
-				
-				foreach ($bruker as $brukernavn => $brukertotal) {
-					if ($brukertotal > 0) {
-						$brukertellernotater[$tellername] .= $brukernavn . ': ' . $brukertotal . ' (' . round($brukertotal / $tellertotaler[$tellername] * 100) . '%) ';
-					}
-				}
-				
-				if ($uloggettotaler[$tellername] > 0) {
-					$objTeller = $tellercol->getItem($tellername);
-					$uloggetoutput .= '<span title="' . $brukertellernotater[$tellername] . '">' . $objTeller->getTellerDesc() . ': ' . $objTeller->getTellerVerdi() . "</span><br />\n";
-				}
-
-			}
-			
-			
-			$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
-			$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
-			
-			if (!$notatoutput) $notatoutput = 'Ingen notater.';
-			if (!$notatsaveoutput) {
-				$notatsaveoutput = 'Ingen notater.';
-			} else {
-				$notatsaveoutput = '<ul>' . $notatsaveoutput . '</ul>';
-			}
-			if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
-			
-	
-			
-			// Erstatter [[notater:annet]] med notat-output. 
-			$funcErstattNotat = function ($matches) use (&$notatoutput, &$notatsaveoutput, $saverapport) {
-				if ($saverapport) {
-					return $notatsaveoutput;
-				} else {
-					return $notatoutput;
-				}
-			};
-			$tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $funcErstattNotat);
-			
-			// Erstatter [[ulogget]] med ulogget-output. 
-			$funcErstattUlogget = function ($matches) use (&$uloggetoutput) {
-				return $uloggetoutput;
-			};
-			$tplErstatter->addErstattning('/\[\[ulogget\]\]/u', $funcErstattUlogget);
-			
-			// Erstatter [[teller:TELLERNAVN]] med tallverdien til telleren
-			$funcErstattTeller = function ($matches) use (&$brukertellernotater, &$tellercol) {
-				$key = $matches[1];
-				$objTeller = $tellercol->getItem($key);
-				if ($objTeller instanceof Teller) {
-					$telleroutput = '<span title="' . $brukertellernotater[$key] . '">' . ((string) $objTeller->getTellerVerdi()) . '</span>';
-				} else {
-					$telleroutput = '<span>0</span>';
-				}
-				return $telleroutput;
-			};
-			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/u', $funcErstattTeller); 
-			
-			// Erstatter [[inputbool:varname]] med ja/nei dropdown input
-			$funcErstattInputBool = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
-				$varname = $matches[1];
-				if ($saverapport) {
-					$output = ($validinput['bool']["$varname"]) ? 'Ja' : 'Nei';
-				} else {
-					if (isset($validinput['bool']["$varname"])) {
-						$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True" ' . (($validinput['bool']["$varname"]) ? 'selected="yes"' : '') . '>Ja</option><option value="False"' . (($validinput['bool']["$varname"]) ? '' : 'selected="yes"') . '>Nei</option></select>';
-					} else {
-						$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
-						if (isset($invalidinput['bool']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['bool']["$varname"] . '">';
-						}
-					}
-				}
-				return $output;
-			};
-			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
-			
-			// Erstatter [[inputtekst:varname]] med tekst-input felt
-			$funcErstattInputTekst = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
-				$varname = $matches[1];
-				if ($saverapport) {
-					$output = $validinput['tekst']["$varname"];
-				} else {
-					if (isset($validinput['tekst']["$varname"])) {
-						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" value="' . $validinput['tekst']["$varname"] . '" />';
-					} else {
-						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
-						if (isset($invalidinput['tekst']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
-						}
-					}
-				}
-				return $output;
-			};
-			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
-			
-			// Erstatter [[inputlitetall:varname]] med 3-siffret tekst-input
-			$funcErstattInputLiteTall = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
-				$varname = $matches[1];
-				if ($saverapport) {
-					$output = $validinput['litetall']["$varname"];
-				} else {
-					if (isset($validinput['litetall']["$varname"])) {
-						$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname .  ']" value="' . $validinput['litetall']["$varname"] . '" />';
-					} else {
-						$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
-						if (isset($invalidinput['litetall']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['litetall']["$varname"] . '">';
-						}
-					}
-				}
-				return $output;
-			};
-			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
-
-			// Erstatter [[data:varname]] med $tpldata[varname]
-			$funcErstattData = function ($matches) use (&$tpldata) {
-				$varname = $matches[1];
-				if (isset($tpldata[$varname])) {
-					return $tpldata[$varname];
-				} else {
-					return "Verdi av \"$varname\" ikke funnet";
-				}
-			};
-			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
-		
-			
-			
-
 			
 			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
-			$output .= $hiddenSkiftider;
 			
-			
-			$tmpOutput = RapportTemplate::getRawTemplate();
-			
-			foreach ($tplErstatter->getPatterns() as $key => $pattern) {
-				$tmpOutput = preg_replace_callback($pattern, $tplErstatter->getReplacement($key), $tmpOutput);
-			}
-			
-			$output .= $tmpOutput;
+			$output .= $objRapport->nyRapport($skiftcol, $validinput, $invalidinput, $saverapport);
 			
 			if (!$saverapport) {
 				$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
@@ -422,6 +249,11 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '</form>' . "\n";
 			
 			
+			
+			
+			
+			// Enkel mail funksjon
+			/*
 			if ($saverapport) {
 								
 				$mailto = $INFO['userinfo']['mail'];
@@ -430,11 +262,12 @@ class msmodul_feilmrapport implements msmodul{
 					'Reply-To: noreply@lyse.no' . "\r\n" .
 					'X-Mailer: PHP/LyseWiki/MinSide/FeilMRapport' . "\r\n" .
 					'MIME-Version: 1.0' . "\r\n" .
-					'Content-type: text/html; charset=utf-8' . "\r\n";
+					'Content-type: text/html; charset="utf-8"' . "\r\n";
 					
 				mail($mailto, $subject, $tmpOutput, $headers);
 			
 			}
+			*/
 			
 			
 			return $output;
@@ -485,6 +318,10 @@ class msmodul_feilmrapport implements msmodul{
 					
 		$output .=	'
 					<input type="submit" name="subvelgskift" class="button" value="Gå videre">
+				</form>
+				<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+					<input type="hidden" name="act" value="show" />
+					<input type="submit" class="button" name="subvelgskift" value="Tilbake" />
 				</form>
 			</fieldset>
 			</div>';

@@ -30,7 +30,7 @@ class RappValidator {
 			return true;
 		} else {
 			$output = null;
-			$error = 'Må være gyldig tall, 1-3 siffer';
+			$error = 'Må være gyldig tall, 1-3 siffer. Desimaler ikke tillatt.';
 			return false;
 		}
 		
