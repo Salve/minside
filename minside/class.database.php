@@ -94,6 +94,12 @@ class Database {
 		
 	}
 	
+	public function getLastInsertId() {
+	
+		return $this->hConn->lastInsertId();
+	
+	}
+	
 	public function __destruct() {
 	
 		$this->hConn = null;

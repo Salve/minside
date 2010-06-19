@@ -48,6 +48,15 @@ class Rapport {
 		return $this->rapportSent;
 	}
 	
+	public function setSkiftCol(SkiftCollection &$skiftcol) {
+		if ($skiftcol->length() > 0) {
+			$this->skift = $skiftcol;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public function __toString() {
 		return 'RapportID: ' . $this->_id . ', OwnerID: ' . $this->_rapportOwnerId . '.';
 	}
@@ -56,8 +65,60 @@ class Rapport {
 		$arSkift = SkiftFactory::getSkiftForRapport($this->_id, $col);
 	}
 	
+	public function genRapportTemplate() {
+		return $this->_genRapport();
+	}
 	
-	public function nyRapport(SkiftCollection $skiftcol, $validinput = array(), $invalidinput = array(), $saverapport = false) {
+	public function genRapportTemplateErrors($validinput, $invalidinput) {
+		if (!isset($validinput)) $validinput = array();
+		if (!isset($invalidinput)) $invalidinput = array();
+		
+		return $this->_genRapport($validinput, $invalidinput, false);
+	}
+	
+	public function lagreRapport($validinput) {
+		global $msdb;
+		if ($this->_isSaved) throw new Exception('Denne rapporten er allerede lagret');
+		if (!isset($this->_rapportOwnerId)) throw new Exception('Rapport-eier ikke angitt');
+		if (!is_array($validinput)) throw new Exception('Ingen data gitt');
+		if (!($this->skift->length() > 0)) throw new Exception('Ingen skift lastet i rapportobjekt');
+		
+		$skiftcol = $this->skift;
+		
+		$this->_rapportCreatedTime = date("Y-m-d H:i:s");
+		$saferapportcreated = $msdb->quote($this->_rapportCreatedTime);
+		$saferapportowner = $msdb->quote($this->_rapportOwnerId);
+		
+		$sql = "INSERT INTO feilrap_rapport (createtime, rapportowner) VALUES ($saferapportcreated, $saferapportowner);";
+		msg($sql);
+		$msdb->exec($sql);
+		$this->_id = $msdb->getLastInsertId();
+		$saferapportid = $msdb->quote($this->_id);
+		
+		$arSkift = array();
+		foreach ($skiftcol as $objSkift) {
+			$arSkift[] = $objSkift->getId();
+		}
+		$skiftidlist = implode(',', $arSkift);
+		$sql = "UPDATE feilrap_skift SET israpportert=1, rapportid=$saferapportid WHERE skiftid IN ($skiftidlist);";
+		msg($sql);
+		$msdb->exec($sql);
+				
+		foreach ($validinput as $inputtype => $inputnamevaluearray)  {
+			$safeinputtype = $msdb->quote($inputtype);
+			foreach ($inputnamevaluearray as $inputnavn => $inputvalue) {
+				$safeinputnavn = $msdb->quote($inputnavn);
+				$safeinputvalue = $msdb->quote($inputvalue);
+				$sql = "INSERT INTO feilrap_rapportdata (rapportid, dataname, datavalue, datatype) VALUES ($saferapportid, $safeinputnavn, $safeinputvalue, $safeinputtype);";
+				msg($sql);
+				$msdb->exec($sql);
+			}
+		}
+		
+	}
+	
+	
+	private function _genRapport($validinput = array(), $invalidinput = array(), $saverapport = false) {
 			global $INFO;
 			$totaltellere = array();
 			$brukertellere = array();
@@ -67,9 +128,15 @@ class Rapport {
 			
 			$tplErstatter = new Erstatter();
 			
+			if (!($this->skift->length() > 0)) throw new Exception('Ingen skift lastet i rapportobjekt');
+			
+			$skiftcol = $this->skift;
 			
 			// for hvert skift som er gitt funksjonen
 			foreach ($skiftcol as $objSkift) {
+				
+				$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
+			
 				// for hvert notat i hvert skift (disse blir hentet fra db her,  via callback på collection)
 				foreach ($objSkift->notater as $objNotat) {
 					// ignorer inaktive notater (de som er slettet av bruker)
@@ -134,9 +201,6 @@ class Rapport {
 
 			}
 			
-			foreach ($validinput['selskift'] as $skiftid) {
-				$hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $skiftid . "\" />\n";
-			}
 			
 			// Definer [[data:datumnavn]] som skal replaces her.
 			$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
@@ -250,21 +314,9 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
 		
 			
-			
-			
 			$tmpOutput = RapportTemplate::getTemplate($tplErstatter);
 			
-			
-			
-			
-			$output .= $hiddenSkiftider;
-			$output .= $tmpOutput;
-			
-			
-			
-			
-			
-			
+			$output .= $hiddenSkiftider . $tmpOutput;			
 			
 			return $output;
 	}

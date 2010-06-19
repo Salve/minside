@@ -4,12 +4,12 @@ if(!defined('MS_INC')) die();
 class RappValidator {
 	
 	public static function ValBool($input, &$output, &$error) {
-		if ($input === 'True') {
-			$output = true;
+		if ($input === 'True' || $input === '1') {
+			$output = '1';
 			$error = null;
 			return true;
-		} elseif ($input === 'False') {
-			$output = false;
+		} elseif ($input === 'False' || $input === '0') {
+			$output = '0';
 			$error = null;
 			return true;
 		} else {

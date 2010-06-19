@@ -1,6 +1,6 @@
 <?php
 if(!defined('MS_INC')) die();
-define(MS_FMR_LINK, MS_LINK . "&page=feilmrapport");
+define('MS_FMR_LINK', MS_LINK . "&page=feilmrapport");
 require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
@@ -127,27 +127,30 @@ class msmodul_feilmrapport implements msmodul{
 	private function _genModRapport(){
 			$skiftcol = new SkiftCollection();
 			
-			$validinput = array();
-			$invalidinput = array();
+			
 			$validationerrors = 0;
 			
-			foreach ($_POST['selskift'] as $skiftid) {
-				if (trim($skiftid, '0123456789') != '') die('Ugyldig skiftid oppdaget!');
-				
-				try {
-					$objSkift = SkiftFactory::getSkift($skiftid);
-				}
-				catch (Exception $e) {
-					msg($e->getMessage,-1);
-					return false;
-				}				
-				
-				if ($objSkift instanceof Skift) {
-					if ($objSkift->isClosed() && !$objSkift->isRapportert()) {
-						$skiftcol->addItem($objSkift, $objSkift->getId());
-						$validinput['selskift'][] = $objSkift->getId();
+			if (is_array($_POST['selskift'])) {
+				foreach ($_POST['selskift'] as $skiftid) {
+					if (trim($skiftid, '0123456789') != '') die('Ugyldig skiftid oppdaget!');
+					
+					try {
+						$objSkift = SkiftFactory::getSkift($skiftid);
 					}
-				}		
+					catch (Exception $e) {
+						msg($e->getMessage,-1);
+						return false;
+					}				
+					
+					if ($objSkift instanceof Skift) {
+						if ($objSkift->isClosed() && !$objSkift->isRapportert()) {
+							$skiftcol->addItem($objSkift, $objSkift->getId());
+						}
+					}		
+				}
+				if ($skiftcol->length() == 0) return 'Ingen skift valgt.'; // selskift inneholder noe, men ingen valid skift
+			} else {
+				return 'Ingen skift valgt.';
 			}
 			
 			/*
@@ -158,89 +161,62 @@ class msmodul_feilmrapport implements msmodul{
 			// Validerer kun dersom bruker har submittet form
 			if ($_REQUEST['genrap'] == 'Generer rapport') {
 			
-			
-				if (is_array($_POST['rappinn']['bool'])) {
-					foreach ($_POST['rappinn']['bool'] as $varname => $inputitem) {
-						$valOutput = ''; // Sendes by ref til validator funksjon, inneholder output, som kan være endret fra $inputitem selv om validation er ok. (f.eks. stripping av spaces osv)
-						$valError = '';  // Sendes by ref til validator funksjon, inneholder error message for gitt varname dersom validation failer.
-						$valResult = RappValidator::ValBool($inputitem, $valOutput, $valError);
-						
-						if ($valResult === true) {
-							$validinput['bool'][$varname] = $valOutput;
-						} else {
-							$validationerrors++;
-							$invalidinput['bool'][$varname] = $valError;
-						}
-					}
-				}
+				$submitsave = true; // bruker har forsøkt å lagre rapport
 				
-				if (is_array($_POST['rappinn']['litetall'])) {
-					foreach ($_POST['rappinn']['litetall'] as $varname => $inputitem) {
-						$valOutput = '';
-						$valError = '';
-						$valResult = RappValidator::ValLiteTall($inputitem, $valOutput, $valError);
-						
-						if ($valResult === true) {
-							$validinput['litetall'][$varname] = $valOutput;
-						} else {
-							$validationerrors++;
-							$invalidinput['litetall'][$varname] = $valError;
-						}
-					}
-				}
-				
-				if (is_array($_POST['rappinn']['tekst'])) {
-					foreach ($_POST['rappinn']['tekst'] as $varname => $inputitem) {
-						$valOutput = '';
-						$valError = '';
-						$valResult = RappValidator::ValTekst($inputitem, $valOutput, $valError);
-						
-						if ($valResult === true) {
-							$validinput['tekst'][$varname] = $valOutput;
-						} else {
-							$validationerrors++;
-							$invalidinput['tekst'][$varname] = $valError;
-						}
-					}
-				}
-				
-				
-				
-				if (is_array($_POST['rappinn']['selnotat'])) {
-					foreach ($_POST['rappinn']['selnotat'] as $notatid) {
-						$objNotat = SkiftFactory::getNotat($notatid);
-						if ($skiftcol->exists($objNotat->getSkiftId())) { // Sjekker om skiftiden til notatet er en av de som er valgt for denne rapporten
-							$validinput['selnotat'][] = $notatid;
-						} else {
-							die('Forsøk på å inkludere notat som ikke hører til rapporten');
-						}
-					}
-				}
+				$validinput = array();
+				$invalidinput = array();
+				$validationerrors = $this->_validateRapportInput($validinput, $invalidinput, $skiftcol); // parameters by ref
 				
 				
 				if ($validationerrors === 0) {
-					$saverapport = true;
+					$validsave = true;
 				}
 							
 			}
 			// Slutt validation
 			
 			$objRapport = new Rapport($this->_userId);
+			$objRapport->setSkiftCol($skiftcol);
 			
+			if ($validsave) { // Inndata er ok, rapport skal lagres
 			
-			$output .= '<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+				try {
+					$objRapport->lagreRapport($validinput);
+				}
+				catch (Exception $e) {
+					die('Input ok, men klarte ikke å lagre rapport: ' . $e->getMessage());
+				}
+				
+				$rappoutput = 'Lagret rapport!<br />' . "\n";
+			
+			} elseif ($submitsave) {
+				try {
+					$rappoutput = $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
+				}
+				catch (Exception $e) {
+					die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
+				}
+				
+			} else {
+				try {
+					$rappoutput = $objRapport->genRapportTemplate();
+				}
+				catch (Exception $e) {
+					die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
+				}			
+			}
+			
+			$output .= '<form name="lagrerapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
-			
-			$output .= $objRapport->nyRapport($skiftcol, $validinput, $invalidinput, $saverapport);
-			
-			if (!$saverapport) {
+			$output .= $rappoutput;
+			if (!$validsave) {
 				$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
 				$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
 			}
-
 			$output .= '</form>' . "\n";
+
 			$output .= '<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-			if ($saverapport) {
+			if ($validsave) {
 				$output .= '<input type="hidden" name="act" value="show" />' . "\n";
 			} else {
 				$output .= '<input type="hidden" name="act" value="genrapportsel" />' . "\n";
@@ -254,7 +230,7 @@ class msmodul_feilmrapport implements msmodul{
 			
 			// Enkel mail funksjon
 			/*
-			if ($saverapport) {
+			if ($validsave) {
 								
 				$mailto = $INFO['userinfo']['mail'];
 				$subject = 'Rapport feilmeldingstjenesten ' . date('d.m.Y');
@@ -272,6 +248,72 @@ class msmodul_feilmrapport implements msmodul{
 			
 			return $output;
 			
+	}
+	
+	private function _validateRapportInput(&$validinput, &$invalidinput, &$skiftcol) {
+	
+		$validationerrors = 0;
+	
+		if (is_array($_POST['rappinn']['bool'])) {
+			foreach ($_POST['rappinn']['bool'] as $varname => $inputitem) {
+				$valOutput = ''; // Sendes by ref til validator funksjon, inneholder output, som kan være endret fra $inputitem selv om validation er ok. (f.eks. stripping av spaces osv)
+				$valError = '';  // Sendes by ref til validator funksjon, inneholder error message for gitt varname dersom validation failer.
+				$valResult = RappValidator::ValBool($inputitem, $valOutput, $valError);
+				
+				if ($valResult === true) {
+					$validinput['bool'][$varname] = $valOutput;
+				} else {
+					$validationerrors++;
+					$invalidinput['bool'][$varname] = $valError;
+				}
+			}
+		} 
+		
+		if (is_array($_POST['rappinn']['litetall'])) {
+			foreach ($_POST['rappinn']['litetall'] as $varname => $inputitem) {
+				$valOutput = '';
+				$valError = '';
+				$valResult = RappValidator::ValLiteTall($inputitem, $valOutput, $valError);
+				
+				if ($valResult === true) {
+					$validinput['litetall'][$varname] = $valOutput;
+				} else {
+					$validationerrors++;
+					$invalidinput['litetall'][$varname] = $valError;
+				}
+			}
+		}
+		
+		if (is_array($_POST['rappinn']['tekst'])) {
+			foreach ($_POST['rappinn']['tekst'] as $varname => $inputitem) {
+				$valOutput = '';
+				$valError = '';
+				$valResult = RappValidator::ValTekst($inputitem, $valOutput, $valError);
+				
+				if ($valResult === true) {
+					$validinput['tekst'][$varname] = $valOutput;
+				} else {
+					$validationerrors++;
+					$invalidinput['tekst'][$varname] = $valError;
+				}
+			}
+		}
+		
+		
+		
+		if (is_array($_POST['rappinn']['selnotat'])) {
+			foreach ($_POST['rappinn']['selnotat'] as $notatid) {
+				$objNotat = SkiftFactory::getNotat($notatid);
+				if ($skiftcol->exists($objNotat->getSkiftId())) { // Sjekker om skiftiden til notatet er en av de som er valgt for denne rapporten
+					$validinput['selnotat'][] = $notatid;
+				} else {
+					die('Forsøk på å inkludere notat som ikke hører til rapporten');
+				}
+			}
+		}
+	
+		return $validationerrors;
+	
 	}
 	
 	
@@ -581,6 +623,11 @@ class msmodul_feilmrapport implements msmodul{
 			} 
 			catch(Exception $e) {
 				die($e->getMessage());
+			}
+			
+			if (!($objNotat instanceof Notat)) {
+				msg('Kan ikke slette notat, notat finnes ikke');
+				return false;
 			}
 			
 			if ($objNotat->getSkiftId() == $this->getCurrentSkiftId()) {

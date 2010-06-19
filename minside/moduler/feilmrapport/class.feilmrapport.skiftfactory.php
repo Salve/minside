@@ -72,7 +72,7 @@ class SkiftFactory {
 	public static function getMuligeSkiftForRapport() {
 		global $msdb;
 		
-		$sql = "SELECT skiftid FROM feilrap_skift WHERE skiftcreated > (now() - INTERVAL 48 HOUR)";
+		$sql = "SELECT skiftid FROM feilrap_skift WHERE (skiftcreated > (now() - INTERVAL 48 HOUR)) AND (israpportert = 0)";
 		$data = $msdb->assoc($sql);
 		
 		$col = new SkiftCollection();
