@@ -145,6 +145,25 @@ class SkiftFactory {
 	
 	}
 	
+	public static function getAlleTellere() {
+		global $msdb;
+		
+		$col = new TellerCollection;
+		
+		$sql = "SELECT tellerid, tellertype, tellernavn, tellerdesc, isactive FROM feilrap_teller;";
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach($data as $datum) {
+				$objTeller = new Teller($datum['tellerid'], 0, $datum['tellernavn'], $datum['tellerdesc'], $datum['tellertype'], 0, (bool) $datum['isactive']);
+				$col->addItem($objTeller);
+			}
+		}
+		
+		return $col;
+	
+	}
+	
 	public static function getNotat($notatid) {
 		global $msdb;
 		$safenotatid = $msdb->quote($notatid);

@@ -566,7 +566,19 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genTellerAdm() {
-		$output .= 'Teller-administrasjon ikke implementert enda :(';
+	
+		$tellercol = SkiftFactory::getAlleTellere(); // type TellerCollection
+		
+		$output .= "<p><strong>Telleradministrasjon:</strong></p>\n";
+		$output .= "<table>\n";
+		foreach ($tellercol as $objTeller) {
+			$output .= '<tr>';
+			$output .= '<td>' . $objTeller->getTellerName() . '</td>';
+			$output .= '<td>' . $objTeller->getTellerDesc() . '</td>';
+			$output .= '<td>' . (($objTeller->isActive()) ? 'aktiv' : 'inaktiv' ) . '</td>';
+			$output .= '</tr>';
+		}
+		$output .= "</table>\n";
 	
 		return $output;
 	}
