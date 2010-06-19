@@ -23,15 +23,38 @@ class SkiftFactory {
 		
 		$saferapportid = $msdb->quote($rapportid);
 		
-		$sql = "SELECT createtime, issent, rapportowner FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
+		$sql = "SELECT createtime, rapportowner, templateid FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			return new Skift($rapportid, $data[0]['createtime'], $data[0]['userid'], true);
+			return new Rapport($rapportid, $data[0]['createtime'], $data[0]['userid'], true);
+			return new Rapport($ownerid, $id = null, $createdtime = null, $issaved = false);
 		} else {
 			throw new Exception("Rapport med id: $rapportid finnes ikke i database");
 		}
 		
+	}
+	
+	public static function getDataForRapport($rapportid) {
+		global $msdb;
+		
+		$saferapportid = $msdb->quote($rapportid);
+		$outputarray = array();
+		
+		$sql = "SELECT datatype, dataname, datavalue FROM feilrap_rapportdata WHERE rapportid=$saferapportid;";
+		$data = $msdb->assoc($sql);
+	
+		if(is_array($data) && sizeof($data)) {
+			foreach ($data as $row) {
+				$type = $row['datatype'];
+				$name = $row['dataname'];
+				$value = $row['datavalue'];
+				$outputarray["$type"]["$name"] = $value;
+			}
+		}
+		
+		return $outputarray;
+	
 	}
 	
 	public static function getTeller($tellerid, $skiftid) {

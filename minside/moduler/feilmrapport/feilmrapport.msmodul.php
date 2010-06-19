@@ -187,7 +187,7 @@ class msmodul_feilmrapport implements msmodul{
 					die('Input ok, men klarte ikke å lagre rapport: ' . $e->getMessage());
 				}
 				
-				$rappoutput = 'Lagret rapport!<br />' . "\n";
+				$rappoutput = $objRapport->genRapport();
 			
 			} elseif ($submitsave) {
 				try {

@@ -7,17 +7,24 @@ class Rapport {
 	private $_rapportFromTime;
 	private $_rapportToTime;
 	private $_rapportOwnerId;
+	private $_rapportTemplateId;
 	private $_isSaved = false;
-	public $rapportSent = false;
 	
 	public $skift;
+	public $rapportdata = array();
+	private $_rapportdataloaded = false;
 	
-	public function __construct($ownerid, $id = null, $createdtime = null, $issaved = false) {
+	public function __construct($ownerid, $id = null, $createdtime = null, $issaved = false, $templateid = null) {
 		$this->_id = $id;
 		$this->_rapportCreatedTime = $createdtime;
 		$this->_rapportOwnerId = $ownerid;
 		$this->_rapportFromTime = $fromtime;
 		$this->_rapportToTime = $totime;
+		if ($templateid) {
+			$this->_rapportTemplateId = $templateid;
+		} else {
+			$this->_rapportTemplateId = RapportTemplate::getCurrentTplId();
+		}
 		$this->_isSaved = (bool) $issaved;
 		
 		$this->skift = new SkiftCollection();
@@ -65,6 +72,20 @@ class Rapport {
 		$arSkift = SkiftFactory::getSkiftForRapport($this->_id, $col);
 	}
 	
+	public function getRapportData() {
+		if (!$this->_rapportdataloaded) {
+			$this->_rapportdataloaded = true;
+			$this->rapportdata = SkiftFactory::getDataForRapport($this->_id);
+		}
+		return $this->rapportdata;
+	}
+	
+	public function genRapport() {
+		if (!$this->_isSaved) die('Funksjonen genRapport() kan kun vise rapporter fra database');
+		return $this->_genRapport($this->getRapportData(), array(), true);
+	
+	}
+	
 	public function genRapportTemplate() {
 		return $this->_genRapport();
 	}
@@ -88,9 +109,9 @@ class Rapport {
 		$this->_rapportCreatedTime = date("Y-m-d H:i:s");
 		$saferapportcreated = $msdb->quote($this->_rapportCreatedTime);
 		$saferapportowner = $msdb->quote($this->_rapportOwnerId);
+		$safetemplateid = $msdb->quote($this->_rapportTemplateId);
 		
-		$sql = "INSERT INTO feilrap_rapport (createtime, rapportowner) VALUES ($saferapportcreated, $saferapportowner);";
-		msg($sql);
+		$sql = "INSERT INTO feilrap_rapport (createtime, rapportowner, templateid) VALUES ($saferapportcreated, $saferapportowner, $safetemplateid);";
 		$msdb->exec($sql);
 		$this->_id = $msdb->getLastInsertId();
 		$saferapportid = $msdb->quote($this->_id);
@@ -101,24 +122,24 @@ class Rapport {
 		}
 		$skiftidlist = implode(',', $arSkift);
 		$sql = "UPDATE feilrap_skift SET israpportert=1, rapportid=$saferapportid WHERE skiftid IN ($skiftidlist);";
-		msg($sql);
 		$msdb->exec($sql);
 				
-		foreach ($validinput as $inputtype => $inputnamevaluearray)  {
+		foreach ($validinput as $inputtype => $arValues)  {
 			$safeinputtype = $msdb->quote($inputtype);
-			foreach ($inputnamevaluearray as $inputnavn => $inputvalue) {
+			foreach ($arValues as $inputnavn => $inputvalue) {
 				$safeinputnavn = $msdb->quote($inputnavn);
 				$safeinputvalue = $msdb->quote($inputvalue);
 				$sql = "INSERT INTO feilrap_rapportdata (rapportid, dataname, datavalue, datatype) VALUES ($saferapportid, $safeinputnavn, $safeinputvalue, $safeinputtype);";
-				msg($sql);
 				$msdb->exec($sql);
 			}
 		}
 		
+		$this->_isSaved = true;
+		
 	}
 	
 	
-	private function _genRapport($validinput = array(), $invalidinput = array(), $saverapport = false) {
+	private function _genRapport($validinput = array(), $invalidinput = array(), $savedrapport = false) {
 			global $INFO;
 			$totaltellere = array();
 			$brukertellere = array();
@@ -217,8 +238,8 @@ class Rapport {
 	
 			
 			// Erstatter [[notater:annet]] med notat-output. 
-			$funcErstattNotat = function ($matches) use (&$notatoutput, &$notatsaveoutput, $saverapport) {
-				if ($saverapport) {
+			$funcErstattNotat = function ($matches) use (&$notatoutput, &$notatsaveoutput, $savedrapport) {
+				if ($savedrapport) {
 					return $notatsaveoutput;
 				} else {
 					return $notatoutput;
@@ -246,9 +267,9 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/u', $funcErstattTeller); 
 			
 			// Erstatter [[inputbool:varname]] med ja/nei dropdown input
-			$funcErstattInputBool = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
+			$funcErstattInputBool = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
 				$varname = $matches[1];
-				if ($saverapport) {
+				if ($savedrapport) {
 					$output = ($validinput['bool']["$varname"]) ? 'Ja' : 'Nei';
 				} else {
 					if (isset($validinput['bool']["$varname"])) {
@@ -265,9 +286,9 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
 			
 			// Erstatter [[inputtekst:varname]] med tekst-input felt
-			$funcErstattInputTekst = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
+			$funcErstattInputTekst = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
 				$varname = $matches[1];
-				if ($saverapport) {
+				if ($savedrapport) {
 					$output = $validinput['tekst']["$varname"];
 				} else {
 					if (isset($validinput['tekst']["$varname"])) {
@@ -284,9 +305,9 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
 			
 			// Erstatter [[inputlitetall:varname]] med 3-siffret tekst-input
-			$funcErstattInputLiteTall = function ($matches) use (&$validinput, &$invalidinput, $saverapport, $validationerrors) {
+			$funcErstattInputLiteTall = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
 				$varname = $matches[1];
-				if ($saverapport) {
+				if ($savedrapport) {
 					$output = $validinput['litetall']["$varname"];
 				} else {
 					if (isset($validinput['litetall']["$varname"])) {
@@ -314,9 +335,11 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
 		
 			
-			$tmpOutput = RapportTemplate::getTemplate($tplErstatter);
+			$tmpOutput = RapportTemplate::getTemplate($tplErstatter, $this->_rapportTemplateId);
 			
-			$output .= $hiddenSkiftider . $tmpOutput;			
+			if (!$savedrapport) $output .= $hiddenSkiftider;
+			
+			$output .= $tmpOutput;			
 			
 			return $output;
 	}
