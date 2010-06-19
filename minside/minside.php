@@ -3,12 +3,12 @@ if(!defined('DOKU_INC')) die(); // Dette scriptet kan kun kjøres via dokuwiki
 define('MS_INC', true); // Alle underscript sjekker om denne er definert
 define('MS_LINK', "?do=minside");
 define('MSAUTH_NONE',0); // Matcher dokuwiki sine auth verdier
-define('MSAUTH_1',1);
-define('MSAUTH_2',2);
-define('MSAUTH_3',4);
-define('MSAUTH_4',8);
-define('MSAUTH_5',16);
-define('MSAUTH_ADMIN',255);
+define('MSAUTH_1',1); // Lese
+define('MSAUTH_2',2); // Redigere
+define('MSAUTH_3',4); // Lage
+define('MSAUTH_4',8); // Laste opp
+define('MSAUTH_5',16); // Slette
+define('MSAUTH_ADMIN',255); // Wiki-admin
 
 require_once('msconfig.php');
 require_once('class.database.php');

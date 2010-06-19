@@ -4,8 +4,6 @@ if(!defined('MS_INC')) die();
 class Rapport {
 	private $_id;
 	private $_rapportCreatedTime;
-	private $_rapportFromTime;
-	private $_rapportToTime;
 	private $_rapportOwnerId;
 	private $_rapportTemplateId;
 	private $_isSaved = false;
@@ -18,8 +16,6 @@ class Rapport {
 		$this->_id = $id;
 		$this->_rapportCreatedTime = $createdtime;
 		$this->_rapportOwnerId = $ownerid;
-		$this->_rapportFromTime = $fromtime;
-		$this->_rapportToTime = $totime;
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
@@ -37,14 +33,6 @@ class Rapport {
 	
 	public function getRapportCreatedTime() {
 		return $this->_rapportCreatedTime;
-	}
-	
-	public function getRapportFromTime() {
-		return $this->_rapportFromTime;
-	}
-	
-	public function getRapportToTime() {
-		return $this->_rapportToTime;
 	}
 	
 	public function getRapportOwnerId() {
@@ -98,6 +86,7 @@ class Rapport {
 	}
 	
 	public function lagreRapport($validinput) {
+		global $INFO;
 		global $msdb;
 		if ($this->_isSaved) throw new Exception('Denne rapporten er allerede lagret');
 		if (!isset($this->_rapportOwnerId)) throw new Exception('Rapport-eier ikke angitt');
@@ -123,6 +112,11 @@ class Rapport {
 		$skiftidlist = implode(',', $arSkift);
 		$sql = "UPDATE feilrap_skift SET israpportert=1, rapportid=$saferapportid WHERE skiftid IN ($skiftidlist);";
 		$msdb->exec($sql);
+		
+		// Skittent hack, disse må defineres to plasser atm :\	
+		 $validinput['tpldata']['fulltnavn'] = $INFO['userinfo']['name'];
+		 $validinput['tpldata']['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
+			
 				
 		foreach ($validinput as $inputtype => $arValues)  {
 			$safeinputtype = $msdb->quote($inputtype);
@@ -224,8 +218,12 @@ class Rapport {
 			
 			
 			// Definer [[data:datumnavn]] som skal replaces her.
-			$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
-			$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
+			if ($savedrapport) {
+				$tpldata = $validinput['tpldata'];
+			} else {
+				$tpldata['fulltnavn'] = $INFO['userinfo']['name'];
+				$tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
+			}
 			
 			if (!$notatoutput) $notatoutput = 'Ingen notater.';
 			if (!$notatsaveoutput) {

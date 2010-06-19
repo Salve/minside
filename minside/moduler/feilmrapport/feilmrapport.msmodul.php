@@ -5,13 +5,12 @@ require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
 require_once('class.feilmrapport.rapport.php');
-require_once('class.feilmrapport.rapportdatum.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.rappvalidator.php');
 require_once('class.feilmrapport.rapporttemplate.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
-require_once('class.feilmrapport.rapportdatumcollection.php');
+require_once('class.feilmrapport.rapportcollection.php');
 require_once('class.feilmrapport.skiftcollection.php');
 
 class msmodul_feilmrapport implements msmodul{
@@ -42,11 +41,11 @@ class msmodul_feilmrapport implements msmodul{
 			case "stengskift":
 				if (isset($_REQUEST[skiftid])) $this->_closeSkift($_REQUEST[skiftid]);
 			case "genrapportsel":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportSelectSkift();
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportSelectSkift();
 				break;
 			case "gensaverapport":
 			case "genrapportmod":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genModRapport();
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genModRapport();
 				break;
 			case "genmodraptpl":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModRapportTemplates();
@@ -59,6 +58,12 @@ class msmodul_feilmrapport implements msmodul{
 				break;	
 			case "telleradm":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
+				break;
+			case "rapportarkiv":
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportArkiv();
+				break;
+			case "visrapport":
+				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapport();
 				break;
 			case "stengegetskift":
 				$this->_closeCurrSkift();
@@ -91,8 +96,6 @@ class msmodul_feilmrapport implements msmodul{
 			default:
 				$this->_frapout .= $this->genSkift();
 		}
-		
-		//$this->_frapout .= '<br /><img width="600" height="200" src="lib/plugins/minside/minside/moduler/diff/chartimg.php">';
 						
 		return $this->_frapout;
 	
@@ -122,6 +125,48 @@ class msmodul_feilmrapport implements msmodul{
 		}		
 		
 		return $output;
+	}
+	
+	private function _genRapportArkiv() {
+	
+		$rapportcol = SkiftFactory::getAlleRapporter(); // Returnerer en RapportCollection
+		
+		$output .= '<p><strong>Rapportarkiv</strong></p>' . "\n";
+		
+		$output .= "<ul>\n";
+		
+		foreach ($rapportcol as $objRapport) {
+			
+			$output .= '<li>';
+			$output .= $objRapport->getRapportCreatedTime();
+			$output .= ' (<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">Vis rapport</a>)';
+			$output .= '</li>' . "\n";
+		
+		}
+		
+		$output .= "<ul>\n";
+		
+		return $output;
+	
+	}
+	
+	private function _genRapport() {
+		if (isset($_REQUEST['rapportid'])) {
+			$rapportid = $_REQUEST['rapportid'];
+			try{
+				$objRapport = SkiftFactory::getRapport($rapportid);
+			}
+			catch (Exception $e) {
+				msg('Klarte ikke å hente rapport: ' . $e->getMessage(), -1);
+				return;
+			}
+			
+			return $objRapport->genRapport();
+			
+		} else {
+			msg('Rapport id ikke definert.', -1);
+			return;
+		}
 	}
 	
 	private function _genModRapport(){
@@ -626,7 +671,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			
 			if (!($objNotat instanceof Notat)) {
-				msg('Kan ikke slette notat, notat finnes ikke');
+				msg('Kan ikke slette notat, notat finnes ikke', -1);
 				return false;
 			}
 			
@@ -751,22 +796,29 @@ class msmodul_feilmrapport implements msmodul{
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;
 		
-		$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
-		//$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
-		$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
-		$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
-		
 		if ($lvl > MSAUTH_NONE) { 
+		
+			$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
+			$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
+			$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
+			$rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
+			$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
+				
 			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);
 			}
-			/*if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
+			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
+				$toppmeny->addChild($rapportarkiv);
+			}
+			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($telleradmin);
-			}*/
+			}
 			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($tpladmin);
 			}
+			
 			$meny->addItem($toppmeny); 
+			
 		}
 		
 	}

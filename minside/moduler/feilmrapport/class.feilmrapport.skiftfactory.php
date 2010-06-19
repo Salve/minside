@@ -23,16 +23,34 @@ class SkiftFactory {
 		
 		$saferapportid = $msdb->quote($rapportid);
 		
-		$sql = "SELECT createtime, rapportowner, templateid FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
+		$sql = "SELECT rapportid, createtime, rapportowner, templateid FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			return new Rapport($rapportid, $data[0]['createtime'], $data[0]['userid'], true);
-			return new Rapport($ownerid, $id = null, $createdtime = null, $issaved = false);
+			return new Rapport($data[0]['rapportowner'], $data[0]['rapportid'], $data[0]['createtime'], true, $data[0]['templateid']);
 		} else {
-			throw new Exception("Rapport med id: $rapportid finnes ikke i database");
+			throw new Exception("Rapport med id: $saferapportid finnes ikke i database");
 		}
 		
+	}
+	
+	public static function getAlleRapporter() {
+		global $msdb;
+		
+		$sql = "SELECT rapportid, createtime, rapportowner, templateid FROM feilrap_rapport;";
+		$data = $msdb->assoc($sql);
+		
+		$col = new RapportCollection();
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach ($data as $datum) {
+				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid']);
+				$col->addItem($objRapport);
+			}
+		}
+		
+		return $col;
+	
 	}
 	
 	public static function getDataForRapport($rapportid) {
@@ -70,7 +88,7 @@ class SkiftFactory {
 			$objTeller = new Teller($tellerid, $skiftid, $data[0]['tellernavn'], $data[0]['tellerdesc'], $data[0]['tellertype'], $data[0]['tellerverdi'], $data[0]['isactive']);
 			return $objTeller;
 		} else {
-			die("Klarte ikke å laste tellerid: $tellerid for skift: $skiftid.");
+			die("Klarte ikke å laste tellerid: $safetellerid for skift: $safeskiftid.");
 		}
 	
 	
