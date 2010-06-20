@@ -55,7 +55,9 @@ class msmodul_feilmrapport implements msmodul{
 					$this->_saveRapportTemplate();
 					$this->_frapout .= $this->_genModRapportTemplates();
 				}
-				break;	
+				break;
+			case "flipteller":
+				if ($this->_accessLvl >= MSAUTH_5) $this->_flipTeller();
 			case "telleradm":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
 				break;
@@ -478,6 +480,8 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$skiftout .= '<table>';	
 		foreach($objSkift->tellere as $objTeller) {
+			if (!$objTeller->isActive()) continue;
+			
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
 					$skiftout .= '<tr>';
@@ -569,18 +573,58 @@ class msmodul_feilmrapport implements msmodul{
 	
 		$tellercol = SkiftFactory::getAlleTellere(); // type TellerCollection
 		
-		$output .= "<p><strong>Telleradministrasjon:</strong></p>\n";
-		$output .= "<table>\n";
 		foreach ($tellercol as $objTeller) {
-			$output .= '<tr>';
-			$output .= '<td>' . $objTeller->getTellerName() . '</td>';
-			$output .= '<td>' . $objTeller->getTellerDesc() . '</td>';
-			$output .= '<td>' . (($objTeller->isActive()) ? 'aktiv' : 'inaktiv' ) . '</td>';
-			$output .= '</tr>';
+			$telleroutput = '';
+			$telleroutput .= '<tr>';
+			$telleroutput .= '<td>' . $objTeller->getTellerName() . '</td>';
+			$telleroutput .= '<td>' . $objTeller->getTellerType() . '</td>';
+			$telleroutput .= '<td>' . $objTeller->getTellerDesc() . '</td>';
+			$telleroutput .= '<td><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? 'deaktiver' : 'aktiver' ) . '</a></td>';
+			$telleroutput .= '</tr>';
+			
+			if ($objTeller->isActive()) {
+				$aktivoutput .= $telleroutput;
+			} else {
+				$inaktivoutput .= $telleroutput;
+			}
 		}
+		
+		$output .= "<p><strong>Telleradministrasjon:</strong></p>\n";
+		$output .= "<p><strong>Aktive tellere:</strong></p>\n";
+		$output .= "<table>\n";
+		$output .= $aktivoutput;
 		$output .= "</table>\n";
+		$output .= "<p><strong>Inaktive tellere:</strong></p>\n";
+		$output .= "<table>\n";
+		$output .= $inaktivoutput;
+		$output .= "</table>\n";
+		
 	
 		return $output;
+	}
+	
+	private function _flipTeller() {
+		global $msdb;
+		
+		if (preg_match('/^[0-9]{1,4}$/AD', $_REQUEST['tellerid'])) {
+			
+			$safetellerid = $msdb->quote($_REQUEST['tellerid']);
+			$sql = "UPDATE feilrap_teller SET isactive = NOT isactive WHERE tellerid=$safetellerid LIMIT 1;";
+			$result = $msdb->exec($sql);
+			
+			if ($result === 1) {
+				msg('Endret status på teller', 1);
+				return true;
+			} else {
+				msg('Klarte ikke å endre tellerstatus', -1);
+				return false;
+			}
+			
+			
+		} else {
+			msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
+			return false;
+		}
 	}
 	
 	public function getCurrentSkiftId($userid = false) {
