@@ -25,9 +25,17 @@ class RapportTemplate {
 	}
 	
 	public static function getCurrentTplId() {
-	
-		return (integer) 1;
-	
+		global $msdb;
+		
+		$sql = "SELECT raptplid FROM feilrap_raptpl ORDER BY raptplid DESC LIMIT 1;";
+		$resultat = $msdb->num($sql);
+		
+		if ($resultat[0][0] > 0) {
+			return $resultat[0][0];
+		} else {
+			return false;
+		}
+			
 	}
 	
 	public static function saveTemplate($inputtekst, $tplid = null) {

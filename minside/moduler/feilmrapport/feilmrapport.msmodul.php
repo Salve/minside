@@ -47,6 +47,12 @@ class msmodul_feilmrapport implements msmodul{
 			case "genrapportmod":
 				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genModRapport();
 				break;
+			case "nyraptpl":
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_nyRapportTemplate();
+					$this->_frapout .= $this->_genModRapportTemplates();
+				}
+				break;
 			case "genmodraptpl":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModRapportTemplates();
 				break;
@@ -56,8 +62,18 @@ class msmodul_feilmrapport implements msmodul{
 					$this->_frapout .= $this->_genModRapportTemplates();
 				}
 				break;
+			case "nyteller":
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_nyTeller();
+					$this->_frapout .= $this->_genTellerAdm();
+				}
+				break;
 			case "flipteller":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_flipTeller();
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_flipTeller();
+					$this->_frapout .= $this->_genTellerAdm();
+				}
+				break;
 			case "telleradm":
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
 				break;
@@ -256,6 +272,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<form name="lagrerapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
 			$output .= $rappoutput;
+			$output .= '<br /><br />' . "\n";
 			if (!$validsave) {
 				$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
 				$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
@@ -468,7 +485,7 @@ class msmodul_feilmrapport implements msmodul{
 		} else {
 			$skiftout .= $this->genNotat(null, true);
 		}
-		$skiftout .= '</ul></fieldset>';
+		$skiftout .= '</ul></fieldset>' . "\n";
 		
 		// Vis tellere
 		
@@ -484,13 +501,13 @@ class msmodul_feilmrapport implements msmodul{
 			
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
-					$skiftout .= '<tr>';
-					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>';
-					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
-					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />';
-					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
-					$skiftout .= '</form>';
+					$skiftout .= '<tr>' . "\n";
+					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>' . "\n";
+					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
+					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />' . "\n";
+					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+					$skiftout .= '</form>' . "\n";
 					$skiftout .= "</tr>\n\n";
 					break;
 				case 'ULOGGET':
@@ -505,64 +522,64 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 		if (!empty($arSecTeller)){
-			$skiftout .= '<tr>';
-			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
-			$skiftout .= '<td><select name="tellerid">';
-			$skiftout .= '<option value="NOSEL">Annet: </option>';
+			$skiftout .= '<tr>' . "\n";
+			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
+			$skiftout .= '<td><select name="tellerid">' . "\n";
+			$skiftout .= '<option value="NOSEL">Annet: </option>' . "\n";
 			foreach ($arSecTeller as $tellerid => $tellerdesc) {
-				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
 			}
-			$skiftout .= '</select></td><td></td>';
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
-			$skiftout .= '</form>';
+			$skiftout .= '</select></td><td></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}		
 		
 		if (!empty($arUlogget)){
-			$skiftout .= '<tr>';
-			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />';
-			$skiftout .= '<td><select name="tellerid">';
-			$skiftout .= '<option value="NOSEL">Ulogget: </option>';
+			$skiftout .= '<tr>' . "\n";
+			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
+			$skiftout .= '<td><select name="tellerid">' . "\n";
+			$skiftout .= '<option value="NOSEL">Ulogget: </option>' . "\n";
 			foreach ($arUlogget as $tellerid => $tellerdesc) {
-				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>';
+				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
 			}
-			$skiftout .= '</select></td><td></td>';
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>';
-			$skiftout .= '</form>';
+			$skiftout .= '</select></td><td></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}
 		
-		$skiftout .= '</table><br /><br />';
+		$skiftout .= '</table><br /><br />' . "\n";
 
 		if ($colSecTeller->length() > 0) {
-			$skiftout .= '<p>';
-			$skiftout .= '<strong>Annet:</strong><br />';
+			$skiftout .= '<p>' . "\n";
+			$skiftout .= '<strong>Annet:</strong><br />' . "\n";
 			
 			foreach ($colSecTeller as $objTeller) {
-				$skiftout .= $objTeller . '<br />';
+				$skiftout .= $objTeller . '<br />' . "\n";
 			}
-			$skiftout .= '</p>';
+			$skiftout .= '</p>' . "\n";
 		}
 		
 		if ($colUlogget->length() > 0) {
-			$skiftout .= '<p>';
-			$skiftout .= '<strong>Uloggede samtaler:</strong><br />';
+			$skiftout .= '<p>' . "\n";
+			$skiftout .= '<strong>Uloggede samtaler:</strong><br />' . "\n";
 			
 			foreach ($colUlogget as $objTeller) {
-				$skiftout .= $objTeller . '<br />';
+				$skiftout .= $objTeller . '<br />' . "\n";
 			}
-			$skiftout .= '</p>';
+			$skiftout .= '</p>' . "\n";
 		}
 
 		// Close skift knapp
-		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">';
-		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />';
-		$skiftout .= '<input type="submit" class="button" value="Avslutt skift" />';
-		$skiftout .= '</form>';
+		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
+		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
+		$skiftout .= '<input type="submit" class="button" value="Avslutt skift" />' . "\n";
+		$skiftout .= '</form>' . "\n";
 		
-		$skiftout .= '</div>'; // skift_full
+		$skiftout .= '</div>' . "\n"; // skift_full
 		
 		
 		return $skiftout;
@@ -575,12 +592,12 @@ class msmodul_feilmrapport implements msmodul{
 		
 		foreach ($tellercol as $objTeller) {
 			$telleroutput = '';
-			$telleroutput .= '<tr>';
-			$telleroutput .= '<td>' . $objTeller->getTellerName() . '</td>';
-			$telleroutput .= '<td>' . $objTeller->getTellerType() . '</td>';
-			$telleroutput .= '<td>' . $objTeller->getTellerDesc() . '</td>';
-			$telleroutput .= '<td><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? 'deaktiver' : 'aktiver' ) . '</a></td>';
-			$telleroutput .= '</tr>';
+			$telleroutput .= '<tr>' . "\n";
+			$telleroutput .= '<td style="width:15%">' . $objTeller->getTellerType() . '</td>' . "\n";
+			$telleroutput .= '<td style="width:30%">' . $objTeller->getTellerName() . '</td>' . "\n";
+			$telleroutput .= '<td style="width:40%">' . $objTeller->getTellerDesc() . '</td>' . "\n";
+			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? 'deaktiver' : 'aktiver' ) . '</a></td>' . "\n";
+			$telleroutput .= '</tr>' . "\n";
 			
 			if ($objTeller->isActive()) {
 				$aktivoutput .= $telleroutput;
@@ -589,18 +606,88 @@ class msmodul_feilmrapport implements msmodul{
 			}
 		}
 		
-		$output .= "<p><strong>Telleradministrasjon:</strong></p>\n";
+		$headers .= '<tr style="background-color: #DEE7EC">' . "\n";
+		$headers .= '<td style="width:15%">Tellertype:</td>' . "\n";
+		$headers .= '<td style="width:30%">Tellernavn:</td>' . "\n";
+		$headers .= '<td style="width:40%">Tellerlabel</td>' . "\n";
+		$headers .= '<td style="width:15%">Aktiver/deaktiver</td>' . "\n";
+		$headers .= '</tr>' . "\n";
+		
+		$output .= "<p><strong>Telleradministrasjon</strong></p>\n";
 		$output .= "<p><strong>Aktive tellere:</strong></p>\n";
-		$output .= "<table>\n";
+		$output .= "<table style=\"width:75%\">\n";
+		$output .= $headers;
 		$output .= $aktivoutput;
 		$output .= "</table>\n";
 		$output .= "<p><strong>Inaktive tellere:</strong></p>\n";
-		$output .= "<table>\n";
+		$output .= "<table style=\"width:75%\">\n";
+		$output .= $headers;
 		$output .= $inaktivoutput;
 		$output .= "</table>\n";
 		
+		$output .= "<p><strong>Legg til teller:</strong></p>\n";
+		$output .= '
+			<form action="' . MS_FMR_LINK . '&act=nyteller" method="POST">
+			<table>
+				<tr>
+					<td>
+						<label for="tellertype" title="Primærtellere har egne +/- knapper, sekundærtellere kommer i dropdown-liste og deler +/- knapper. Ulogget-tellere kommer i annen dropdown med felles +/- knapp">Tellertype: </label>
+						<select name="tellertype" id="tellertype">
+							<option value="TELLER">Primærteller</option>
+							<option value="SECTELLER">Sekundærteller</option>
+							<option value="ULOGGET">Uloggetteller</option>
+						</select>
+					</td>
+					<td>
+						<label for="tellernavn" title="Kun bokstaver: A-Z. Min 3, maks 20 tegn.">Tellernavn: </label>
+						<input type="text" name="tellernavn" id="tellernavn" />
+					</td>
+					<td>
+						<label for="tellerdesc" title="Beskrivelse av teller, vises som label på teller i skift-visning">Tellerlabel: </label>
+						<input type="text" name="tellerdesc" id="tellerdesc" />
+					</td>
+					<td><input type="submit" name="nyteller" value="Lagre" class="button" /></td>
+				</tr>
+			</table>
+			</form>
+		';
 	
 		return $output;
+	}
+	
+	private function _nyTeller() {
+		global $msdb;
+		
+		
+		if (!preg_match('/^[A-Z]{3,20}$/AD', strtoupper($_REQUEST['tellernavn']))) {
+			msg('Kan ikke opprette teller, tellernavn er ugyldig. Se hjelpetekst.', -1);
+			return false;
+		}
+		if (!preg_match('/^TELLER|SECTELLER|ULOGGET$/AD', $_REQUEST['tellertype'])) {
+			msg('Kan ikke opprette teller, tellertype er ugyldig. Du må gjøre et valg i listen.', -1);
+			return false;
+		}
+		if (strlen(trim($_REQUEST['tellerdesc'])) < 2 || strlen(trim($_REQUEST['tellerdesc'])) > 100) {
+			msg('Kan ikke opprette teller, tellerlabel er ugyldig. Se hjelpetekst.', -1);
+			return false;
+		}
+		
+		$safetellernavn = $msdb->quote(strtoupper($_REQUEST['tellernavn']));
+		$safetellertype = $msdb->quote($_REQUEST['tellertype']);
+		$safetellerdesc = $msdb->quote(htmlspecialchars(trim($_REQUEST['tellerdesc'])));
+		
+		$sql = "INSERT INTO feilrap_teller (tellernavn, tellerdesc, tellertype, isactive) VALUES ($safetellernavn, $safetellerdesc, $safetellertype, '1');";
+		$result = $msdb->exec($sql);
+		
+		if ($result === 1) {
+			msg('Opprettet ny teller: ' . $safetellernavn, 1);
+			return true;
+		} else {
+			msg('Klarte ikke å opprette teller', -1);
+			return false;
+		}
+		
+	
 	}
 	
 	private function _flipTeller() {
@@ -831,23 +918,55 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _saveRapportTemplate() {
 		if (isset($_REQUEST['inputtpl'])) {
-			RapportTemplate::saveTemplate($_REQUEST['inputtpl'], 1);
+			RapportTemplate::saveTemplate($_REQUEST['inputtpl'], RapportTemplate::getCurrentTplId());
 		}
 	}
 	
 	private function _genModRapportTemplates() {
 	
+		if (RapportTemplate::getCurrentTplId() != false) {
+	
+			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$output .= '<input type="hidden" name="act" value="modraptpl" />';
+			$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
+			$output .= '<br /><input type="submit" class="button" name="savetpl" value="Lagre endringer" />';
+			$output .= '<br /><br /><p>Endringer her vil påvirke alle rapporter som er opprettet siden sist gang<br /> "NYTT TEMPLATE" knappen ble trykket på, samt rapporter som ikke er opprettet enda</p>';
+			$output .= '</form>';
+			
+			$output .= '<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />';
+			$output .= '<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />';
+	
+		}
+
+		$output .= '<fieldset>';
+		$output .= '<legend>Opprett nytt default template</legend>';
 		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
-		$output .= '<input type="hidden" name="act" value="modraptpl" />';
-		$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
-		$output .= '<br /><input type="submit" class="button" name="savetpl" value="Lagre" />';
-		$output .= '</form>';
-	
-	
+		$output .= '<input type="hidden" name="act" value="nyraptpl" />';
+		$output .= '<input type="submit" class="button" name="savetpl" value="*FARLIG* NYTT TEMPLATE *FARLIG*" />';
+		$output .= '</form><br /><br />';
+		$output .= '<p>Denne knappen arkiverer nåværende template, det vil ikke være mulig å gjøre videre endringer på dette.</p>';
+		$output .= '<p>Nytt template vil ikke påvirke rapporter som allerede er opprettet.</p>';
+		$output .= '<p>Husk å kopiere innholdet fra nåværende template om du vil jobbe videre med dette.</p>';
+		$output .= '</fieldset>';
+		
 		return $output;
 	}
 	
+	private function _nyRapportTemplate() {
+		global $msdb;
+		
+		$sql = "INSERT INTO feilrap_raptpl (templatetekst) VALUES ('Ikke noe innhold i rapport-template enda.');";
+		$resultat = $msdb->exec($sql);
+		
+		if ($resultat === 1) {
+			msg('Ny rapport-template opprettett', 1);
+			return true;
+		} else {
+			msg('Klarte ikke å opprette ny rapport-template', -1);
+			return false;
+		}
 	
+	}	
 
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;

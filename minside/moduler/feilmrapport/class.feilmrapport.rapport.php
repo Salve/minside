@@ -279,6 +279,9 @@ class Rapport {
 						}
 					}
 				}
+				
+				if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
+				
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
@@ -298,6 +301,9 @@ class Rapport {
 						}
 					}
 				}
+				
+				if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
+				
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
@@ -317,6 +323,9 @@ class Rapport {
 						}
 					}
 				}
+				
+				if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
+				
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
