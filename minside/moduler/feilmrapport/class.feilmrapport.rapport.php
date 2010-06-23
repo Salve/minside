@@ -5,6 +5,7 @@ class Rapport {
 	private $_id;
 	private $_rapportCreatedTime;
 	private $_rapportOwnerId;
+	private $_rapportOwnerName;
 	private $_rapportTemplateId;
 	private $_isSaved = false;
 	
@@ -12,10 +13,11 @@ class Rapport {
 	public $rapportdata = array();
 	private $_rapportdataloaded = false;
 	
-	public function __construct($ownerid, $id = null, $createdtime = null, $issaved = false, $templateid = null) {
+	public function __construct($ownerid, $id = null, $createdtime = null, $issaved = false, $templateid = null, $ownername = null) {
 		$this->_id = $id;
 		$this->_rapportCreatedTime = $createdtime;
 		$this->_rapportOwnerId = $ownerid;
+		$this->_rapportOwnerName = $ownername;
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
@@ -37,6 +39,14 @@ class Rapport {
 	
 	public function getRapportOwnerId() {
 		return $this->_rapportOwnerId;
+	}
+	
+	public function getRapportOwnerName() {
+		if (isset($this->_rapportOwnerName)) {
+			return $this->_rapportOwnerName;
+		} else {
+			return 'OwnerID: ' . $this->_rapportOwnerId;
+		}
 	}
 	
 	public function isSent() {
@@ -185,7 +195,7 @@ class Rapport {
 						} else {
 							// lager ny teller med data fra orginal teller
 							$objColTeller = new Teller($objTeller->getId(), $objSkift->getId(), $objTeller->getTellerName(), $objTeller->getTellerDesc(), $objTeller->getTellerType(), $objTeller->getTellerVerdi());
-							// legger denne til i rapportens teller-collection, men navnet på teller (eks. "TLSPT") som key.
+							// legger denne til i rapportens teller-collection, med navnet på teller (eks. "TLSPT") som key.
 							$tellercol->addItem($objColTeller, $objTeller->getTellerName());
 						}
 						

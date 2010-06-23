@@ -21,6 +21,20 @@ class msmodul_feilmrapport implements msmodul{
 	private $_userId;
 	private $_accessLvl;
 	private $_currentSkiftId;
+	private static $monthnames = array(
+			1 => 'januar',
+			2 => 'februar',
+			3 => 'mars',
+			4 => 'april',
+			5 => 'mai',
+			6 => 'juni',
+			7 => 'juli',
+			8 => 'august',
+			9 => 'september',
+			10 => 'oktober',
+			11 => 'november',
+			12 => 'desember',
+	);
 	
 	public function __construct($UserID, $accesslvl) {
 		$this->_userId = $UserID;
@@ -34,6 +48,8 @@ class msmodul_feilmrapport implements msmodul{
 	public function gen_msmodul($act, $vars){
 		$this->_msmodulact = $act;
 		$this->_msmodulvars = $vars;
+		
+		if (!$this->_accessLvl > MSAUTH_NONE) return '';
 		
 		//$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
 		
@@ -78,10 +94,10 @@ class msmodul_feilmrapport implements msmodul{
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
 				break;
 			case "rapportarkiv":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapportArkiv();
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv();
 				break;
 			case "visrapport":
-				if ($this->_accessLvl >= MSAUTH_3) $this->_frapout .= $this->_genRapport();
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapport();
 				break;
 			case "stengegetskift":
 				$this->_closeCurrSkift();
@@ -146,31 +162,142 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportArkiv() {
+		
+		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
+		
+			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
+			$output .= '<p><strong>Rapporter opprettet det siste døgnet:</strong></p>' . "\n";
+			
+			$output .= $this->_genRapportListe($rapportcol);
+		
+		} else {
+		
+			$inputstr = $_REQUEST['arkivmnd'];
+			list($inputyear, $inputmonth) = explode('-', $inputstr);
+			
+			$inputyear = (int) $inputyear;
+			$inputmonth = (int) $inputmonth;
+			
+			if (!($inputyear > 1970 && $inputyear < 2030)) {
+				die('Ugyldig år gitt til rapportarkiv');
+			}
+			
+			if (!($inputmonth >= 1 && $inputmonth <= 12)) {
+				die('Ugyldig måned gitt til rapportarkiv');
+			}
+			
+			$rapportcol = SkiftFactory::getRapporterByMonth($inputmonth, $inputyear);
+			$output .= '<p><strong>Rapporter fra ' . self::$monthnames["$inputmonth"] . ' ' . $inputyear . ':</strong></p>' . "\n";		
+			
+			$output .= $this->_genRapportListe($rapportcol, true);
+			
+		}
+		
+		
+		
+		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
+		
+		return $output;
 	
-		$rapportcol = SkiftFactory::getAlleRapporter(); // Returnerer en RapportCollection
+	}
+	
+	private function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
 		
-		$output .= '<p><strong>Rapportarkiv</strong></p>' . "\n";
+		$output = "<ul>\n";
 		
-		$output .= "<ul>\n";
+		$currUkeNummer = 0;
+		$firstuke = true;
 		
-		foreach ($rapportcol as $objRapport) {
+		$ukedager = array('Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag');
+		
+		foreach ($rapcol as $objRapport) {
+			
+			$createtime = strtotime($objRapport->getRapportCreatedTime());
+			
+			if ($sortuke) {
+				$ukenummer = date('W', $createtime);
+				if ($ukenummer != $currUkeNummer) {
+					$currUkeNummer = $ukenummer;
+					
+					// Avslutt forrige uke-div, med mindre dette er første uke som vises.
+					if (!$firstuke) {
+						$output .= '</div><br />';
+					} else {
+						$firstuke = false;
+					}
+					
+					$output .= '<div class="uke">';
+					$output .= '<span class="ukenavn">';
+					$output .= 'Uke ' . $ukenummer . ':';
+					$output .= '</span"><br /><br />';
+					
+				}
+			} 
+			
+			$ukedag = $ukedager[date('w', $createtime)];
 			
 			$output .= '<li>';
-			$output .= $objRapport->getRapportCreatedTime();
-			$output .= ' (<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">Vis rapport</a>)';
+			$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+			$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
+			$output .= '</a>';
 			$output .= '</li>' . "\n";
+		
 		
 		}
 		
-		$output .= "<ul>\n";
+		$output .= "</ul>\n";
 		
 		return $output;
+	
+	}
+	
+	private function _genRapportArkivMenu() {
+		global $msdb;
+	
+		$sql = "SELECT YEAR(createtime) AS 'YEAR', GROUP_CONCAT(DISTINCT MONTH(createtime)) AS 'MONTHS' FROM feilrap_rapport GROUP BY `YEAR`;";
+		$data = $msdb->assoc($sql);
+		
+		$output = '<p><strong>Rapportarkiv:</strong></p>' . "\n";
+	
+		if(is_array($data) && sizeof($data)) {
+			foreach ($data as $datum) {
+			
+				$arMonths = explode(',', $datum['MONTHS']);
+				
+				$year = $datum['YEAR'];
+				$monthlist = '';
+				foreach ($arMonths as $month) {
+					$monthlist .= '<a href="' . MS_FMR_LINK . '&act=rapportarkiv&arkivmnd=' . $year . '-' . $month . '">' . substr(self::$monthnames["$month"], 0, 3) . '</a> ' . "\n";
+				}
+			
+				$output .= '<span class="yearlist">' . "\n";
+				$output .= '<span class="yearname">' . "\n";
+				$output .= "$year: ";
+				$output .= '</span>' . "\n"; // yearname
+				$output .= $monthlist;
+				$output .= '</span><br />' . "\n"; // yearlist
+			}
+		} else {
+			$output .= '<p>Ingen rapporter funnet.</p>';
+		}
+	
+		return $output;
+	
 	
 	}
 	
 	private function _genRapport() {
 		if (isset($_REQUEST['rapportid'])) {
 			$rapportid = $_REQUEST['rapportid'];
+			
+			if ($this->_accessLvl <= MSAUTH_2) { // Bruker kan kun vise nylige rapporter
+				$rapcol = SkiftFactory::getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
+				if (!$rapcol->exists($rapportid)) {
+					msg('Du har ikke tilgang til å vise denne rapporten.', -1);
+					return false;
+				}
+			}
+		
 			try{
 				$objRapport = SkiftFactory::getRapport($rapportid);
 			}
@@ -179,7 +306,15 @@ class msmodul_feilmrapport implements msmodul{
 				return;
 			}
 			
-			return $objRapport->genRapport();
+			try {
+				$output = $objRapport->genRapport();
+			}
+			catch (Exception $e) {
+				msg('Klarte ikke å vise rapport: ' . $e->getMessage(), -1);
+				return;
+			}
+			
+			return $output;
 			
 		} else {
 			msg('Rapport id ikke definert.', -1);
@@ -446,7 +581,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($dagensdato != $inndato) {
 			$dag = $ukedager[$inntid->format('w')];
-			$uttid = $dag . ' ' . $inntid->format('H:i');
+			$uttid = $dag . ' ' . $uttid;
 		}
 		
 		return $uttid;
@@ -979,10 +1114,10 @@ class msmodul_feilmrapport implements msmodul{
 			$rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
 			$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
 				
-			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
+			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);
 			}
-			if (($lvl >= MSAUTH_3) && isset($this->_msmodulact)) {
+			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($rapportarkiv);
 			}
 			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {

@@ -34,22 +34,64 @@ class SkiftFactory {
 		
 	}
 	
-	public static function getAlleRapporter() {
+	public static function getRapporter($fromtime = null, $totime = null) {
 		global $msdb;
 		
-		$sql = "SELECT rapportid, createtime, rapportowner, templateid FROM feilrap_rapport;";
+		if ($fromtime && $totime) {
+			$safefromtime = $msdb->quote($fromtime);
+			$safetotime = $msdb->quote($totime);
+			$where = " WHERE feilrap_rapport.createtime >= $safefromtime AND feilrap_rapport.createtime <= $safetotime";
+		} elseif ($fromtime) {
+			$safefromtime = $msdb->quote($fromtime);
+			$where = " WHERE feilrap_rapport.createtime >= $safefromtime";
+		} elseif ($totime) {
+			$safetotime = $msdb->quote($totime);
+			$where = " WHERE feilrap_rapport.createtime <= $safetotime";
+		} else {
+			$where = '';
+		}
+		
+		$sql = "SELECT feilrap_rapport.rapportid, feilrap_rapport.createtime, feilrap_rapport.rapportowner, feilrap_rapport.templateid, internusers.wikiname FROM feilrap_rapport LEFT JOIN internusers ON feilrap_rapport.rapportowner = internusers.id" . $where . ";";
+		
+		
 		$data = $msdb->assoc($sql);
 		
 		$col = new RapportCollection();
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach ($data as $datum) {
-				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid']);
-				$col->addItem($objRapport);
+				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid'], $datum['wikiname']);
+				$col->addItem($objRapport, $datum['rapportid']);
 			}
 		}
 		
 		return $col;
+	
+	}
+	
+	public static function getRapporterByMonth($inputmonth, $inputyear = null) {
+		
+		if (!$inputyear) $inputyear = date('Y');
+		
+		$fromtime = mktime(0, 0, 0, $inputmonth, 1, $inputyear); // returnerer første dag i gitt måned
+		$totime = mktime(23, 59, 59, $inputmonth + 1, 0, $inputyear); // returnerer siste dag i gitt måned (nullte dag i neste måned). måned 13 er ok input...
+		
+		$sqlfromtime = date('Y-m-d H:i:s', $fromtime);
+		$sqltotime = date('Y-m-d H:i:s', $totime);
+		
+		
+		return self::getRapporter($sqlfromtime, $sqltotime);
+	
+	}
+	
+	public static function getNyligeRapporter() {
+		global $msdb;
+
+		$fromtime = time() - (24 * 60 * 60); // Definer hvor langt tilbake "nylig" er her (i sekunder).
+		$sqlfromtime = date('Y-m-d H:i:s', $fromtime);
+		$sqltotime = date('Y-m-d H:i:s');
+		
+		return self::getRapporter($sqlfromtime, $sqltotime);
 	
 	}
 	
