@@ -163,9 +163,13 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
+		$output .= '<div class="rapportarkiv">';
+		
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
 			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
+			
+			
 			$output .= '<p><strong>Rapporter opprettet det siste døgnet:</strong></p>' . "\n";
 			
 			$output .= $this->_genRapportListe($rapportcol);
@@ -197,55 +201,117 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
 		
+		$output .= '</div>'; // rapportarkiv
+		
 		return $output;
 	
 	}
 	
 	private function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
 		
-		$output = "<ul>\n";
+		$output = '<div class="rapparkivliste">';
 		
-		$currUkeNummer = 0;
+		$currUkeNummer = 100;
+		$currDagNummer = 100;
+		$ukecounter = 0;
+		$dagcounter = 0;
 		$firstuke = true;
+		$firstdag = true;
 		
 		$ukedager = array('Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag');
 		
 		foreach ($rapcol as $objRapport) {
 			
 			$createtime = strtotime($objRapport->getRapportCreatedTime());
+			$dagnummer = date('w', $createtime); // 0-6
+			$rapporttime = date('G', $createtime); // 0-23
+			if ($rapporttime >= 6 && $rapporttime < 10) {
+				$skifttype = 'nskift';
+			} elseif ($rapporttime >= 14 && $rapporttime < 18) {
+				$skifttype = 'dskift';
+			} elseif ($rapporttime >= 22) {
+				$skifttype = 'eskift';
+			} else {
+				$skifttype = 'ukjentskift';
+			}
+			$ukedag = $ukedager[$dagnummer]; // Mandag, Tirsdag osv.
 			
 			if ($sortuke) {
 				$ukenummer = date('W', $createtime);
 				if ($ukenummer != $currUkeNummer) {
 					$currUkeNummer = $ukenummer;
+					$firstdag = true; // nullstill denne for hver nye uke
+					$ukecounter++;
+					$dagcounter = 0;
 					
-					// Avslutt forrige uke-div, med mindre dette er første uke som vises.
+					$ukecontainerclass = ($ukecounter & 1) ? 'ukeone' : 'uketwo';
+					
+					
 					if (!$firstuke) {
-						$output .= '</div><br />';
+						// Avslutt forrige ukecontainer-div, med mindre dette er første uke som vises.
+						$output .= '</div>'; // ukecontent
+						$output .= '</div><br />'; // ukecontainer
+						
+						// Avslutt siste dag i forrige ukecontainer.
+						$output .= '</div>'; // dagcontent
+						$output .= '</div><br />'; // dagcontainer
 					} else {
 						$firstuke = false;
 					}
 					
-					$output .= '<div class="uke">';
+					$output .= '<div class="ukecontainer ' . $ukecontainerclass . '">';
+					$output .= '<div class="ukeheader">';
 					$output .= '<span class="ukenavn">';
 					$output .= 'Uke ' . $ukenummer . ':';
-					$output .= '</span"><br /><br />';
+					$output .= '</span><br /><br />';
+					$output .= '</div>'; // ukeheader
+					$output .= '<div class="ukecontent">';
 					
 				}
-			} 
-			
-			$ukedag = $ukedager[date('w', $createtime)];
-			
-			$output .= '<li>';
-			$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
-			$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
-			$output .= '</a>';
-			$output .= '</li>' . "\n";
-		
+				
+				if (($currDagNummer != $dagnummer) || $firstdag === true) { // Første ukedag som skal skrives i denne uken kan være samme
+					if ($firstdag === true) {								// som siste ukedag i forrige uke. Må derfor sjekke firstday.
+						$firstdag = false;
+					} else {
+						$output .= '</div>'; // dagcontent
+						$output .= '</div><br />'; // dagcontainer
+					}
+					$dagcounter++;
+					$dagcontainerclass = ($dagcounter & 1) ? 'dagone' : 'dagtwo';
+					$currDagNummer = $dagnummer;
+					
+					$output .= '<div class="dagcontainer ' . $dagcontainerclass . '">';
+					$output .= '<div class="dagheader">';
+					$output .= '<span class="dagnavn">' . $ukedag . '</span><br />';
+					$output .= '<span class="dagdato">' . date('(j.n.)', $createtime) . '</span>';
+					$output .= '</div>'; // dagheader
+					$output .= '<div class="dagcontent">';
+				
+				}
+				
+				
+				
+				$output .= '<span class="rapportnavn ' . $skifttype . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName(); // . ' ' . strtoupper(substr($skifttype, 0, 1))
+				$output .= '</a></span><br />';
+	
+				
+			} else { 
+	
+				$output .= '<li>';
+				$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
+				$output .= '</a>';
+				$output .= '</li>' . "\n";
+			}
 		
 		}
 		
-		$output .= "</ul>\n";
+		if ($sortuke) {
+			$output .= '</div></div></div></div></div>'; // dagcontent dagcontainer ukecontent ukecontainer rapparkivliste
+		} else {
+			$output .= '<br /></div>'; // rapparkivliste
+		}
 		
 		return $output;
 	
@@ -281,6 +347,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<p>Ingen rapporter funnet.</p>';
 		}
 	
+		$output = '<div class="rapportarkivmeny">' . $output . '</div>';
 		return $output;
 	
 	
