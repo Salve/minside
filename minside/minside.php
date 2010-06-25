@@ -161,7 +161,9 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$output .= '<div class="toc">';
 		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Side - Meny</div>';
 		$output .= '<div id="toc__inside">';
+		$output .= '<div class="meny">';
 		$output .= $this->_genMenyitem($meny, 1); // recursive funksjon som kaller seg selv dersom et item har underitems
+		$output .= '</div>';
 		$output .= '</div>';
 		$output .= '</div>';
 		

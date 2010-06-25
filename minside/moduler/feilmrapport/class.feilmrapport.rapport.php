@@ -239,7 +239,7 @@ class Rapport {
 			if (!$notatsaveoutput) {
 				$notatsaveoutput = 'Ingen notater.';
 			} else {
-				$notatsaveoutput = '<ul>' . $notatsaveoutput . '</ul>';
+				$notatsaveoutput = '<ul class="msul">' . $notatsaveoutput . '</ul>';
 			}
 			if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
 			

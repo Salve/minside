@@ -143,11 +143,11 @@ class msmodul_feilmrapport implements msmodul{
 			if ($objNotat instanceof Notat) {
 				$output .= '<input type="hidden" name="notatid" value="' .  $objNotat->getId() . '" />';
 			}
-			$output .= '<textarea name="notattekst" rows="3" cols="40">';
+			$output .= '<textarea class="msedit" style="left:0px;" name="notattekst" rows="3" cols="40">';
 			$output .= $objNotat;
 			$output .= '</textarea>';
-			$output .= '<input type="submit" name="lagre" value="lagre" class="button">';
-			$output .= '<input type="submit" name="lagre" value="angre" class="button">';
+			$output .= '<input type="submit" name="lagre" value="lagre" class="msbutton">';
+			$output .= '<input type="submit" name="lagre" value="angre" class="msbutton">';
 			$output .= '</form>';
 			$output .= '</p>';
 		} else {
@@ -163,7 +163,7 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
-		$output .= '<div class="rapportarkiv">';
+		$output .= "\n\n" . '<div class="rapportarkiv">';
 		
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
@@ -201,7 +201,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
 		
-		$output .= '</div>'; // rapportarkiv
+		$output .= '</div> <!-- rapportarkiv -->' . "\n"; // rapportarkiv
 		
 		return $output;
 	
@@ -209,7 +209,7 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
 		
-		$output = '<div class="rapparkivliste">';
+		$output = "\n\n" . '<div class="rapparkivliste">';
 		
 		$currUkeNummer = 100;
 		$currDagNummer = 100;
@@ -259,13 +259,14 @@ class msmodul_feilmrapport implements msmodul{
 						$firstuke = false;
 					}
 					
-					$output .= '<div class="ukecontainer ' . $ukecontainerclass . '">';
-					$output .= '<div class="ukeheader">';
+					$output .= "\n\n";
+					$output .= '<div class="ukecontainer ' . $ukecontainerclass . '">' . "\n";
+					$output .= '<div class="ukeheader">' . "\n";
 					$output .= '<span class="ukenavn">';
 					$output .= 'Uke ' . $ukenummer . ':';
-					$output .= '</span><br /><br />';
-					$output .= '</div>'; // ukeheader
-					$output .= '<div class="ukecontent">';
+					$output .= '</span><br /><br />' . "\n";
+					$output .= '</div>' . "\n"; // ukeheader
+					$output .= '<div class="ukecontent">' . "\n";
 					
 				}
 				
@@ -280,12 +281,12 @@ class msmodul_feilmrapport implements msmodul{
 					$dagcontainerclass = ($dagcounter & 1) ? 'dagone' : 'dagtwo';
 					$currDagNummer = $dagnummer;
 					
-					$output .= '<div class="dagcontainer ' . $dagcontainerclass . '">';
-					$output .= '<div class="dagheader">';
+					$output .= '<div class="dagcontainer ' . $dagcontainerclass . '">' . "\n";
+					$output .= '<div class="dagheader">' . "\n";
 					$output .= '<span class="dagnavn">' . $ukedag . '</span><br />';
 					$output .= '<span class="dagdato">' . date('(j.n.)', $createtime) . '</span>';
 					$output .= '</div>'; // dagheader
-					$output .= '<div class="dagcontent">';
+					$output .= '<div class="dagcontent">' . "\n\n";
 				
 				}
 				
@@ -293,7 +294,7 @@ class msmodul_feilmrapport implements msmodul{
 				
 				$output .= '<span class="rapportnavn ' . $skifttype . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
 				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName(); // . ' ' . strtoupper(substr($skifttype, 0, 1))
-				$output .= '</a></span><br />';
+				$output .= '</a></span><br />' . "\n";
 	
 				
 			} else { 
@@ -310,7 +311,7 @@ class msmodul_feilmrapport implements msmodul{
 		if ($sortuke) {
 			$output .= '</div></div></div></div></div>'; // dagcontent dagcontainer ukecontent ukecontainer rapparkivliste
 		} else {
-			$output .= '<br /></div>'; // rapparkivliste
+			$output .= '<br /></div> <!-- rapparkivliste -->' . "\n"; // rapparkivliste
 		}
 		
 		return $output;
@@ -455,8 +456,9 @@ class msmodul_feilmrapport implements msmodul{
 				$rappoutput = $objRapport->genRapport();
 			
 			} elseif ($submitsave) {
+				$rappoutput = '<div class="rapporthaserrors">Rapporten kunne ikke genereres da ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
 				try {
-					$rappoutput = $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
+					$rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
 				}
 				catch (Exception $e) {
 					die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
@@ -476,8 +478,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= $rappoutput;
 			$output .= '<br /><br />' . "\n";
 			if (!$validsave) {
-				$output .= '<input type="submit" class="button" name="genrap" value="Generer rapport" />' . "\n";
-				$output .= '<input type="submit" class="button" name="genrap" value="Nullstill" />' . "\n";
+				$output .= '<input type="submit" class="msbutton" name="genrap" value="Generer rapport" />' . "\n";
+				$output .= '<input type="submit" class="msbutton" name="genrap" value="Nullstill" />' . "\n";
 			}
 			$output .= '</form>' . "\n";
 
@@ -487,7 +489,7 @@ class msmodul_feilmrapport implements msmodul{
 			} else {
 				$output .= '<input type="hidden" name="act" value="genrapportsel" />' . "\n";
 			}
-			$output .= '<input type="submit" class="button" name="genrap" value="Tilbake" />' . "\n";
+			$output .= '<input type="submit" class="msbutton" name="genrap" value="Tilbake" />' . "\n";
 			$output .= '</form>' . "\n";
 			
 			
@@ -625,11 +627,11 @@ class msmodul_feilmrapport implements msmodul{
 		}			
 					
 		$output .=	'
-					<input type="submit" name="subvelgskift" class="button" value="Gå videre">
+					<input type="submit" name="subvelgskift" class="msbutton" value="Gå videre">
 				</form>
 				<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
 					<input type="hidden" name="act" value="show" />
-					<input type="submit" class="button" name="subvelgskift" value="Tilbake" />
+					<input type="submit" class="msbutton" name="subvelgskift" value="Tilbake" />
 				</form>
 			</fieldset>
 			</div>';
@@ -669,14 +671,24 @@ class msmodul_feilmrapport implements msmodul{
 			die($e->getMessage());
 		}
 		
-		$skiftout .= 'Output fra genSkift: ' . $objSkift . '<br />';
+		$skiftout .= '&nbsp;<br />';
+		$skiftout .= '&nbsp;<br />';
+		$skiftout .= '&nbsp;<br />';
 		
-		$skiftout .= '<p>Skift opprettet: ' . $objSkift->getSkiftCreatedTime() . '</p>';
-		
+		$skiftcreate = strtotime($objSkift->getSkiftCreatedTime());
+		$skiftage = time() - $skiftcreate;
+		$skifthours = date('G', $skiftage);
+		if ( $skifthours >= 9 ) {
+			// Mer enn 9 timer siden skift ble opprettet
+			$skiftout .= '<div class="mswarningbar" id="warnoldskift">';
+			$skiftout .= 'Skiftet ditt er mer enn ' . $skifthours . ' timer gammelt!<br />';
+			$skiftout .= 'Skift lukkes automatisk 14 timer etter de er opprettet.<br />';
+			$skiftout .= '</div>'; // warnoldskift
+		}
 		
 		// Vis notater
 		
-		$skiftout .= '<fieldset style="float:right;text-align:left;"><legend>Notater</legend><ul>';
+		$skiftout .= '<fieldset class="msfieldset" style="float:right;text-align:left;"><legend>Notater</legend><ul class="msul">';
 		
 		foreach($objSkift->notater as $objNotat) {
 			if ($objNotat->isActive()) $skiftout .= $this->genNotat($objNotat);
@@ -697,7 +709,7 @@ class msmodul_feilmrapport implements msmodul{
 		$colSecTeller = new TellerCollection();
 		$arSecTeller = array();
 		
-		$skiftout .= '<table>';	
+		$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
 		foreach($objSkift->tellere as $objTeller) {
 			if (!$objTeller->isActive()) continue;
 			
@@ -705,10 +717,10 @@ class msmodul_feilmrapport implements msmodul{
 				case 'TELLER':
 					$skiftout .= '<tr>' . "\n";
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-					$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . '</td>' . "\n";
+					$skiftout .= '<td class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</td><td style="text-align:center;">' . $objTeller->getTellerVerdi() . '</td>' . "\n";
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />' . "\n";
-					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
 					$skiftout .= '</form>' . "\n";
 					$skiftout .= "</tr>\n\n";
 					break;
@@ -727,13 +739,13 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
-			$skiftout .= '<td><select name="tellerid">' . "\n";
+			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
 			$skiftout .= '<option value="NOSEL">Annet: </option>' . "\n";
 			foreach ($arSecTeller as $tellerid => $tellerdesc) {
 				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
 			}
 			$skiftout .= '</select></td><td></td>' . "\n";
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}		
@@ -742,13 +754,13 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
-			$skiftout .= '<td><select name="tellerid">' . "\n";
+			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
 			$skiftout .= '<option value="NOSEL">Ulogget: </option>' . "\n";
 			foreach ($arUlogget as $tellerid => $tellerdesc) {
 				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
 			}
 			$skiftout .= '</select></td><td></td>' . "\n";
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="button" name="inc_teller" value="+" /><input type="submit" class="button" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}
@@ -778,7 +790,7 @@ class msmodul_feilmrapport implements msmodul{
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
-		$skiftout .= '<input type="submit" class="button" value="Avslutt skift" />' . "\n";
+		$skiftout .= '<input type="submit" class="msbutton" value="Avslutt skift" />' . "\n";
 		$skiftout .= '</form>' . "\n";
 		
 		$skiftout .= '</div>' . "\n"; // skift_full
@@ -834,7 +846,7 @@ class msmodul_feilmrapport implements msmodul{
 				<tr>
 					<td>
 						<label for="tellertype" title="Primærtellere har egne +/- knapper, sekundærtellere kommer i dropdown-liste og deler +/- knapper. Ulogget-tellere kommer i annen dropdown med felles +/- knapp">Tellertype: </label>
-						<select name="tellertype" id="tellertype">
+						<select name="tellertype" class="msedit" id="tellertype">
 							<option value="TELLER">Primærteller</option>
 							<option value="SECTELLER">Sekundærteller</option>
 							<option value="ULOGGET">Uloggetteller</option>
@@ -848,7 +860,7 @@ class msmodul_feilmrapport implements msmodul{
 						<label for="tellerdesc" title="Beskrivelse av teller, vises som label på teller i skift-visning">Tellerlabel: </label>
 						<input type="text" name="tellerdesc" id="tellerdesc" />
 					</td>
-					<td><input type="submit" name="nyteller" value="Lagre" class="button" /></td>
+					<td><input type="submit" name="nyteller" value="Lagre" class="msbutton" /></td>
 				</tr>
 			</table>
 			</form>
@@ -1044,14 +1056,14 @@ class msmodul_feilmrapport implements msmodul{
 	
 		$output .= '<div class="noskift">';
 		$output .= '<p>Du har ikke noe aktivt skift. Det kan være flere årsaker til dette:</p>';
-		$output .= '<ul>';
+		$output .= '<ul class="msul">';
 		$output .= '<li>Du har avsluttet skiftet ditt</li>';
 		$output .= '<li>Skiftet ditt har blitt inkludert i en rapport</li>';
 		$output .= '<li>Skiftet ditt er utløpt &ndash; det har gått mer enn 14 timer siden det ble opprettet</li>';
 		$output .= '</ul><br/>';
 		$output .= '<form method="post" action="' . MS_FMR_LINK . '">';
 		$output .= '<input type="hidden" name="act" value="nyttskift" />';
-		$output .= '<input type="submit" class="button" value="Start nytt skift!" />';
+		$output .= '<input type="submit" class="msbutton" value="Start nytt skift!" />';
 		$output .= '</form>';
 		$output .= '</div>';
 		
@@ -1131,7 +1143,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="modraptpl" />';
 			$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
-			$output .= '<br /><input type="submit" class="button" name="savetpl" value="Lagre endringer" />';
+			$output .= '<br /><input type="submit" class="msbutton" name="savetpl" value="Lagre endringer" />';
 			$output .= '<br /><br /><p>Endringer her vil påvirke alle rapporter som er opprettet siden sist gang<br /> "NYTT TEMPLATE" knappen ble trykket på, samt rapporter som ikke er opprettet enda</p>';
 			$output .= '</form>';
 			
@@ -1144,7 +1156,7 @@ class msmodul_feilmrapport implements msmodul{
 		$output .= '<legend>Opprett nytt default template</legend>';
 		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 		$output .= '<input type="hidden" name="act" value="nyraptpl" />';
-		$output .= '<input type="submit" class="button" name="savetpl" value="*FARLIG* NYTT TEMPLATE *FARLIG*" />';
+		$output .= '<input type="submit" class="msbutton" name="savetpl" value="*FARLIG* NYTT TEMPLATE *FARLIG*" />';
 		$output .= '</form><br /><br />';
 		$output .= '<p>Denne knappen arkiverer nåværende template, det vil ikke være mulig å gjøre videre endringer på dette.</p>';
 		$output .= '<p>Nytt template vil ikke påvirke rapporter som allerede er opprettet.</p>';
