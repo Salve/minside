@@ -2,6 +2,7 @@
 
 div.minside {
 	width:100%;
+	text-align:left;
 }
 
 div.minside input.msbutton {
@@ -222,4 +223,104 @@ div.minside .feilmtable td {
 	border-collapse: collapse;
 	/*border-color: #8b7355;
 	border-style: solid none none none*/;
+}
+
+div.rapportarkiv {
+	margin: auto;
+	width: 80%;
+	border: 1px solid #8cacbb;
+	background-color:#DEE7EF;
+	font-family:sans-serif;
+	font-size: 1em;
+}
+
+div.rapparkivliste {
+	width: 100%;
+	border: 1px #8cacbb;
+	border-style: solid none none none;
+	background-color: #fff;
+}
+
+div.ukecontainer {
+	border: 1px #8cacbb;
+	border-style: none none solid;
+	position:relative;
+	height:100%;
+}
+
+div.ukeheader {
+	float:left;
+	border: 0;
+	width:18%;
+}
+
+div.ukecontent {
+	float:left;
+	width:80%;
+}
+
+div.dagcontent {
+	float:left;
+	font-size: 1.4em;
+	
+}
+
+div.dagheader {
+	float: left;
+	width: 20%;
+	height: 50px;
+	border: 1px #8cacbb;
+	border-style: none solid none none;
+	background-color: #dee7ef;
+	font-size: 1.3em;
+}
+
+
+div.dagcontainer {
+	border: 1px solid #8cacbb;
+	margin:2px;
+	position:relative;
+	width:100%;
+	display: inline-block;
+}
+div.dagcontainer {
+	display: block;
+}
+
+span.rapportnavn {
+	background-color: #F3F3F3;
+	width: 100%;
+	font-size: .75em;
+}
+
+span.raptwo {
+	background-color: white;
+}
+
+a, a.hover, a.visited, a.active {
+	color: #436976;
+	text-decoration:none;
+}
+
+img {
+	border-style:none;
+}
+
+div.rapportarkivmeny {
+	font-size: 0.8em;
+}
+
+div.msclearer {
+	clear:both;
+}
+
+span.ukenavn {
+	font-size: 2.5em;
+	white-space:nowrap;
+	/*display:block;
+	-moz-transform: rotate(-90deg);
+	-moz-transform-origin: bottom right;
+	-webkit-transform: rotate(-90deg);
+	-webkit-transform-origin: bottom right;
+	writing-mode:tb-rl;*/
 }

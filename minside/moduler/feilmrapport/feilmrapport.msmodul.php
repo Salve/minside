@@ -163,6 +163,8 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
+		
+		$output .= '<br /><br /><br />';
 		$output .= "\n\n" . '<div class="rapportarkiv">';
 		
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
@@ -215,13 +217,13 @@ class msmodul_feilmrapport implements msmodul{
 		$currDagNummer = 100;
 		$ukecounter = 0;
 		$dagcounter = 0;
+		$rapportcounter = 0;
 		$firstuke = true;
 		$firstdag = true;
 		
 		$ukedager = array('Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag');
 		
 		foreach ($rapcol as $objRapport) {
-			
 			$createtime = strtotime($objRapport->getRapportCreatedTime());
 			$dagnummer = date('w', $createtime); // 0-6
 			$rapporttime = date('G', $createtime); // 0-23
@@ -247,14 +249,16 @@ class msmodul_feilmrapport implements msmodul{
 					$ukecontainerclass = ($ukecounter & 1) ? 'ukeone' : 'uketwo';
 					
 					
-					if (!$firstuke) {
-						// Avslutt forrige ukecontainer-div, med mindre dette er første uke som vises.
-						$output .= '</div>'; // ukecontent
-						$output .= '</div><br />'; // ukecontainer
-						
+					if (!$firstuke) {					
 						// Avslutt siste dag i forrige ukecontainer.
 						$output .= '</div>'; // dagcontent
-						$output .= '</div><br />'; // dagcontainer
+						$output .= '<div class="msclearer"></div>'; // dagcontainer_clear
+						$output .= '</div>'; // dagcontainer
+						
+						// Avslutt forrige ukecontainer-div, med mindre dette er første uke som vises.
+						$output .= '</div>'; // ukecontent
+						$output .= '<div class="msclearer"></div>'; // ukecontainer_clear
+						$output .= '</div>'; // ukecontainer
 					} else {
 						$firstuke = false;
 					}
@@ -264,7 +268,7 @@ class msmodul_feilmrapport implements msmodul{
 					$output .= '<div class="ukeheader">' . "\n";
 					$output .= '<span class="ukenavn">';
 					$output .= 'Uke ' . $ukenummer . ':';
-					$output .= '</span><br /><br />' . "\n";
+					$output .= '</span>' . "\n";
 					$output .= '</div>' . "\n"; // ukeheader
 					$output .= '<div class="ukecontent">' . "\n";
 					
@@ -275,8 +279,10 @@ class msmodul_feilmrapport implements msmodul{
 						$firstdag = false;
 					} else {
 						$output .= '</div>'; // dagcontent
-						$output .= '</div><br />'; // dagcontainer
+						$output .= '<div class="msclearer"></div>'; // dagcontainer_clear
+						$output .= '</div>'; // dagcontainer
 					}
+					$rapportcounter = 0;
 					$dagcounter++;
 					$dagcontainerclass = ($dagcounter & 1) ? 'dagone' : 'dagtwo';
 					$currDagNummer = $dagnummer;
@@ -290,12 +296,12 @@ class msmodul_feilmrapport implements msmodul{
 				
 				}
 				
+				$rapportcounter++;
+				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 				
-				
-				$output .= '<span class="rapportnavn ' . $skifttype . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= '<span class="rapportnavn ' . $skifttype . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
 				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName(); // . ' ' . strtoupper(substr($skifttype, 0, 1))
 				$output .= '</a></span><br />' . "\n";
-	
 				
 			} else { 
 	
@@ -309,7 +315,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 		if ($sortuke) {
-			$output .= '</div></div></div></div></div>'; // dagcontent dagcontainer ukecontent ukecontainer rapparkivliste
+			$output .= '</div><div class="msclearer"></div></div></div><div class="msclearer"></div></div></div>'; // dagcontent dagcontainer ukecontent ukecontainer_clear ukecontainer rapparkivliste
 		} else {
 			$output .= '<br /></div> <!-- rapparkivliste -->' . "\n"; // rapparkivliste
 		}
@@ -739,7 +745,7 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
-			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
+			$skiftout .= '<td><select name="tellerid" class="" style="width:100%;">' . "\n";
 			$skiftout .= '<option value="NOSEL">Annet: </option>' . "\n";
 			foreach ($arSecTeller as $tellerid => $tellerdesc) {
 				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
