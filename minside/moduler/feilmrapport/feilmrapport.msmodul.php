@@ -163,8 +163,6 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
-		
-		$output .= '<br /><br /><br />';
 		$output .= "\n\n" . '<div class="rapportarkiv">';
 		
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {

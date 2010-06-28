@@ -3,6 +3,7 @@
 div.minside {
 	width:100%;
 	text-align:left;
+	position:relative;
 }
 
 div.minside input.msbutton {
@@ -150,6 +151,12 @@ div.minside li.msopen {
 div.minside li.msclosed {
   list-style-image: url(minside/images/closed.gif);
     /*list-style-type: disc;*/
+}
+
+div.minside div.toc {
+	position: absolute;
+	right: -150px;
+	top: 0;
 }
 
 div.mstoc {
