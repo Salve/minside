@@ -318,13 +318,6 @@ div.msclearer {
 
 span.ukenavn {
 	font-size: 2.5em;
-	white-space:nowrap;
-	/*display:block;
-	-moz-transform: rotate(-90deg);
-	-moz-transform-origin: bottom right;
-	-webkit-transform: rotate(-90deg);
-	-webkit-transform-origin: bottom right;
-	writing-mode:tb-rl;*/
 }
 
 span.nskift{
