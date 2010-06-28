@@ -304,12 +304,16 @@ class msmodul_feilmrapport implements msmodul{
 				$output .= '</a></span><br />' . "\n";
 				
 			} else { 
+				
+				$rapportcounter++;
+				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 	
-				$output .= '<li>';
+				$output .= '<span style="font-size:1em;" class="rapportnavn ' . $skifttype . ' ' . $rapportspanclass . '">';
 				$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
 				$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a>';
-				$output .= '</li>' . "\n";
+				$output .= '</span><br />';
+
 			}
 		
 		}

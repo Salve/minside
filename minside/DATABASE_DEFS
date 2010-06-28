@@ -48,33 +48,6 @@ CREATE TABLE `internusers` (
   UNIQUE KEY `fullname_UNIQUE` (`wikiname`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSPT', 'SPT', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLSERV', 'Serviceoppdrag', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSVF', 'ks@vf', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLKSOF', 'ks@of', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLDLS', 'DLS', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('TLFRAUD', 'Fraud', 'TELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULBKK', 'BKK', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULEB', 'EB', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKLEPP', 'Klepp', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULKRAGERO', 'Kragerø', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLIER', 'Lier', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLOFOT', 'Lofotkraft', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSE', 'Lyse', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULLYSEBED', 'Lyse Bedrift', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNOTODDEN', 'Notodden', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULNTE', 'NTE', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSIGNAL', 'Signal', 'ULOGGET', '0');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULSKAGERAK', 'Skagerak', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVKBB', 'Vesterålskraft', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULVIKEN', 'Viken', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULOSTFOLD', 'Østfold', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('ULOSTFOLD', 'Østfold', 'ULOGGET', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLDEKODER', 'Utlevert dekoder', 'SECTELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLSTRØM', 'Utlevert strømforsyning', 'SECTELLER', '1');
-INSERT INTO `feilrap_teller` (`tellernavn`, `tellerdesc`, `tellertype`, `isactive`) VALUES ('SECTLFJERN', 'Utlevert fjernkontroll', 'SECTELLER', '1');
-
 DROP TABLE IF EXISTS `feilrap_notat`;
 CREATE TABLE `feilrap_notat` (
   `notatid` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -87,3 +60,37 @@ CREATE TABLE `feilrap_notat` (
   UNIQUE KEY `notatid_UNIQUE` (`notatid`),
   KEY `skiftid_KEY` (`skiftid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `feilrap_rapport`;
+CREATE TABLE `feilrap_rapport` (
+  `rapportid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `createtime` datetime NOT NULL,
+  `skiftnavn` varchar(20) DEFAULT NULL,
+  `rapportowner` int(10) unsigned NOT NULL,
+  `templateid` int(10) NOT NULL,
+  PRIMARY KEY (`rapportid`),
+  UNIQUE KEY `rapportid_UNIQUE` (`rapportid`),
+  KEY `rapportowner` (`rapportowner`),
+  KEY `timeindex` (`createtime`)
+) ENGINE=InnoDB AUTO_INCREMENT=3023 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `feilrap_rapportdata`;
+CREATE TABLE `feilrap_rapportdata` (
+  `rapportdataid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `rapportid` int(10) unsigned NOT NULL,
+  `dataname` varchar(100) NOT NULL,
+  `datavalue` varchar(2000) NOT NULL,
+  `datatype` varchar(45) NOT NULL,
+  PRIMARY KEY (`rapportdataid`),
+  UNIQUE KEY `rapportdataid_UNIQUE` (`rapportdataid`),
+  KEY `rapportid` (`rapportid`)
+) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `feilrap_raptpl`;
+CREATE TABLE `feilrap_raptpl` (
+  `raptplid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `templatetekst` text,
+  `tplisactive` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`raptplid`),
+  UNIQUE KEY `raptplid_UNIQUE` (`raptplid`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
