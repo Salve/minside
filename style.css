@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 div.minside {
-	width:100%;
+	width:90%;
 	text-align:left;
 	position:relative;
 }
@@ -155,7 +155,7 @@ div.minside li.msclosed {
 
 div.minside div.toc {
 	position: absolute;
-	right: -150px;
+	right: -220px;
 	top: 0;
 }
 

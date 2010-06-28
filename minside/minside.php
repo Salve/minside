@@ -51,9 +51,6 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		$mspremenu .= '<div class="minside">'; 
 		
-		$msoutput .= '<h1>Min Side</h1>';
-		$msoutput .= 'Velkommen til din side, ' . $INFO['userinfo']['name'] . '!<br />';
-		
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
 		} else {
@@ -67,10 +64,8 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		}
 		
 		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
-		$msoutput .= '<h2>' . ucfirst($page) . '</h2>';
-		$msoutput .= '<div class="level2">';
+		$msoutput .= '<h1>' . ucfirst($page) . '</h2>';
 		$msoutput .= $msdisp->dispatch();
-		$msoutput .= '</div>';
 		
 		
 		/*
