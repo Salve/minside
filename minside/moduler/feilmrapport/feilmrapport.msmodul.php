@@ -8,6 +8,8 @@ require_once('class.feilmrapport.rapport.php');
 require_once('class.feilmrapport.skiftfactory.php');
 require_once('class.feilmrapport.rappvalidator.php');
 require_once('class.feilmrapport.rapporttemplate.php');
+require_once('class.feilmrapport.rapporttemplatefactory.php');
+require_once('class.feilmrapport.rapporttemplatecollection.php');
 require_once('class.feilmrapport.tellercollection.php');
 require_once('class.feilmrapport.notatcollection.php');
 require_once('class.feilmrapport.rapportcollection.php');
@@ -62,6 +64,12 @@ class msmodul_feilmrapport implements msmodul{
 			case "gensaverapport":
 			case "genrapportmod":
 				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genModRapport();
+				break;
+			case "showtplmarkup":
+				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTemplatePreview(true);
+				break;
+			case "showtplpreview":
+				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTemplatePreview(false);
 				break;
 			case "nyraptpl":
 				if ($this->_accessLvl >= MSAUTH_5) {
@@ -152,8 +160,9 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
-		$output .= "\n\nsss" . '<div class="rapportarkiv">';
-		
+		$output .= '<span class="actheader">Rapportarkiv</span><br /><br />';
+		$output .= "\n\n" . '<div class="rapportarkiv">';
+				
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
 			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
@@ -1166,21 +1175,70 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _saveRapportTemplate() {
 		if (isset($_REQUEST['inputtpl'])) {
-			RapportTemplate::saveTemplate($_REQUEST['inputtpl'], RapportTemplate::getCurrentTplId());
+			RapportTemplateFactory::saveTemplate($_REQUEST['inputtpl'], RapportTemplateFactory::getCurrentTplId());
 		}
 	}
 	
 	private function _genModRapportTemplates() {
 	
-		$output .= '<span class=""></span>';
+		$output .= '<span class="actheader">Templateadministrasjon</span><br />';
+		
+		$colTemplates = RapportTemplateFactory::getTemplates();
+		$colActiveTemplates = new RapportTemplateCollection();
+		$colInactiveTemplates = new RapportTemplateCollection();
+		
+		foreach ($colTemplates as $objTemplate) {
+			if ($objTemplate->isActive()) {
+				$colActiveTemplates->addItem($objTemplate);
+			} else {
+				$colInactiveTemplates->addItem($objTemplate);
+			}		
+		}
+		
+		// LIVE
+		
+		$output .= '<br /><span class="subactheader">Live templates:</span><br /><br />' . "\n";
+		$output .= '<table class="mstemplatelist">' . "\n";
+		$output .= '<tr><th>ID:</th><th>Live siden:</th><th>Ant. rapp.:</th><th>Handlinger:</th></tr>' . "\n";
+		foreach ($colActiveTemplates as $objTemplate) {
+			$output .= '<tr>' . "\n";
+			$output .= '<td>' . $objTemplate->getId() . '</td>' . "\n";
+			$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getLiveDate()) . '</td>' . "\n";
+			$output .= '<td>' . $objTemplate->getNumRapporter() . '</td>' . "\n";
+			$output .= '<td>'; // handlinger start
+			$output .= '<a href="' . MS_FMR_LINK . '&act=showtplmarkup&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+			$output .= '<a href="' . MS_FMR_LINK . '&act=showtplpreview&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+			$output .= '</td>' . "\n"; // handlinger slutt
+			$output .= '</tr>' . "\n";
+		}
+		$output .= '</table>' . "\n";
+		
+		// DRAFT
+		
+		$output .= '<br /><span class="subactheader">Draft templates:</span><br /><br />' . "\n";
+		$output .= '<table class="mstemplatelist">' . "\n";
+		$output .= '<tr><th>ID:</th><th>Opprettet:</th><th>Opprettet av:</th><th>Sist endret:</th><th>Sist endret av:</th><th>Handlinger:</th></tr>' . "\n";
+		foreach ($colInactiveTemplates as $objTemplate) {
+			$output .= '<tr>' . "\n";
+			$output .= '<td>' . $objTemplate->getId() . '</td>' . "\n";
+			$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getCreateDate()) . '</td>' . "\n";
+			$output .= '<td>' . $objTemplate->getNumRapporter() . '</td>' . "\n";
+			$output .= '<td>'; // handlinger start
+			$output .= '<a href="' . MS_FMR_LINK . '&act=showtplmarkup&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+			$output .= '<a href="' . MS_FMR_LINK . '&act=showtplpreview&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+			$output .= '</td>' . "\n"; // handlinger slutt
+			$output .= '</tr>' . "\n";
+		}
+		$output .= '</table>' . "\n";
+		
+		$output .= '' . "\n";
 	
 	
-	
-		if (RapportTemplate::getCurrentTplId() != false) {
+		if (RapportTemplateFactory::getCurrentTplId() != false) {
 	
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="modraptpl" />';
-			$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplate::getRawTemplate() . '</textarea>';
+			$output .= '<textarea name="inputtpl" cols="80" rows="40" wrap="off">' . RapportTemplateFactory::getRawTemplate() . '</textarea>';
 			$output .= '<br /><input type="submit" class="msbutton" name="savetpl" value="Lagre endringer" />';
 			$output .= '<br /><br /><p>Endringer her vil påvirke alle rapporter som er opprettet siden sist gang<br /> "NYTT TEMPLATE" knappen ble trykket på, samt rapporter som ikke er opprettet enda</p>';
 			$output .= '</form>';
@@ -1197,6 +1255,40 @@ class msmodul_feilmrapport implements msmodul{
 		$output .= '<p>Nytt template vil ikke påvirke rapporter som allerede er opprettet.</p>';
 		$output .= '<p>Husk å kopiere innholdet fra nåværende template om du vil jobbe videre med dette.</p>';
 		$output .= '</fieldset>';
+		
+		return $output;
+	}
+	
+	private function _genTemplatePreview($markup = false) {
+		$templateid = $_REQUEST['templateid'];
+		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		
+		if (!($objTemplate instanceof RapportTemplate)) {
+			msg('Ugyldig templateid.', -1);
+			return false;
+		}
+
+
+		$output .= '<span class="actheader">Templateadministrasjon</span><br />';
+		
+		if ($markup) {
+			$output .= '<br /><span class="subactheader">Markup for templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
+			$output .= '<p class="templatemarkup"><pre>' . htmlspecialchars($objTemplate->getTemplateTekst()) . '</pre></p>';
+		} else {
+			$colskift = new SkiftCollection();
+			$colskift->addItem(new Skift(0, date('Y-m-d H:i:s'), 0));
+			$objRapport = new Rapport($this->_userId, null, null, false, $templateid, null);
+			$objRapport->skift = $colskift;
+			$output .= '<br /><span class="subactheader">Preview for templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
+			$output .= '<p class="templatemarkup">' . $objRapport->genRapportTemplate() . '</p>';
+		}
+		
+		$output .= '
+			<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+				<input type="hidden" name="act" value="genmodraptpl" />
+				<input type="submit" class="msbutton" value="Tilbake" />
+			</form>
+			';
 		
 		return $output;
 	}
@@ -1226,7 +1318,7 @@ class msmodul_feilmrapport implements msmodul{
 			$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
 			$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
 			$rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
-			$tpladmin = new Menyitem('Rediger rapport-templates','&page=feilmrapport&act=genmodraptpl');
+			$tpladmin = new Menyitem('Rapporttemplates','&page=feilmrapport&act=genmodraptpl');
 				
 			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
 				$toppmeny->addChild($genrapport);

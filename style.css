@@ -246,11 +246,14 @@ div.minside div.mstocheader {
   margin-bottom: 2px;
 }
 
-
-div.minside th.top {
+div.minside th {
 	border: 1px solid #8cacbb;
 	border-collapse: collapse;
 	background-color: #DEE7EF;
+	font-size: 0.9em;
+}
+
+div.minside th.top {
 	font-size: 0.9em;
 }
 
@@ -265,6 +268,22 @@ div.minside .feilmtable td {
 	border-collapse: collapse;
 	/*border-color: #8b7355;
 	border-style: solid none none none*/;
+}
+
+div.minside .mstemplatelist td {
+	border: 1px solid #8cacbb;
+	border-collapse: collapse;
+	padding: 3px;
+}
+
+div.minside .actheader {
+	font-size: 140%;
+	font-weight: bold;
+}
+
+div.minside .subactheader {
+	font-size: 120%;
+	font-weight: bold;
 }
 
 div.rapportarkiv {
