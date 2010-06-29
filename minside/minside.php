@@ -9,6 +9,7 @@ define('MSAUTH_3',4); // Lage
 define('MSAUTH_4',8); // Laste opp
 define('MSAUTH_5',16); // Slette
 define('MSAUTH_ADMIN',255); // Wiki-admin
+define('MS_IMG_PATH', DOKU_REL . 'lib/plugins/minside/minside/bilder/');
 
 require_once('msconfig.php');
 require_once('class.database.php');

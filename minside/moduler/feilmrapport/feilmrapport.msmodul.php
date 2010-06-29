@@ -20,7 +20,7 @@ class msmodul_feilmrapport implements msmodul{
 	private $_frapout;
 	private $_userId;
 	private $_accessLvl;
-	private $_currentSkiftId; 
+	private $_currentSkiftId;
 	private static $monthnames = array(
 			1 => 'januar',
 			2 => 'februar',
@@ -116,16 +116,7 @@ class msmodul_feilmrapport implements msmodul{
 				$this->_frapout .= $this->genSkift();
 				break;
 			case "mod_teller":
-				try {
-					if(array_key_exists('inc_teller', $_REQUEST)) {
-						$this->_changeTeller($_REQUEST['tellerid'], false);
-					} elseif(array_key_exists('dec_teller', $_REQUEST)) {
-						$this->_changeTeller($_REQUEST['tellerid'], true);
-					}
-				}
-				catch (Exception $e) {
-					msg($e->getMessage(), -1);
-				}
+				$this->_changeTeller();
 			case "show":
 			default:
 				$this->_frapout .= $this->genSkift();
@@ -140,11 +131,9 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<p>';
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="savenotat" />';
-			if ($objNotat instanceof Notat) {
-				$output .= '<input type="hidden" name="notatid" value="' .  $objNotat->getId() . '" />';
-			}
+			if ($objNotat instanceof Notat) $output .= '<input type="hidden" name="notatid" value="' .  $objNotat->getId() . '" />';
 			$output .= '<textarea id="notattekst" class="msedit" style="left:0px;" name="notattekst" rows="3" cols="40">';
-			$output .= $objNotat;
+			if ($objNotat instanceof Notat) $output .= $objNotat->getNotatTekst();
 			$output .= '</textarea>';
 			$output .= '<input type="submit" name="lagre" value="lagre" class="msbutton">';
 			$output .= '<input type="submit" name="lagre" value="angre" class="msbutton">';
@@ -152,8 +141,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '</p>';
 		} else {
 			if ($objNotat instanceof Notat) {
-				$stredit = ' <a href="' . MS_FMR_LINK . '&act=modnotat&notatid=' . $objNotat->getId() . '"><img src="/lib/plugins/minside/./minside/bilder/pencil.png"></a>';
-				$strslett = ' <a href="' . MS_FMR_LINK . '&act=delnotat&notatid=' . $objNotat->getId() . '"><img src="/lib/plugins/minside/./minside/bilder/trash.png"></a>';
+				$stredit = ' <a href="' . MS_FMR_LINK . '&act=modnotat&notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png"></a>';
+				$strslett = ' <a href="' . MS_FMR_LINK . '&act=delnotat&notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png"></a>';
 			}
 			$output .= '<li>' . $objNotat . $stredit . $strslett . '</li>';
 		}		
@@ -665,13 +654,6 @@ class msmodul_feilmrapport implements msmodul{
 		
 	}
 	
-
-	public function getEndreteller() {
-		$tellerid = $_POST['tellerid'];
-		$_endreverdi = $_POST[$tellerid];
-		return $_endreverdi;
-	}
-	
 	public function genSkift(){
 
 		$skiftID = $this->getCurrentSkiftId();
@@ -719,11 +701,9 @@ class msmodul_feilmrapport implements msmodul{
 		
 		// Vis tellere
 		
-		$colUlogget = new TellerCollection();
-		$arUlogget = array();
-		
+		$colTeller = new TellerCollection();
 		$colSecTeller = new TellerCollection();
-		$arSecTeller = array();
+		$colUlogget = new TellerCollection();
 		
 		$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
 		foreach($objSkift->tellere as $objTeller) {
@@ -731,9 +711,12 @@ class msmodul_feilmrapport implements msmodul{
 			
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
+					if ($objTeller->getTellerVerdi() > 0) $colTeller->addItem(clone($objTeller));
+									
 					$skiftout .= '<tr>' . "\n";
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-					$skiftout .= '<td class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</td><td style="text-align:center;"><input type="text" value="1" id="rapverdi" class="msedit" name="'.$objTeller->getId().'">' /*. $objTeller->getTellerVerdi() */. '</td>' . "\n";
+					$skiftout .= '<td class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</td>' . "\n"; // Tellerbeskrivelse
+					$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />' . "\n";
 					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
@@ -742,40 +725,40 @@ class msmodul_feilmrapport implements msmodul{
 					break;
 				case 'ULOGGET':
 					if ($objTeller->getTellerVerdi() > 0) $colUlogget->addItem(clone($objTeller));
-					$arUlogget[$objTeller->getId()] = $objTeller->getTellerDesc();
 					break;
 				case 'SECTELLER':
 					if ($objTeller->getTellerVerdi() > 0) $colSecTeller->addItem(clone($objTeller));
-					$arSecTeller[$objTeller->getId()] = $objTeller->getTellerDesc();
 					break;
 			}
 		}
 		
-		if (!empty($arSecTeller)){
+		if ($colSecTeller->length() > 0){
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
 			$skiftout .= '<option value="NOSEL">Annet: </option>' . "\n";
-			foreach ($arSecTeller as $tellerid => $tellerdesc) {
-				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
+			foreach ($colSecTeller as $objTeller) {
+				$skiftout .= '<option value="' . $objTeller->getId() . '">' . $objTeller->getTellerDesc() . '</option>' . "\n";
 			}
-			$skiftout .= '</select></td><td></td>' . "\n";
+			$skiftout .= '</select></td>' . "\n";
+			$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}		
 		
-		if (!empty($arUlogget)){
+		if ($colUlogget->length() > 0){
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
 			$skiftout .= '<option value="NOSEL">Ulogget: </option>' . "\n";
-			foreach ($arUlogget as $tellerid => $tellerdesc) {
-				$skiftout .= '<option value="' . $tellerid . '">' . $tellerdesc . '</option>' . "\n";
+			foreach ($colUlogget as $objTeller) {
+				$skiftout .= '<option value="' . $objTeller->getId() . '">' . $objTeller->getTellerDesc() . '</option>' . "\n";
 			}
-			$skiftout .= '</select></td><td></td>' . "\n";
+			$skiftout .= '</select></td>' . "\n";
+			$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
@@ -784,17 +767,17 @@ class msmodul_feilmrapport implements msmodul{
 		$skiftout .= '</table><br /><br />' . "\n";
 		
 		$skiftout .= '<div class="antalltall">';
-		$skiftout .= "<table> \n";
-		$skiftout .= "<tr>";
-		foreach($objSkift->tellere as $objTeller) {
+		
+		if ($colTeller->length() > 0) {
+			$skiftout .= '<p>' . "\n";
+			$skiftout .= '<strong>Tellere:</strong><br />' . "\n";
 			
-			if (!$objTeller->isActive()) continue;
-			
-			if ($objTeller->getTellerType() == 'TELLER') {
-				$skiftout .= '<td>' . $objTeller->getTellerDesc() . ':</td><td>' . $objTeller->getTellerVerdi() . "</td></tr>\n";
+			foreach($colTeller as $objTeller) {
+				if ($objTeller->getTellerVerdi() > 0) $skiftout .= $objTeller . '<br />' . "\n";
 			}
+			$skiftout .= '</p>' . "\n";
 		}
-		$skiftout .= "</table>\n";
+		
 		if ($colSecTeller->length() > 0) {
 			$skiftout .= '<p>' . "\n";
 			$skiftout .= '<strong>Annet:</strong><br />' . "\n";
@@ -814,7 +797,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			$skiftout .= '</p>' . "\n";
 		}
-		$skiftout .= '</div>';
+		$skiftout .= '</div>'; // antalltall
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
@@ -986,24 +969,43 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
-	private function _changeTeller($id, $decrease = false) {
+	private function _changeTeller() {
+	
+		$inputverdi = $_REQUEST['modtellerverdi'];
+		if (!isset($inputverdi)) {
+			msg('Klarte ikke å endre teller: Ingen verdi angitt', -1);
+			return false;
+		}
 		
-		$tellerid = $id;
 		$skiftid = $this->getCurrentSkiftId();
-		
 		if ($skiftid === false) die('Forsøk på å endre teller uten å ha et aktivt skift!');
 		
-		if ($id == 'NOSEL') {
-			throw new Exception('Du må gjøre et valg i listen!');
+		if ($_REQUEST['tellerid']) {
+			$tellerid = $_REQUEST['tellerid'];
+		} else {
+			msg('Kan ikke endre teller: ingen teller valgt.', -1);
+			return false;
+		}
+		
+		if (array_key_exists('inc_teller', $_REQUEST)) {
+			$decrease = false;
+		} elseif (array_key_exists('dec_teller', $_REQUEST)) {
+			$decrease = true;
+		} else {
+			die('Verken increase eller decrease teller er gitt.');
+		}
+		
+		if ($tellerid == 'NOSEL') {
+			msg('Du må gjøre et valg i listen!', -1);
 			return false;
 		}
 		
 		try {
 			$objTeller = SkiftFactory::getTeller($tellerid, $skiftid);
-			$objTeller->modTeller($decrease);
+			$objTeller->modTeller($inputverdi, $decrease);
 		} 
 		catch (Exception $e){
-			throw new Exception($e->getMessage());
+			msg('Klarte ikke å endre teller: ' . $e->getMessage(), -1);
 			return false;
 		}
 		
@@ -1242,6 +1244,3 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 }
-
-
-
