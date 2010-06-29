@@ -1146,6 +1146,10 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genModRapportTemplates() {
 	
+		$output .= '<span class=""></span>';
+	
+	
+	
 		if (RapportTemplate::getCurrentTplId() != false) {
 	
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
@@ -1155,9 +1159,6 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<br /><br /><p>Endringer her vil påvirke alle rapporter som er opprettet siden sist gang<br /> "NYTT TEMPLATE" knappen ble trykket på, samt rapporter som ikke er opprettet enda</p>';
 			$output .= '</form>';
 			
-			$output .= '<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />';
-			$output .= '<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />';
-	
 		}
 
 		$output .= '<fieldset>';

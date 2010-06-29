@@ -24,10 +24,14 @@ class RapportTemplate {
 	
 	}
 	
+	public function getTemplates() {
+		
+	}
+	
 	public static function getCurrentTplId() {
 		global $msdb;
 		
-		$sql = "SELECT raptplid FROM feilrap_raptpl ORDER BY raptplid DESC LIMIT 1;";
+		$sql = "SELECT raptplid FROM feilrap_raptpl WHERE tplisactive='1' ORDER BY raptplid DESC LIMIT 1;";
 		$resultat = $msdb->num($sql);
 		
 		if ($resultat[0][0] > 0) {
