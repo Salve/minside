@@ -1,6 +1,5 @@
 <?php
 if(!defined('MS_INC')) die();
-
 class Teller {
 	private $_id;
 	private $_skiftId;
@@ -58,8 +57,8 @@ class Teller {
 	
 	public function modTeller($decrease = false) {
 		global $msdb;
-		
-		$verdi = ($decrease === false) ? 1 : -1;
+		$endreteller = msmodul_feilmrapport::getEndreteller();
+		$verdi = ($decrease === false) ? $endreteller : -$endreteller;
 		
 		if (!$this->_isActive) throw new Exception('Kan ikke endre teller som ikke er aktiv');
 		if ($decrease && !($this->_tellerVerdi > 0)) throw new Exception('Tellerverdi er 0, kan ikke redusere teller');
