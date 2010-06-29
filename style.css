@@ -60,6 +60,7 @@ div.minside div.secedit input.msbutton {
 	float:right;
 	text-align:left;
 	width:400px;
+	top: -6px;
 }
 
 div.minside input.msedit,
@@ -111,13 +112,14 @@ div.minside fieldset.msfieldset {
   text-align: center;
   border: 1px solid #8cacbb;
   padding: 0em;
-  top: -5px;
   margin: auto;
 }
 
 div.minside div.antalltall {
 	position: relative;
-	left: 50px;	
+	left: 50px;
+	overflow: hidden;
+	width: 19em;
 }
 
 div.minside textarea.msedit {
@@ -140,7 +142,7 @@ div.minside ul.msul {
   list-style-type: square;
   list-style-image: none;
   margin: 0 1.5em 1em 1.5em;
-  color: #638c9c;
+  color: #333333;
 }
 
 /* ordered lists */
@@ -148,8 +150,12 @@ div.minside ol.msol {
   line-height: 1.5em;
   list-style-image: none;
   margin: 0 0 1em 3.5em;
-  color: #638c9c;
+  color: #333333;
   font-weight: bold;
+}
+
+div.minside div.rapporttpl ul {
+	color: #333333;
 }
 
 /* no bottom gap in between and smaller left margin for nested lists */

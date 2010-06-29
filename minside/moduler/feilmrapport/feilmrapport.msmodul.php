@@ -152,7 +152,7 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
-		$output .= "\n\n" . '<div class="rapportarkiv">';
+		$output .= "\n\nsss" . '<div class="rapportarkiv">';
 		
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
@@ -701,9 +701,11 @@ class msmodul_feilmrapport implements msmodul{
 		
 		// Vis tellere
 		
-		$colTeller = new TellerCollection();
+		$colTellerNotNull = new TellerCollection();
 		$colSecTeller = new TellerCollection();
+		$colSecTellerNotNull = new TellerCollection();
 		$colUlogget = new TellerCollection();
+		$colUloggetNotNull = new TellerCollection();
 		
 		$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
 		foreach($objSkift->tellere as $objTeller) {
@@ -711,7 +713,7 @@ class msmodul_feilmrapport implements msmodul{
 			
 			switch ($objTeller->getTellerType()) {
 				case 'TELLER':
-					if ($objTeller->getTellerVerdi() > 0) $colTeller->addItem(clone($objTeller));
+					if ($objTeller->getTellerVerdi() > 0) $colTellerNotNull->addItem(clone($objTeller));
 									
 					$skiftout .= '<tr>' . "\n";
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
@@ -724,10 +726,12 @@ class msmodul_feilmrapport implements msmodul{
 					$skiftout .= "</tr>\n\n";
 					break;
 				case 'ULOGGET':
-					if ($objTeller->getTellerVerdi() > 0) $colUlogget->addItem(clone($objTeller));
+					$colUlogget->addItem(clone($objTeller));
+					if ($objTeller->getTellerVerdi() > 0)$colUloggetNotNull->addItem(clone($objTeller));
 					break;
 				case 'SECTELLER':
-					if ($objTeller->getTellerVerdi() > 0) $colSecTeller->addItem(clone($objTeller));
+					$colSecTeller->addItem(clone($objTeller));
+					if ($objTeller->getTellerVerdi() > 0) $colSecTellerNotNull->addItem(clone($objTeller));
 					break;
 			}
 		}
@@ -768,31 +772,31 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$skiftout .= '<div class="antalltall">';
 		
-		if ($colTeller->length() > 0) {
+		if ($colTellerNotNull->length() > 0) {
 			$skiftout .= '<p>' . "\n";
 			$skiftout .= '<strong>Tellere:</strong><br />' . "\n";
 			
-			foreach($colTeller as $objTeller) {
+			foreach($colTellerNotNull as $objTeller) {
 				if ($objTeller->getTellerVerdi() > 0) $skiftout .= $objTeller . '<br />' . "\n";
 			}
 			$skiftout .= '</p>' . "\n";
 		}
 		
-		if ($colSecTeller->length() > 0) {
+		if ($colSecTellerNotNull->length() > 0) {
 			$skiftout .= '<p>' . "\n";
 			$skiftout .= '<strong>Annet:</strong><br />' . "\n";
 			
-			foreach ($colSecTeller as $objTeller) {
-				if ($objTeller->getTellerVerdi() > 0) $skiftout .= $objTeller . '<br />' . "\n";
+			foreach ($colSecTellerNotNull as $objTeller) {
+				$skiftout .= $objTeller . '<br />' . "\n";
 			}
 			$skiftout .= '</p>' . "\n";
 		}
 		
-		if ($colUlogget->length() > 0) {
+		if ($colUloggetNotNull->length() > 0) {
 			$skiftout .= '<p>' . "\n";
 			$skiftout .= '<strong>Uloggede samtaler:</strong><br />' . "\n";
 			
-			foreach ($colUlogget as $objTeller) {
+			foreach ($colUloggetNotNull as $objTeller) {
 				$skiftout .= $objTeller . '<br />' . "\n";
 			}
 			$skiftout .= '</p>' . "\n";
