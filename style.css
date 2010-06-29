@@ -4,6 +4,7 @@ div.minside {
 	width:90%;
 	text-align:left;
 	position:relative;
+	padding-left:20px;
 }
 
 div.minside input.msbutton {
@@ -28,6 +29,11 @@ html>body div.minside button.msbutton {
   height: 1.8em;
 }
 
+#notattekst {
+	width: 95%;
+	margin: 5px;	
+}
+
 div.minside div.secedit input.msbutton {
   border: 1px solid #8cacbb;
   color: #000;
@@ -40,6 +46,20 @@ div.minside div.secedit input.msbutton {
   cursor: pointer;
   float: right;
   display: inline;
+}
+
+#avsluttskift {
+	position: relative;
+	float: right;
+	clear: both;
+	margin-top: 20px;	
+}
+
+#notatfield {
+	position:relative;
+	float:right;
+	text-align:left;
+	width:400px;
 }
 
 div.minside input.msedit,
@@ -90,8 +110,14 @@ div.minside fieldset.msfieldset {
   width: 300px;
   text-align: center;
   border: 1px solid #8cacbb;
-  padding: 0.5em;
+  padding: 0em;
+  top: -5px;
   margin: auto;
+}
+
+div.minside div.antalltall {
+	position: relative;
+	left: 50px;	
 }
 
 div.minside textarea.msedit {
@@ -219,10 +245,13 @@ div.minside th.top {
 	border: 1px solid #8cacbb;
 	border-collapse: collapse;
 	background-color: #DEE7EF;
+	font-size: 0.9em;
 }
 
 div.minside .feilmtable {
+	position:relative;
 	border-collapse: collapse;
+	left: 50px;
 }
 
 div.minside .feilmtable td {
@@ -237,8 +266,8 @@ div.rapportarkiv {
 	width: 80%;
 	border: 1px solid #8cacbb;
 	background-color:#DEE7EF;
-	font-family:sans-serif;
-	font-size: 1em;
+	/*font-family:sans-serif;
+	font-size: 1em;*/
 }
 
 div.rapparkivliste {
@@ -255,6 +284,10 @@ div.ukecontainer {
 	height:100%;
 }
 
+div.ukeone {
+	background-color:#F7F3F7;
+}
+
 div.ukeheader {
 	float:left;
 	border: 0;
@@ -263,6 +296,7 @@ div.ukeheader {
 
 div.ukecontent {
 	float:left;
+	background-color: #ffffff;
 	width:80%;
 }
 
@@ -275,7 +309,7 @@ div.dagcontent {
 div.dagheader {
 	float: left;
 	width: 20%;
-	height: 50px;
+	height: 51px;
 	border: 1px #8cacbb;
 	border-style: none solid none none;
 	background-color: #dee7ef;
@@ -285,7 +319,8 @@ div.dagheader {
 
 div.dagcontainer {
 	border: 1px solid #8cacbb;
-	margin:2px;
+	margin-top:2px;
+	margin-bottom:2px;
 	position:relative;
 	width:100%;
 	display: inline-block;
@@ -324,14 +359,8 @@ div.msclearer {
 }
 
 span.ukenavn {
-	font-size: 2.5em;
-	white-space:nowrap;
-	/*display:block;
-	-moz-transform: rotate(-90deg);
-	-moz-transform-origin: bottom right;
-	-webkit-transform: rotate(-90deg);
-	-webkit-transform-origin: bottom right;
-	writing-mode:tb-rl;*/
+	font-size: 1.8em;.
+	font-weight: bold;
 }
 
 span.nskift{
@@ -356,4 +385,12 @@ span.ukjentskift{
 	background-image:url(./minside/bilder/uvakt.ico);
 	background-repeat:no-repeat;
 	background-position:right;
+}
+
+div.dagtwo div.dagheader {
+	background-color: #C4D3E0;	
+}
+
+#rapverdi {
+	width: 15px;
 }

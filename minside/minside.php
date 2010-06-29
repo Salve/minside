@@ -78,7 +78,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		
 		
-		$msoutput .= '</div>';
+		$msoutput .= '<div class="msclearer"></div></div>';
 		
 		$msoutput = $mspremenu . $this->_genMeny() . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
 																// valgfrihet i hvilke menyitems som skal vises, men
