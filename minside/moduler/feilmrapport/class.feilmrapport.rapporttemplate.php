@@ -3,61 +3,58 @@ if(!defined('MS_INC')) die();
 
 class RapportTemplate {
 	
-	public static function getRawTemplate($tplid = null) {
-		global $msdb;
-		if (!isset($tplid)) $tplid = self::getCurrentTplId();
-		
-		$safetplid = $msdb->quote($tplid);
-		
-		$sql = "SELECT templatetekst FROM feilrap_raptpl WHERE raptplid=$safetplid;";
-		$result = $msdb->num($sql);
-		
-		return $result[0][0];
+	private $_id;
+	private $_isactive;
+	private $_templatetekst;
+	private $_createdate;
+	private $_livedate;
+	private $_numrapporter;
 	
+	public function __construct($id, $isactive, $createdate, $livedate, $templatetekst) {
+		$this->_id = $id;
+		$this->_isactive = (bool) $isactive;
+		$this->_templatetekst = $templatetekst;
+		$this->_createdate = $createdate;
+		$this->_livedate = $livedate;
 	}
-	
-	public function getTemplate(Erstatter $objErstatter, $tplid = null) {
 
-		$rawtpl = self::getRawTemplate($tplid);
-		
-		return $objErstatter->erstatt($rawtpl);
-	
+	public function getTemplateTekst() {
+		return $this->_templatetekst;
 	}
 	
-	public static function getCurrentTplId() {
-		global $msdb;
-		
-		$sql = "SELECT raptplid FROM feilrap_raptpl ORDER BY raptplid DESC LIMIT 1;";
-		$resultat = $msdb->num($sql);
-		
-		if ($resultat[0][0] > 0) {
-			return $resultat[0][0];
+	public function getId() {
+		return $this->_id;
+	}
+	
+	public function getNumRapporter() {
+		if (isset($this->_numrapporter)) {
+			return $this->_numrapporter;
 		} else {
-			return false;
-		}
+			global $msdb;
+			$safetplid = $msdb->quote($this->_id);
+			$sql = "SELECT COUNT(*) FROM (SELECT 'ingenting' FROM feilrap_rapport WHERE templateid=$safetplid) AS T;";
+			$data = $msdb->num($sql);
+			$resultat = $data[0][0];
 			
+			$this->_numrapporter = $resultat;
+			return $resultat;	
+		}
 	}
 	
-	public static function saveTemplate($inputtekst, $tplid = null) {
-		global $msdb;
-		
-		$safeinputtekst = $msdb->quote($inputtekst);
-		
-		if ($tplid) {
-			$safetplid = $msdb->quote($tplid);
-			$sql = "UPDATE feilrap_raptpl SET templatetekst=$safeinputtekst WHERE raptplid=$safetplid;";	
-		} else {
-			$sql = "INSERT INTO feilrap_raptpl (templatetekst) VALUES ($safeinputtekst);";
-		}
-		
-		$result = $msdb->exec($sql);
-		
-		if ($result == 1) {
-			return true;
-		} else {
-			return false;
-		}
-		
+	public function getCreateDate() {
+		return strtotime($this->_createdate);
+	}
+	
+	public function getLiveDate() {
+		return strtotime($this->_livedate);
+	}
+	
+	public function isActive() {
+		return $this->_isactive;
+	}
+	
+	public function getTemplateOutput(Erstatter $objErstatter) {
+		return $objErstatter->erstatt($this->_templatetkest);
 	}
 	
 }

@@ -55,24 +55,57 @@ class Teller {
 		return $this->_tellerDesc . ': ' . $this->_tellerVerdi;
 	}
 	
-	public function modTeller($decrease = false) {
+	public function modTeller($inputverdi, $decrease) {
 		global $msdb;
-		$endreteller = msmodul_feilmrapport::getEndreteller();
-		$verdi = ($decrease === false) ? $endreteller : -$endreteller;
+
+		$resultat = 0;
+		if ($this->_validInputVerdi($inputverdi, $resultat)) {
+			$verdi = $resultat;
+		} else {
+			throw new Exception($resultat);
+			return false;
+		}
 		
+		$verdi = ($decrease === false) ? $verdi : -$verdi;
+		$antattnyverdi = $this->_tellerVerdi + $verdi;
+
 		if (!$this->_isActive) throw new Exception('Kan ikke endre teller som ikke er aktiv');
-		if ($decrease && !($this->_tellerVerdi > 0)) throw new Exception('Tellerverdi er 0, kan ikke redusere teller');
+		if ($antattnyverdi > 1000) throw new Exception('Kan ikke øke teller over maksimalverdi (1000)');
+		if ($antattnyverdi < 0) throw new Exception('Kan ikke redusere teller under null');
 		
-		$skiftid = $msdb->quote($this->_skiftId);
-		$tellerid = $msdb->quote($this->_id);
 		
-		$result = $msdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), $skiftid, $tellerid, '$verdi');");
+		$safeskiftid = $msdb->quote($this->_skiftId);
+		$safetellerid = $msdb->quote($this->_id);
+		$safeverdi = $msdb->quote($verdi);
+
+		$result = $msdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), $safeskiftid, $safetellerid, $safeverdi);");
 		if ($result != 1) {
-			throw new Exception('Klarte ikke å endre tellerverdi!');
+			throw new Exception('Klarte ikke lagre tellerendring i database');
 			return false;
 		} else {
 			return true;
 		}	
+	}
+	
+	private function _validInputVerdi($inputverdi, &$output) {
+	
+		$input = trim($inputverdi);
+		$result = preg_match('/^[0-9]{1,2}$/uAD', $input, $matches);
+		
+		if ($result) {
+			$output = (int) $matches[0];
+			if ($output === 0) {
+				$output = 'Null er ikke en gyldig verdi.';
+				return false;
+			} else {
+				return true;
+			}
+			return true;
+		} else {
+			$output = 'Må være gyldig tall, 1-2 siffer. Desimaler og prefiks ikke tillatt.';
+			return false;
+		}
+	
 	}
 	
 }

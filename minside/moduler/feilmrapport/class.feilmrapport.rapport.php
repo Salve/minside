@@ -21,7 +21,7 @@ class Rapport {
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
-			$this->_rapportTemplateId = RapportTemplate::getCurrentTplId();
+			$this->_rapportTemplateId = RapportTemplateFactory::getCurrentTplId();
 		}
 		$this->_isSaved = (bool) $issaved;
 		
@@ -352,7 +352,7 @@ class Rapport {
 			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
 		
 			
-			$tmpOutput = RapportTemplate::getTemplate($tplErstatter, $this->_rapportTemplateId);
+			$tmpOutput = RapportTemplateFactory::getTemplateOutput($tplErstatter, $this->_rapportTemplateId);
 			
 			if (!$savedrapport) $output .= $hiddenSkiftider;
 			
