@@ -424,7 +424,7 @@ div.minside div.mswarningbar {
 	border: 1px solid #B20000;
 	border-collapse:collapse;
 	clear:both;
-	margin:2em auto;
+	margin-bottom:2em;
 	min-height:20px;
 	padding:15px 20px 15px 20px;
 	text-align:justify;
