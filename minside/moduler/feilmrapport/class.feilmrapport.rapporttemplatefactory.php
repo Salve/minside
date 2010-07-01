@@ -24,10 +24,10 @@ class RapportTemplateFactory {
 		
 		$safetplid = $msdb->quote($tplid);
 		
-		$sql = "SELECT templatetekst, raptplid, tplisactive, createdate, activesince FROM feilrap_raptpl WHERE raptplid=$safetplid LIMIT 1;";
+		$sql = "SELECT templatetekst, raptplid, tplisactive, createdate, activesince FROM feilrap_raptpl WHERE raptplid=$safetplid AND isdeleted='0' LIMIT 1;";
 		$result = $msdb->assoc($sql);
 		
-		$objTemplate = new RapportTemplate($result[0]['raptplid'], $result[0]['tplisactive'], $result[0]['createdate'], $result[0]['activesince'], $result[0]['templatetekst']);
+		$objTemplate = new RapportTemplate($result[0]['raptplid'], $result[0]['tplisactive'], $result[0]['createdate'], $result[0]['activesince'], $result[0]['templatetekst'], true);
 		
 		return $objTemplate;
 	}
@@ -38,11 +38,11 @@ class RapportTemplateFactory {
 		
 		if (!isset($tplid)) $tplid = self::getCurrentTplId();
 		
-		$sql = "SELECT templatetekst, raptplid, tplisactive, createdate, activesince FROM feilrap_raptpl;";
+		$sql = "SELECT templatetekst, raptplid, tplisactive, createdate, activesince FROM feilrap_raptpl WHERE isdeleted='0';";
 		$data = $msdb->assoc($sql);
 		
 		foreach ($data as $datum) {
-			$objTemplate = new RapportTemplate($datum['raptplid'], $datum['tplisactive'], $datum['createdate'], $datum['activesince'], $datum['templatetekst']);
+			$objTemplate = new RapportTemplate($datum['raptplid'], $datum['tplisactive'], $datum['createdate'], $datum['activesince'], $datum['templatetekst'], true);
 			$colTemplates->addItem($objTemplate);
 		}
 		

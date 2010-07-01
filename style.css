@@ -419,3 +419,16 @@ div.dagtwo div.dagheader {
 #rapverdi {
 	width: 15px;
 }
+
+div.minside div.mswarningbar {
+	background-color: #FFDDDD;
+	border: 1px solid #B20000;
+	border-collapse:collapse;
+	clear:both;
+	margin:2em auto;
+	min-height:20px;
+	padding:15px 20px 15px 20px;
+	text-align:justify;
+	vertical-align:middle;
+	width:40% !important;
+}

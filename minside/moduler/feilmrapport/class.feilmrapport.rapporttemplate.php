@@ -9,10 +9,12 @@ class RapportTemplate {
 	private $_createdate;
 	private $_livedate;
 	private $_numrapporter;
+	private $_issaved;
 	
-	public function __construct($id, $isactive, $createdate, $livedate, $templatetekst) {
+	public function __construct($id, $isactive, $createdate, $livedate, $templatetekst, $issaved = false) {
 		$this->_id = $id;
 		$this->_isactive = (bool) $isactive;
+		$this->_issaved = (bool) $issaved;
 		$this->_templatetekst = $templatetekst;
 		$this->_createdate = $createdate;
 		$this->_livedate = $livedate;
@@ -41,6 +43,44 @@ class RapportTemplate {
 		}
 	}
 	
+	public function goLive() {
+		global $msdb;
+		
+		if (!$this->isSaved()) throw new Exception('Kun templates som ligger i databasen kan gjøres live.');
+		if ($this->isActive()) throw new Exception('Template er allerede live.');
+		
+		$safetemplateid = $msdb->quote($this->_id);
+		$sql = "UPDATE feilrap_raptpl SET tplisactive='1' WHERE raptplid=$safetemplateid LIMIT 1;";
+		
+		$resultat = $msdb->exec($sql);
+		
+		if ($resultat) {
+			$this->_isactive = true;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function slettTemplate() {
+		global $msdb;
+		
+		if (!$this->isSaved()) throw new Exception('Kan ikke slette templates som ikke er lagret i database.');
+		if ($this->isActive()) throw new Exception('Kan ikke slette live templates.');
+		
+		$safetemplateid = $msdb->quote($this->_id);
+		$sql = "UPDATE feilrap_raptpl SET isdeleted='1' WHERE raptplid=$safetemplateid LIMIT 1;";
+		
+		$resultat = $msdb->exec($sql);
+		
+		if ($resultat) {
+			return true;
+		} else {
+			return false;
+		}	
+	
+	}
+	
 	public function getCreateDate() {
 		return strtotime($this->_createdate);
 	}
@@ -51,6 +91,10 @@ class RapportTemplate {
 	
 	public function isActive() {
 		return $this->_isactive;
+	}
+	
+	public function isSaved() {
+		return $this->_issaved;
 	}
 	
 	public function getTemplateOutput(Erstatter $objErstatter) {
