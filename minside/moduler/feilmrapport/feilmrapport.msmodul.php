@@ -676,9 +676,6 @@ class msmodul_feilmrapport implements msmodul{
 			die($e->getMessage());
 		}
 		
-		$skiftout .= '&nbsp;<br />';
-		$skiftout .= '&nbsp;<br />';
-		$skiftout .= '&nbsp;<br />';
 		
 		$skiftcreate = strtotime($objSkift->getSkiftCreatedTime());
 		$skiftage = time() - $skiftcreate;

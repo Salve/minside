@@ -57,6 +57,7 @@ div.minside div.secedit input.msbutton {
 }
 
 
+
 div.minside input.msedit,
 div.minside select.msedit {
   font-size: 100%;
@@ -182,7 +183,7 @@ div.minside li.msclosed {
 div.minside div.toc {
 	position: absolute;
 	right: -220px;
-	top: 0;
+	/*top: 0;*/
 }
 
 div.mstoc {
@@ -419,7 +420,7 @@ div.dagtwo div.dagheader {
 
 div.tellertable {
 	position:relative;
-	width:35%;
+	width:40%;
 	float:left;
 	padding-top:0;
 	left:25px;
@@ -444,4 +445,8 @@ div.notater {
 	text-align:left;
 	width:100%;
 	padding:0;
+}
+
+.skift_full {
+	width: 100%;	
 }
