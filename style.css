@@ -5,6 +5,7 @@ div.minside {
 	text-align:left;
 	position:relative;
 	padding-left:20px;
+	normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
 }
 
 div.minside input.msbutton {
@@ -55,12 +56,6 @@ div.minside div.secedit input.msbutton {
 	margin-top: 20px;	
 }
 
-#notatfield {
-	position:relative;
-	text-align:left;
-	width:100%;
-	padding:0;
-}
 
 div.minside input.msedit,
 div.minside select.msedit {
@@ -112,14 +107,6 @@ div.minside fieldset.msfieldset {
   border: 1px solid #8cacbb;
   padding: 1em;
   margin: auto;
-}
-
-#tellerfieldset {
-	width: 100%;
-	text-align: left;
-	padding:0;
-	padding-left:2em;
-	padding-right:2em;
 }
 
 div.minside div.antalltall {
@@ -262,6 +249,10 @@ div.minside th {
 
 div.minside th.top {
 	font-size: 0.9em;
+}
+
+div.minside table {
+	font-size: 1em;
 }
 
 div.minside .feilmtable {
@@ -428,15 +419,29 @@ div.dagtwo div.dagheader {
 
 div.tellertable {
 	position:relative;
-	width:45%;
+	width:35%;
 	float:left;
 	padding-top:0;
-	/*left:25px;*/
+	left:25px;
 
+}
+
+#tellerfieldset {
+	width: 100%;
+	text-align: left;
+	padding:0;
+	padding-left:5px;
+	padding-right:5px;
 }
 
 div.notater {
 	position:relative;
 	width: 45%;
 	float:right;;
+}
+#notatfield {
+	position:relative;
+	text-align:left;
+	width:100%;
+	padding:0;
 }

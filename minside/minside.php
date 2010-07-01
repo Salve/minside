@@ -65,7 +65,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		}
 		
 		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
-		$msoutput .= '<h1>' . ucfirst($page) . '</h2>';
+		$msoutput .= '<h1>' . ucfirst($page) . '</h1>';
 		$msoutput .= $msdisp->dispatch();
 		
 		
