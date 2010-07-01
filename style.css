@@ -5,6 +5,7 @@ div.minside {
 	text-align:left;
 	position:relative;
 	padding-left:20px;
+	normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
 }
 
 div.minside input.msbutton {
@@ -55,13 +56,7 @@ div.minside div.secedit input.msbutton {
 	margin-top: 20px;	
 }
 
-#notatfield {
-	position:relative;
-	float:right;
-	text-align:left;
-	width:400px;
-	top: -6px;
-}
+
 
 div.minside input.msedit,
 div.minside select.msedit {
@@ -111,15 +106,15 @@ div.minside fieldset.msfieldset {
   width: 300px;
   text-align: center;
   border: 1px solid #8cacbb;
-  padding: 0em;
+  padding: 1em;
   margin: auto;
 }
 
 div.minside div.antalltall {
 	position: relative;
-	left: 50px;
+	left: 25px;
 	overflow: hidden;
-	width: 19em;
+	width: 18em;
 }
 
 div.minside textarea.msedit {
@@ -188,7 +183,7 @@ div.minside li.msclosed {
 div.minside div.toc {
 	position: absolute;
 	right: -220px;
-	top: 0;
+	/*top: 0;*/
 }
 
 div.mstoc {
@@ -257,10 +252,13 @@ div.minside th.top {
 	font-size: 0.9em;
 }
 
+div.minside table {
+	font-size: 1em;
+}
+
 div.minside .feilmtable {
 	position:relative;
 	border-collapse: collapse;
-	left: 50px;
 }
 
 div.minside .feilmtable td {
@@ -420,6 +418,7 @@ div.dagtwo div.dagheader {
 	width: 15px;
 }
 
+
 div.minside div.mswarningbar {
 	background-color: #FFDDDD;
 	border: 1px solid #B20000;
@@ -432,3 +431,37 @@ div.minside div.mswarningbar {
 	vertical-align:middle;
 	width:40% !important;
 }
+
+div.tellertable {
+	position:relative;
+	width:40%;
+	float:left;
+	padding-top:0;
+	left:25px;
+
+}
+
+#tellerfieldset {
+	width: 100%;
+	text-align: left;
+	padding:0;
+	padding-left:5px;
+	padding-right:5px;
+}
+
+div.notater {
+	position:relative;
+	width: 45%;
+	float:right;;
+}
+#notatfield {
+	position:relative;
+	text-align:left;
+	width:100%;
+	padding:0;
+}
+
+.skift_full {
+	width: 100%;	
+}
+

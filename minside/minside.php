@@ -65,7 +65,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		}
 		
 		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
-		$msoutput .= '<h1>' . ucfirst($page) . '</h2>';
+		$msoutput .= '<h1>' . ucfirst($page) . '</h1>';
 		$msoutput .= $msdisp->dispatch();
 		
 		
@@ -154,14 +154,14 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
 	
-		$output .= '<div class="toc">';
-		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Side - Meny</div>';
-		$output .= '<div id="toc__inside">';
-		$output .= '<div class="meny">';
+		$output .= '<div class="toc">'."\n";
+		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Side - Meny</div>'."\n";
+		$output .= '<div id="toc__inside">'."\n";
+		$output .= '<div class="meny">'."\n";
 		$output .= $this->_genMenyitem($meny, 1); // recursive funksjon som kaller seg selv dersom et item har underitems
-		$output .= '</div>';
-		$output .= '</div>';
-		$output .= '</div>';
+		$output .= '</div>'."\n";
+		$output .= '</div>'."\n";
+		$output .= '</div>'."\n";
 		
 		$output .= '';
 		

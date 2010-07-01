@@ -158,8 +158,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<textarea id="notattekst" class="msedit" style="left:0px;" name="notattekst" rows="3" cols="40">';
 			if ($objNotat instanceof Notat) $output .= $objNotat->getNotatTekst();
 			$output .= '</textarea>';
-			$output .= '<input type="submit" name="lagre" value="lagre" class="msbutton">';
-			$output .= '<input type="submit" name="lagre" value="angre" class="msbutton">';
+			$output .= '<input type="submit" name="lagre" value="Lagre" class="msbutton">';
+			$output .= '<input type="submit" name="lagre" value="Angre" class="msbutton">';
 			$output .= '</form>';
 			$output .= '</p>';
 		} else {
@@ -689,7 +689,7 @@ class msmodul_feilmrapport implements msmodul{
 		} catch(Exception $e) {
 			die($e->getMessage());
 		}
-				
+
 		$skiftcreate = strtotime($objSkift->getSkiftCreatedTime());
 		$skiftage = time() - $skiftcreate;
 		$skifthours = date('G', $skiftage);
@@ -703,20 +703,23 @@ class msmodul_feilmrapport implements msmodul{
 		
 		// Vis notater
 		
-		$skiftout .= '<fieldset id="notatfield" class="msfieldset"><legend>Notater</legend><ul class="msul">';
+		$skiftout .= '<div class="notater"><fieldset id="notatfield" class="msfieldset"><legend>Notater</legend>';
 		
-		foreach($objSkift->notater as $objNotat) {
-			if ($objNotat->isActive()) $skiftout .= $this->genNotat($objNotat);
-		}
+
 		if (($this->_msmodulact == 'modnotat') && isset($_REQUEST['notatid'])) {
 			$objNotat = $objSkift->notater->getItem($_REQUEST['notatid']);
-			$skiftout .= '</ul>';
+			
 			$skiftout .= $this->genNotat($objNotat, true);
 		} else {
 			$skiftout .= '</ul>';
 			$skiftout .= $this->genNotat(null, true);
 		}
 		$skiftout .= '</fieldset>' . "\n";
+		$skiftout .= '<ul class="msul">' . "\n";
+			foreach($objSkift->notater as $objNotat) {
+			if ($objNotat->isActive()) $skiftout .= $this->genNotat($objNotat);
+		}
+		$skiftout .= '</ul></div>';
 		
 		// Vis tellere
 		
@@ -726,6 +729,7 @@ class msmodul_feilmrapport implements msmodul{
 		$colUlogget = new TellerCollection();
 		$colUloggetNotNull = new TellerCollection();
 		
+		$skiftout .= '<div class="tellertable"><fieldset id="tellerfieldset" class="msfieldset"><legend>Tellere</legend>';
 		$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
 		foreach($objSkift->tellere as $objTeller) {
 			if (!$objTeller->isActive()) continue;
@@ -787,7 +791,11 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= "</tr>\n\n";
 		}
 		
-		$skiftout .= '</table><br /><br />' . "\n";
+		$skiftout .= '</table>' . "\n";
+		$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+		$skiftout .= '<input type="hidden" name="act" value="angre_teller" />' . "\n";
+		$skiftout .= '<input type="submit" name="angre" value="Angre siste endring" class="msbutton" />' . "\n";
+		$skiftout .= '</form></fieldset></div><br /><br />' . "\n";
 		
 		$skiftout .= '<div class="antalltall">';
 		
