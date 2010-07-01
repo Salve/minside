@@ -434,31 +434,35 @@ div.minside div.mswarningbar {
 
 div.tellertable {
 	position:relative;
-	width:40%;
+	width:35%;
 	float:left;
 	padding-top:0;
 	left:25px;
+	margin-bottom: 2em;
 
 }
 
 #tellerfieldset {
 	width: 100%;
 	text-align: left;
-	padding:0;
 	padding-left:5px;
 	padding-right:5px;
+	padding-bottom: 1em;
 }
 
 div.notater {
 	position:relative;
-	width: 45%;
-	float:right;;
+	width: 40%;
+	float:right;
+	right: 2em;
 }
 #notatfield {
 	position:relative;
 	text-align:left;
 	width:100%;
-	padding:0;
+	padding-left:1em;
+	padding-right:1em;
+	margin-bottom: 2em;
 }
 
 .skift_full {
