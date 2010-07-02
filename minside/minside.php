@@ -40,11 +40,11 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	}
 	
 	public function gen_minside() { // returnerer all nødvendig xhtml for å vise minside som en streng
-		global $INFO;
 		if (!($this->sjekkAdgang('vismeny') > MSAUTH_NONE)) {
 			return '<h1>Ingen adgang</h1><p>Brukeren ' . $this->username . ' har ikke tilgang til å vise Min Side. ' . 
 				'Kontakt en teamleder dersom du har spørsmål til dette.</p>';
 		}
+		$this->updateUserInfo();
 		
 		$this->_lastmoduler(); // alle moduler definert i msconfig.php instansieres, se funksjonen
 		
@@ -67,18 +67,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
 		$msoutput .= '<h1>' . ucfirst($page) . '</h1>';
 		$msoutput .= $msdisp->dispatch();
-		
-		
-		/*
-		$msdisp = new msdispatcher('testmodul', $this->_msmod, $this, 'show', NULL);
-		$msoutput .= '<h2>Testmodul</h2>';
-		$msoutput .= '<div class="level2">';
-		$msoutput .= $msdisp->dispatch();
-		$msoutput .= '</div>';
-		*/
-		
-		
-		
+
 		$msoutput .= '<div class="msclearer"></div></div>';
 		
 		$msoutput = $mspremenu . $this->_genMeny() . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
@@ -204,5 +193,47 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		return $msdb->num_queries;
 	}
 	
+	public function updateUserInfo() {
+		global $INFO;
+		global $msdb;
+		
+		$fullname = $INFO['userinfo']['name'];
+		$epost = $INFO['userinfo']['mail'];
+		$groups = implode(',', $INFO['userinfo']['grps']);
+
+		$safeuserid = $msdb->quote($this->getUserID());
+		
+		$sql = "SELECT wikifullname, wikiepost, wikigroups FROM internusers WHERE id=$safeuserid LIMIT 1;";
+		$data = $msdb->assoc($sql);
+		
+		if(is_array($data) && sizeof($data)) {
+			$datum = $data[0];
+			$sqlfullname = $datum['wikifullname'];
+			$sqlepost = $datum['wikiepost'];
+			$sqlgroups = $datum['wikigroups'];
+		}
+		
+		$arSql = array();
+		
+		if ($fullname != $sqlfullname) {
+			$safefullname = $msdb->quote($fullname);
+			$arSql[] = "UPDATE internusers SET wikifullname=$safefullname, modifytime=now() WHERE id=$safeuserid LIMIT 1;";
+		}
+		
+		if ($epost != $sqlepost) {
+			$safeepost = $msdb->quote($epost);
+			$arSql[] = "UPDATE internusers SET wikiepost=$safeepost, modifytime=now() WHERE id=$safeuserid LIMIT 1;";
+		}
+		
+		if ($groups != $sqlgroups) {
+			$safegroups = $msdb->quote($groups);
+			$arSql[] = "UPDATE internusers SET wikigroups=$safegroups, modifytime=now() WHERE id=$safeuserid LIMIT 1;";
+		}
+		
+		foreach ($arSql as $sql) {
+			$msdb->exec($sql);
+		}
+		
+	}
 
 }

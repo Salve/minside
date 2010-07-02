@@ -122,6 +122,10 @@ class msmodul_feilmrapport implements msmodul{
 			case "visrapport":
 				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapport();
 				break;
+			case "mailrapport":
+				if ($this->_accessLvl >= MSAUTH_2) $this->_sendRapportMail();
+				$this->_frapout .= $this->genSkift();
+				break;
 			case "stengegetskift":
 				$this->_closeCurrSkift();
 				$this->_frapout .= $this->genSkift();
@@ -159,7 +163,7 @@ class msmodul_feilmrapport implements msmodul{
 			if ($objNotat instanceof Notat) $output .= $objNotat->getNotatTekst();
 			$output .= '</textarea>';
 			$output .= '<input type="submit" name="lagre" value="Lagre" class="msbutton">';
-			$output .= '<input type="submit" name="lagre" value="Angre" class="msbutton">';
+			$output .= '<input type="submit" name="lagre" value="Avbryt" class="msbutton">';
 			$output .= '</form>';
 			$output .= '</p>';
 		} else {
@@ -237,16 +241,22 @@ class msmodul_feilmrapport implements msmodul{
 		foreach ($rapcol as $objRapport) {
 			$createtime = strtotime($objRapport->getRapportCreatedTime());
 			$dagnummer = date('w', $createtime); // 0-6
-			$rapporttime = date('G', $createtime); // 0-23
-			if ($rapporttime >= 6 && $rapporttime < 10) {
-				$skifttype = 'nskift';
-			} elseif ($rapporttime >= 14 && $rapporttime < 18) {
-				$skifttype = 'dskift';
-			} elseif ($rapporttime >= 22) {
-				$skifttype = 'eskift';
-			} else {
-				$skifttype = 'ukjentskift';
+			$skiftkort = $objRapport->estimateSkiftType();
+			switch ($skiftkort) {
+				case "D":
+					$skiftlang = 'dskift';
+					break;
+				case "E":
+					$skiftlang = 'eskift';
+					break;
+				case "N":
+					$skiftlang = 'nskift';
+					break;
+				case "U":
+					$skiftlang = 'ukjentskift';
+					break;			
 			}
+			
 			$ukedag = $ukedager[$dagnummer]; // Mandag, Tirsdag osv.
 			
 			if ($sortuke) {
@@ -310,8 +320,8 @@ class msmodul_feilmrapport implements msmodul{
 				$rapportcounter++;
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 				
-				$output .= '<span class="rapportnavn ' . $skifttype . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
-				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName(); // . ' ' . strtoupper(substr($skifttype, 0, 1))
+				$output .= '<span class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a></span><br />' . "\n";
 				
 			} else { 
@@ -319,7 +329,7 @@ class msmodul_feilmrapport implements msmodul{
 				$rapportcounter++;
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 	
-				$output .= '<span style="font-size:1em;" class="rapportnavn ' . $skifttype . ' ' . $rapportspanclass . '">';
+				$output .= '<span style="font-size:1em;" class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '">';
 				$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
 				$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a>';
@@ -403,6 +413,8 @@ class msmodul_feilmrapport implements msmodul{
 				return;
 			}
 			
+			$output .= $objRapport->genMailForm();
+			
 			return $output;
 			
 		} else {
@@ -412,9 +424,24 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genModRapport(){
+			
+			if (RapportTemplateFactory::getCurrentTplId() === false) {
+				msg('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.', -1);
+				return false;
+			}
+	
+	
 			$skiftcol = new SkiftCollection();
 			
 			$validationerrors = 0;
+			
+			$noskift = '
+						<div class="mswarningbar">Ingen skift valgt</div>
+						<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+							<input type="hidden" name="act" value="genrapportsel" />
+							<input type="submit" class="msbutton" name="subvelgskift" value="Tilbake" />
+						</form>';
+			
 			
 			if (is_array($_POST['selskift'])) {
 				foreach ($_POST['selskift'] as $skiftid) {
@@ -434,9 +461,12 @@ class msmodul_feilmrapport implements msmodul{
 						}
 					}		
 				}
-				if ($skiftcol->length() == 0) return 'Ingen skift valgt.'; // selskift inneholder noe, men ingen valid skift
+				if ($skiftcol->length() == 0) { // selskift inneholder noe, men ingen valid skift				
+				
+					return $noskift; 
+				}
 			} else {
-				return 'Ingen skift valgt.';
+				return $noskift;
 			}
 			
 			/*
@@ -510,32 +540,79 @@ class msmodul_feilmrapport implements msmodul{
 				$output .= '<input type="hidden" name="act" value="genrapportsel" />' . "\n";
 			}
 			$output .= '<input type="submit" class="msbutton" name="genrap" value="Tilbake" />' . "\n";
-			$output .= '</form>' . "\n";
-			
-			
-			
-			
-			
-			// Enkel mail funksjon
-			/*
-			if ($validsave) {
-								
-				$mailto = $INFO['userinfo']['mail'];
-				$subject = 'Rapport feilmeldingstjenesten ' . date('d.m.Y');
-				$headers = 'From: ' . $INFO['userinfo']['mail'] . "\r\n" .
-					'Reply-To: noreply@lyse.no' . "\r\n" .
-					'X-Mailer: PHP/LyseWiki/MinSide/FeilMRapport' . "\r\n" .
-					'MIME-Version: 1.0' . "\r\n" .
-					'Content-type: text/html; charset="utf-8"' . "\r\n";
-					
-				mail($mailto, $subject, $tmpOutput, $headers);
-			
-			}
-			*/
-			
+			$output .= '</form>' . "\n";			
 			
 			return $output;
 			
+	}
+	
+	private function _sendRapportMail() {
+		global $INFO;
+		
+		if (isset($_REQUEST['rapportid'])) {
+			$rapportid = $_REQUEST['rapportid'];
+		} else {
+			die('Rapportid ikke angitt');
+		}
+		
+		if (is_array($_REQUEST['mailmottakere']) && sizeof($_REQUEST['mailmottakere'])) {
+			$mailmottakere = $_REQUEST['mailmottakere'];
+		} else {
+			msg('Kan ikke sende mail: Ingen mottakere valgt.', -1);
+			return false;
+		}
+		
+		if ($this->_accessLvl <= MSAUTH_2) { // Bruker kan kun vise nylige rapporter
+			$rapcol = SkiftFactory::getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
+			if (!$rapcol->exists($rapportid)) {
+				msg('Du har ikke tilgang til å sende denne rapporten.', -1);
+				return false;
+			} else {
+				$objRapport = $rapcol->getItem($rapportid);
+			}
+		} else { // Bruker har adgang til alle rapporter		
+			try{
+				$objRapport = SkiftFactory::getRapport($rapportid);
+			}
+			catch (Exception $e) {
+				msg('Klarte ikke å sende rapport: ' . $e->getMessage(), -1);
+				return;
+			}
+		}
+			
+		try {
+			$rapporthtml = $objRapport->genRapport();
+		}
+		catch (Exception $e) {
+			msg('Klarte ikke å sende rapport: ' . $e->getMessage(), -1);
+			return;
+		}
+
+		$skiftnavn = $objRapport->estimateSkiftType();
+		$rapportid = $objRapport->getId();
+		$userid = $this->_userId;
+												
+		$subject = 'Rapport feilmeldingstjenesten ' . date('d.m.Y ') . $skiftnavn;
+		$headers = 'From: ' . $INFO['userinfo']['mail'] . "\r\n" .
+			'Reply-To: ' . $INFO['userinfo']['mail'] . "\r\n" .
+			'X-Mailer: PHP/LyseWiki/MinSide/FeilMRapport' . "\r\n" .
+			'X-MinSide-RapportID: ' . $rapportid . "\r\n" .
+			'X-MinSide-SenderID: ' . $userid . "\r\n" .
+			'MIME-Version: 1.0' . "\r\n" .
+			'Content-type: text/html; charset="utf-8"' . "\r\n";
+			
+		$mailcounter = 0;
+		foreach ($mailmottakere as $mailmottaker) {
+			$resultat = mail($mailmottaker, $subject, $rapporthtml, $headers);
+			if ($resultat) {
+				$mailcounter++;
+			} else {
+				msg('Mail til mottaker: ' . $mailmottaker . ' feilet!', -1);
+			}
+		}
+		
+		if ($mailcounter > 0) msg('Rapport sendt til ' . $mailcounter . ' mottakere.', 1);
+		
 	}
 	
 	private function _validateRapportInput(&$validinput, &$invalidinput, &$skiftcol) {
@@ -1044,7 +1121,7 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _lagreNotat() {
-		if ($_REQUEST['lagre'] == 'angre') {
+		if ($_REQUEST['lagre'] == 'Avbryt') {
 			return false;
 		}
 		$skiftid = $this->getCurrentSkiftId();
@@ -1177,7 +1254,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 		if ($objSkift->getSkiftOwnerId() != $this->_userId) {
-			if ($this->_accessLvl < MSAUTH_3) {
+			if ($this->_accessLvl < MSAUTH_2) {
 				msg('Du har ikke adgang til å lukke skift som ikke er ditt eget.', -1);
 				return false;
 			}
@@ -1192,9 +1269,40 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _saveRapportTemplate() {
-		if (isset($_REQUEST['inputtpl'])) {
-			RapportTemplateFactory::saveTemplate($_REQUEST['inputtpl'], RapportTemplateFactory::getCurrentTplId());
+		
+		$templateid = (int) $_REQUEST['templateid'];
+		$inputtekst = $_REQUEST['inputtpl'];
+		
+		if ((!isset($templateid)) || ($templateid == 0)) die('Kan ikke lagre template: TemplateID ikke gitt');
+		if (!isset($inputtekst)) {
+			msg('Kan ikke lagre template: Ingen input gitt', -1);
+			return false;
 		}
+		
+		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		
+		if (!($objTemplate instanceof RapportTemplate)) {
+			msg('Kan ikke lagre template: Ugyldig templateid.', -1);
+			return false;
+		}
+		
+		try {
+			$resultat = $objTemplate->saveTemplate($inputtekst);
+		}
+		catch (Exception $e) {
+			msg('Klarte ikke å endre template: ' . $e->getMessage(), -1);
+			return false;
+		}
+		
+		if ($resultat) {
+			msg('Endret template med id: ' . $objTemplate->getId() . '.', 1);
+			return true;
+		} else {
+			msg('Klarte ikke å endre template med id: ' . $objTemplate->getId() . '.', -1);
+			return false;
+		}
+		
+		
 	}
 	
 	private function _genModRapportTemplates() {
@@ -1232,7 +1340,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			$output .= '</table>' . "\n";
 		} else {
-			// Ingen draft templates
+			// Ingen live templates
 			$output .= '<div class="mswarningbar warningentemplates" id="ingenlivetemplates">';
 			$output .= 'Du har ikke noe live template.<br /> Rapportering vil ikke fungere før du oppretter et.';
 			$output .= '</div>'; // mswarningbar
@@ -1374,6 +1482,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<br /><span class="subactheader">Redigerer templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="modraptpl" />';
+			$output .= '<input type="hidden" name="templateid" value="' . $objTemplate->getId() . '" />';
 			$output .= '<textarea name="inputtpl" cols="80" rows="40">' . $objTemplate->getTemplateTekst() . '</textarea>';
 			$output .= '<br /><input type="submit" class="msbutton" name="savetpl" value="Lagre endringer" />';
 			$output .= '</form>';

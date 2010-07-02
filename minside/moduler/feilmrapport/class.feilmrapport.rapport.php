@@ -21,7 +21,8 @@ class Rapport {
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
-			$this->_rapportTemplateId = RapportTemplateFactory::getCurrentTplId();
+			$templateid = RapportTemplateFactory::getCurrentTplId();
+			if (!$templateid === false) $this->_rapportTemplateId = $templateid;
 		}
 		$this->_isSaved = (bool) $issaved;
 		
@@ -102,6 +103,7 @@ class Rapport {
 		if (!isset($this->_rapportOwnerId)) throw new Exception('Rapport-eier ikke angitt');
 		if (!is_array($validinput)) throw new Exception('Ingen data gitt');
 		if (!($this->skift->length() > 0)) throw new Exception('Ingen skift lastet i rapportobjekt');
+		if (!isset($this->_rapportTemplateId)) throw new Exception('Intet aktivt rapport-template');
 		
 		$skiftcol = $this->skift;
 		
@@ -360,5 +362,52 @@ class Rapport {
 			
 			return $output;
 	}
+	
+	public function genMailForm() {
+		global $msdb;
+		
+		if (!$this->_isSaved) return false;
+		
+		$sql = "SELECT wikifullname, wikiepost FROM internusers WHERE INSTR(`wikigroups`, 'feilm') OR INSTR(`wikigroups`, 'teaml');";
+		$data = $msdb->assoc($sql);
+		
+		$arEpost = array();
+		
+		if(is_array($data) && sizeof($data)) {
+			foreach($data as $datum) {
+				$selectoptions .= '<option value="' . $datum['wikiepost'] . '">' . $datum['wikifullname'] . '</option>' . "\n";
+			}
+		}
+		
+		
+		$output .= '<span class="subactheader">Send rapport:</span><br /><br />';
+		$output .= 'Hold inne CTRL-knappen for å velge flere personer.<br />';
+		$output .= '<form name="mailrapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+		$output .= '<input type="hidden" name="act" value="mailrapport" />' . "\n";
+		$output .= '<input type="hidden" name="rapportid" value="' . $this->_id . '" />' . "\n";
+		$output .= '<select multiple name="mailmottakere[]" />' . "\n";
+		$output .= $selectoptions;
+		$output .= '</select><br /><br />' . "\n";
+		$output .= '<input type="submit" class="msbutton" name="sendmail" value="Send rapport per e-post" />' . "\n";
+		$output .= '</form>' . "\n\n";
+		
+		return $output;
+		
+	}
+	
+	public function estimateSkiftType() {
+		$rapporttime = date('G', $this->_rapportCreatedTime); // 0-23
 
+		if ($rapporttime >= 6 && $rapporttime < 10) {
+			$skifttype = 'N';
+		} elseif ($rapporttime >= 14 && $rapporttime < 18) {
+			$skifttype = 'D';
+		} elseif ($rapporttime >= 22) {
+			$skifttype = 'E';
+		} else {
+			$skifttype = 'U';
+		}
+		
+		return $skifttype;	
+	}
 }

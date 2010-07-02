@@ -63,26 +63,4 @@ class RapportTemplateFactory {
 			
 	}
 	
-	public static function saveTemplate($inputtekst, $tplid = null) {
-		global $msdb;
-		
-		$safeinputtekst = $msdb->quote($inputtekst);
-		
-		if ($tplid) {
-			$safetplid = $msdb->quote($tplid);
-			$sql = "UPDATE feilrap_raptpl SET templatetekst=$safeinputtekst WHERE raptplid=$safetplid;";	
-		} else {
-			$sql = "INSERT INTO feilrap_raptpl (templatetekst) VALUES ($safeinputtekst);";
-		}
-		
-		$result = $msdb->exec($sql);
-		
-		if ($result == 1) {
-			return true;
-		} else {
-			return false;
-		}
-		
-	}
-	
 }

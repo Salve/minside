@@ -81,6 +81,27 @@ class RapportTemplate {
 	
 	}
 	
+	public function saveTemplate($inputtekst) {
+		global $msdb;
+		
+		if (!$this->isSaved()) throw new Exception('Kan ikke endre templates som ikke er lagret i database.');
+		if ($this->isActive()) throw new Exception('Kan ikke endre live templates.');
+		if (strlen($inputtekst) < 1) throw new Exception('Kan ikke lagre tomt template. Bruk slett-funksjon.');
+		
+		$safeinputtekst = $msdb->quote($inputtekst);
+		$safetplid = $msdb->quote($this->_id);
+		$sql = "UPDATE feilrap_raptpl SET templatetekst=$safeinputtekst WHERE raptplid=$safetplid;";	
+		
+		$result = $msdb->exec($sql);
+		
+		if ($result == 1) {
+			return true;
+		} else {
+			return false;
+		}
+		
+	}
+	
 	public function getCreateDate() {
 		return strtotime($this->_createdate);
 	}
