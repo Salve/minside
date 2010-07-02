@@ -795,7 +795,7 @@ class msmodul_feilmrapport implements msmodul{
 		$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="angre_teller" />' . "\n";
 		$skiftout .= '<input type="submit" name="angre" value="Angre siste endring" class="msbutton" />' . "\n";
-		$skiftout .= '</form></fieldset></div><br /><br />' . "\n";
+		$skiftout .= '</form></fieldset><br /><br />' . "\n";
 		
 		$skiftout .= '<div class="antalltall">';
 		
@@ -828,7 +828,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			$skiftout .= '</p>' . "\n";
 		}
-		$skiftout .= '</div>'; // antalltall
+		$skiftout .= '</div></div>'; // antalltall
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
