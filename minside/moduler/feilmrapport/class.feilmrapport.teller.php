@@ -8,6 +8,7 @@ class Teller {
 	private $_tellerName;
 	private $_tellerDesc;
 	private $_tellerType;
+	private $_tellerOrder;
 	
 	function __construct($id, $skiftid, $tellerName, $tellerDesc, $tellerType, $tellerVerdi = 0, $isactive = true) {
 		$this->_id = $id;
@@ -17,6 +18,20 @@ class Teller {
 		$this->_tellerName = $tellerName;
 		$this->_tellerVerdi = $tellerVerdi;
 		$this->_tellerType = $tellerType;
+		
+	}
+	
+	public function setOrder($order) {
+		$this->_tellerOrder = (int) $order;
+	}
+	
+	public function getOrder() {
+		if (!isset($this->_tellerOrder)) {
+			return 0;
+		}
+		else {
+			return $this->_tellerOrder;
+		}
 	}
 	
 	public function getId() {
