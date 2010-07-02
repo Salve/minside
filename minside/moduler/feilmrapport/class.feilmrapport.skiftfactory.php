@@ -193,12 +193,13 @@ class SkiftFactory {
 		
 		$col = new TellerCollection;
 		
-		$sql = "SELECT tellerid, tellertype, tellernavn, tellerdesc, isactive FROM feilrap_teller;";
+		$sql = "SELECT tellerid, tellertype, tellernavn, tellerdesc, isactive, tellerorder FROM feilrap_teller ORDER BY tellerorder ASC;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach($data as $datum) {
 				$objTeller = new Teller($datum['tellerid'], 0, $datum['tellernavn'], $datum['tellerdesc'], $datum['tellertype'], 0, (bool) $datum['isactive']);
+				$objTeller->setOrder($datum['tellerorder']);
 				$col->addItem($objTeller);
 			}
 		}

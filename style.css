@@ -112,7 +112,7 @@ div.minside fieldset.msfieldset {
 
 div.minside div.antalltall {
 	position: relative;
-	left: 25px;
+	left: 0px;
 	overflow: hidden;
 	width: 18em;
 }
@@ -182,7 +182,7 @@ div.minside li.msclosed {
 
 div.minside div.toc {
 	position: absolute;
-	right: -220px;
+	right: -210px;
 	/*top: 0;*/
 }
 
