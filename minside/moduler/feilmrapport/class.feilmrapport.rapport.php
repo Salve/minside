@@ -381,7 +381,7 @@ class Rapport {
 			
 			if (!$savedrapport) $output .= $hiddenSkiftider;
 			
-			$output = '<div class="rapporttpl">' . $tmpOutput . '</div>';
+			$output .= '<div class="rapporttpl">' . $tmpOutput . '</div>';
 			
 			return $output;
 	}
