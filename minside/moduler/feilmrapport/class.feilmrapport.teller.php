@@ -13,7 +13,7 @@ class Teller {
 	function __construct($id, $skiftid, $tellerName, $tellerDesc, $tellerType, $tellerVerdi = 0, $isactive = true) {
 		$this->_id = $id;
 		$this->_skiftId = $skiftid;
-		$this->_isActive = $isactive;
+		$this->_isActive = (bool) $isactive;
 		$this->_tellerDesc = $tellerDesc;
 		$this->_tellerName = $tellerName;
 		$this->_tellerVerdi = $tellerVerdi;
@@ -51,7 +51,11 @@ class Teller {
 	}
 	
 	public function getTellerVerdi() {
-		return $this->_tellerVerdi;
+		if ($this->_tellerVerdi < 0) {
+			return 0;
+		} else {
+			return (int) $this->_tellerVerdi;
+		}
 	}
 	
 	public function setTellerVerdi($input) {
@@ -68,6 +72,94 @@ class Teller {
 
 	public function __toString() {
 		return $this->_tellerDesc . ': ' . $this->_tellerVerdi;
+	}
+	
+	public function modIsActive() {
+	
+		if ($this->isActive()) {
+			return $this->_setInactive();
+		} else {
+			return $this->_setActive();
+		}	
+	}
+	
+	private function _setInactive() {
+		global $msdb;
+		
+		if ($this->_tellerOrder == false) throw new Exception('Tellerorder ikke satt.');
+		
+		$safetellerid = $msdb->quote($this->_id);
+		$safetellerorder = $msdb->quote($this->_tellerOrder);
+		
+		$msdb->startTrans();
+		
+		$sql = "UPDATE feilrap_teller SET isactive='0', tellerorder=NULL WHERE tellerid=$safetellerid LIMIT 1;";
+		$resultat1 = $msdb->exec($sql);
+		
+		$sql = "UPDATE feilrap_teller SET tellerorder = tellerorder - 1 WHERE tellerorder > $safetellerorder";
+		$resultat2 = $msdb->exec($sql);
+		
+		if ($resultat1 && $resultat2) {
+			$msdb->commit();
+			return true;
+		} else {
+			$msdb->rollBack();
+			return false;
+		}
+
+	}
+	
+	private function _setActive() {
+		global $msdb;
+		
+		$datum = $msdb->num('SELECT tellerorder FROM feilrap_teller ORDER BY tellerorder DESC LIMIT 1', true);
+		$nyorder = $datum[0] + 1;
+		
+		$safetellerid = $msdb->quote($this->_id);
+		$safenyorder = $msdb->quote($nyorder);
+		
+		$sql = "UPDATE feilrap_teller SET isactive='1', tellerorder=$safenyorder WHERE tellerid=$safetellerid LIMIT 1;";
+		$resultat = $msdb->exec($sql);
+		
+		return (bool) $resultat;
+	}	
+	
+	public function modOrderOpp() {
+		return $this->_modOrder(true);
+	}
+	
+	public function modOrderNed() {
+		return $this->_modOrder(false);
+	}
+	
+	private function _modOrder($modopp) {
+		global $msdb;
+		if (!$this->isActive()) throw new Exception('Teller er ikke aktiv.');
+		if ($this->_tellerOrder == false) throw new Exception('Tellerorder ikke satt.');
+	
+		$oldorder = $this->_tellerOrder;
+		$neworder = $this->_tellerOrder + (($modopp) ? -1 : 1);
+		$safeoldorder = $msdb->quote($oldorder);
+		$safeneworder = $msdb->quote($neworder);
+		$safetellerid = $msdb->quote($this->_id);
+		
+		$msdb->startTrans();
+		$resultat = $msdb->exec("UPDATE feilrap_teller SET tellerorder=$safeoldorder WHERE tellerorder=$safeneworder LIMIT 1;");
+		if ($resultat == 0) {
+			$msdb->rollBack();
+			throw new Exception('Ingen teller ' . (($modopp) ? 'over' : 'under') . ' telleren du forsøkte å flytte.');
+		}
+		
+		$resultat = $msdb->exec("UPDATE feilrap_teller SET tellerorder=$safeneworder WHERE tellerorder=$safeoldorder AND tellerid=$safetellerid LIMIT 1;");
+		if ($resultat == 0) {
+			$msdb->rollBack();
+			throw new Exception('Databaseoppdatering feilet.');
+		} else {
+			$msdb->commit();
+			$this->_tellerOrder = $neworder;
+			return true;
+		}
+		
 	}
 	
 	public function modTeller($inputverdi, $decrease) {
