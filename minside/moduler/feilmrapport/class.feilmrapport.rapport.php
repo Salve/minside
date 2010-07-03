@@ -287,7 +287,7 @@ class Rapport {
 					} else {
 						$output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
 						if (isset($invalidinput['bool']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['bool']["$varname"] . '">';
+							$output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['bool']["$varname"] . '">';
 						}
 					}
 				}
@@ -309,7 +309,7 @@ class Rapport {
 					} else {
 						$output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
 						if (isset($invalidinput['tekst']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
+							$output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
 						}
 					}
 				}
@@ -331,7 +331,7 @@ class Rapport {
 					} else {
 						$output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
 						if (isset($invalidinput['litetall']["$varname"])) {
-							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['litetall']["$varname"] . '">';
+							$output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['litetall']["$varname"] . '">';
 						}
 					}
 				}
