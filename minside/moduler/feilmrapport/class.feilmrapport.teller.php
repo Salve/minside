@@ -139,6 +139,7 @@ class Teller {
 	
 		$oldorder = $this->_tellerOrder;
 		$neworder = $this->_tellerOrder + (($modopp) ? -1 : 1);
+
 		$safeoldorder = $msdb->quote($oldorder);
 		$safeneworder = $msdb->quote($neworder);
 		$safetellerid = $msdb->quote($this->_id);
