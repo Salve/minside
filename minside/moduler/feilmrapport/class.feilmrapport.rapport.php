@@ -268,7 +268,8 @@ class Rapport {
 				$key = $matches[1];
 				$objTeller = $tellercol->getItem($key);
 				if ($objTeller instanceof Teller) {
-					$telleroutput = '<span title="' . $brukertellernotater[$key] . '">' . ((string) $objTeller->getTellerVerdi()) . '</span>';
+					//$telleroutput = '<span title="' . $brukertellernotater[$key] . '">' . ((string) $objTeller->getTellerVerdi()) . '</span>';
+					$telleroutput = '<span>' . ((string) $objTeller->getTellerVerdi()) . '</span>';
 				} else {
 					$telleroutput = '<span>0</span>';
 				}
@@ -380,7 +381,7 @@ class Rapport {
 			
 			if (!$savedrapport) $output .= $hiddenSkiftider;
 			
-			$output .= $tmpOutput;			
+			$output = '<div class="rapporttpl">' . $tmpOutput . '</div>';
 			
 			return $output;
 	}
