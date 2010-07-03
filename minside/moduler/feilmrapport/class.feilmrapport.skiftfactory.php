@@ -130,7 +130,7 @@ class SkiftFactory {
 			$objTeller = new Teller($tellerid, $skiftid, $data[0]['tellernavn'], $data[0]['tellerdesc'], $data[0]['tellertype'], $data[0]['tellerverdi'], $data[0]['isactive']);
 			return $objTeller;
 		} else {
-			die("Klarte ikke å laste tellerid: $safetellerid for skift: $safeskiftid.");
+			throw new Exception("Klarte ikke å laste tellerid: $safetellerid for skift: $safeskiftid.");
 		}
 	
 	
@@ -149,7 +149,7 @@ class SkiftFactory {
 			$objTeller->setOrder($data[0]['tellerorder']);
 			return $objTeller;
 		} else {
-			die("Klarte ikke å laste tellerid: $safetellerid");
+			throw new Exception("Klarte ikke å laste tellerid: $safetellerid");
 		}
 	
 	

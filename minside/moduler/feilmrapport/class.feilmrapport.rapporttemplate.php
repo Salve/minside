@@ -50,7 +50,7 @@ class RapportTemplate {
 		if ($this->isActive()) throw new Exception('Template er allerede live.');
 		
 		$safetemplateid = $msdb->quote($this->_id);
-		$sql = "UPDATE feilrap_raptpl SET tplisactive='1' WHERE raptplid=$safetemplateid LIMIT 1;";
+		$sql = "UPDATE feilrap_raptpl SET tplisactive='1', activesince=now() WHERE raptplid=$safetemplateid LIMIT 1;";
 		
 		$resultat = $msdb->exec($sql);
 		

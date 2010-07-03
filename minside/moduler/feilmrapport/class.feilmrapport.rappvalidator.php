@@ -36,6 +36,23 @@ class RappValidator {
 		
 	}
 	
+	public static function ValDesimalTall($input, &$output, &$error) {
+		
+		$input = trim($input);
+		$result = preg_match('/^[1-9][0-9]{0,4}([,.][0-9]{1,3})?$/uAD', $input, $matches);
+		
+		if ($result) {
+			$output = (float) str_replace(',', '.', $matches[0]);
+			$error = null;
+			return true;
+		} else {
+			$output = null;
+			$error = 'Må være gyldig desimaltall. 1-99999 pluss evt. desimaltegn og opp til 3 siffer.';
+			return false;
+		}
+		
+	}
+	
 	public static function ValTekst($input, &$output, &$error) {
 		
 		$input = htmlspecialchars(trim($input));

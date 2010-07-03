@@ -71,13 +71,13 @@ div.minside select.msedit {
 }
 
 /* nice alphatransparency background except for IE <7 */
-html>body div.minside input.msedit,
-html>body div.minside select.msedit {
+html>body div.minside input.msedit {
   background:  #fff url(./minside/bilder/inputshadow.png) repeat-x top;
 }
 
 div.minside select.msedit {
   padding: 0.1em 0;
+  border: none;
 }
 
 

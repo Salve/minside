@@ -305,9 +305,9 @@ class Rapport {
 					$output = $validinput['tekst']["$varname"];
 				} else {
 					if (isset($validinput['tekst']["$varname"])) {
-						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" value="' . $validinput['tekst']["$varname"] . '" />';
+						$output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" value="' . $validinput['tekst']["$varname"] . '" />';
 					} else {
-						$output = '<input type="tekst" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
+						$output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
 						if (isset($invalidinput['tekst']["$varname"])) {
 							$output .= '<img src="/wiki/lib/images/error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
 						}
@@ -341,6 +341,28 @@ class Rapport {
 				return $output;
 			};
 			$tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
+			
+			// Erstatter [[inputdesimaltall:varname]] med tekst-input. 1-99999 pluss evt desimaltegn og 1-3 siffer bak dette.
+			$funcErstattInputDesimalTall = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
+				$varname = $matches[1];
+				if ($savedrapport) {
+					$output = str_replace('.', ',', $validinput['desimaltall']["$varname"]);
+				} else {
+					if (isset($validinput['desimaltall']["$varname"])) {
+						$output = '<input type="text" maxlength="9" size="8" name="rappinn[desimaltall][' . $varname .  ']" value="' . str_replace('.', ',', $validinput['desimaltall']["$varname"]) . '" />';
+					} else {
+						$output = '<input type="text" maxlength="9" size="8" name="rappinn[desimaltall][' . $varname . ']" />';
+						if (isset($invalidinput['desimaltall']["$varname"])) {
+							$output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['desimaltall']["$varname"] . '">';
+						}
+					}
+				}
+				
+				if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
+				
+				return $output;
+			};
+			$tplErstatter->addErstattning('/\[\[inputdesimaltall:([A-Za-z]+)\]\]/u', $funcErstattInputDesimalTall);
 
 			// Erstatter [[data:varname]] med $tpldata[varname]
 			$funcErstattData = function ($matches) use (&$tpldata) {

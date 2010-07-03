@@ -666,6 +666,21 @@ class msmodul_feilmrapport implements msmodul{
 			}
 		}
 		
+		if (is_array($_POST['rappinn']['desimaltall'])) {
+			foreach ($_POST['rappinn']['desimaltall'] as $varname => $inputitem) {
+				$valOutput = '';
+				$valError = '';
+				$valResult = RappValidator::ValDesimalTall($inputitem, $valOutput, $valError);
+				
+				if ($valResult === true) {
+					$validinput['desimaltall'][$varname] = $valOutput;
+				} else {
+					$validationerrors++;
+					$invalidinput['desimaltall'][$varname] = $valError;
+				}
+			}
+		}
+		
 		if (is_array($_POST['rappinn']['tekst'])) {
 			foreach ($_POST['rappinn']['tekst'] as $varname => $inputitem) {
 				$valOutput = '';
@@ -937,7 +952,13 @@ class msmodul_feilmrapport implements msmodul{
 		$tellerid = $_GET['tellerid'];
 		
 		if (!isset($tellerid)) die('TellerID ikke gitt!');
-		$objTeller = SkiftFactory::getTeller($tellerid);
+		try {
+			$objTeller = SkiftFactory::getTeller($tellerid);
+		}
+		catch (Exception $e) {
+			msg('Klarte ikke å endre tellerrekkefølge: ' . $e->getMessage(), -1);
+			return false;
+		}
 		if (!($objTeller instanceof Teller)) die('Ugyldig TellerID gitt');
 		
 		try {
@@ -1145,6 +1166,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		
 		try {
+			if (!isset($tellerid)) throw new Exception('Ingen endringer gjort.');
 			$objTeller = SkiftFactory::getTellerForSkift($tellerid, $skiftid);
 			$objTeller->modTeller($verdi, $decrease);
 		} 
