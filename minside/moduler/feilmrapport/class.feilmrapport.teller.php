@@ -93,11 +93,11 @@ class Teller {
 		
 		$msdb->startTrans();
 		
+		$sql = "UPDATE feilrap_teller SET tellerorder = tellerorder - 1 WHERE tellerorder >= $safetellerorder";
+		$resultat2 = $msdb->exec($sql);
+		
 		$sql = "UPDATE feilrap_teller SET isactive='0', tellerorder=NULL WHERE tellerid=$safetellerid LIMIT 1;";
 		$resultat1 = $msdb->exec($sql);
-		
-		$sql = "UPDATE feilrap_teller SET tellerorder = tellerorder - 1 WHERE tellerorder > $safetellerorder";
-		$resultat2 = $msdb->exec($sql);
 		
 		if ($resultat1 && $resultat2) {
 			$msdb->commit();
