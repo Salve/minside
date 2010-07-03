@@ -146,9 +146,17 @@ class msmodul_feilmrapport implements msmodul{
 				$this->_redoSisteEndring();
 				$this->_frapout .= $this->genSkift();
 				break;
-			case "modtellerorder":
-				$this->_modTellerOrder();
-				$this->_frapout .= $this->_genTellerAdm();
+			case "modtellerorderned":
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_modTellerOrder('ned');
+					$this->_frapout .= $this->_genTellerAdm();
+				}
+				break;
+			case "modtellerorderopp":
+				if ($this->_accessLvl >= MSAUTH_5) {
+					$this->_modTellerOrder('opp');
+					$this->_frapout .= $this->_genTellerAdm();
+				}
 				break;
 			case "mod_teller":
 				$this->_changeTeller();
@@ -512,6 +520,7 @@ class msmodul_feilmrapport implements msmodul{
 				}
 				
 				$rappoutput = $objRapport->genRapport();
+				$rappoutput .= $objRapport->genMailForm();
 			
 			} elseif ($submitsave) {
 				$rappoutput = '<div class="rapporthaserrors">Rapporten kunne ikke genereres da ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
@@ -688,9 +697,6 @@ class msmodul_feilmrapport implements msmodul{
 		return $validationerrors;
 	
 	}
-	
-
-	
 	
 	private function _genRapportSelectSkift(){
 	
@@ -927,27 +933,26 @@ class msmodul_feilmrapport implements msmodul{
 	
 	}
 	
-	private function _modTellerOrder() {
-		$updown = $_GET['telleract'];
-		$tellerorder = $_GET['tellerorder'];
-		global $msdb;
+	private function _modTellerOrder($orderact) {
+		$tellerid = $_GET['tellerid'];
 		
-		switch ($updown) {
-			case 'up':
-			$sql = "SELECT tellerid, tellernavn FROM feilrap_teller WHERE tellerorder=$tellerorder OR tellerorder=$tellerorder-1;";
-			$data = $msdb->assoc($sql);
-			
-			
-			msg($data[0]['tellerid']. $data[0]['tellernavn']);
-			msg($data[1]['tellerid']. $data[1]['tellernavn']);
-			
-			break;
-			case 'down':
-			msg('du vil ned');
-			break;
+		if (!isset($tellerid)) die('TellerID ikke gitt!');
+		$objTeller = SkiftFactory::getTeller($tellerid);
+		if (!($objTeller instanceof Teller)) die('Ugyldig TellerID gitt');
+		
+		try {
+			if ($orderact == 'opp') {
+				$objTeller->modOrderOpp();
+			} elseif ($orderact == 'ned') {
+				$objTeller->modOrderNed();
+			}
 		}
-
+		catch (Exception $e) {
+			msg('Klarte ikke å endre tellerrekkefølge: ' . $e->getMessage(), -1);
+			return false;
+		}
 	}
+	
 	private function _genTellerAdm() {
 		$tellercol = SkiftFactory::getAlleTellere(); // type TellerCollection
 		
@@ -957,10 +962,10 @@ class msmodul_feilmrapport implements msmodul{
 			$telleroutput .= '<td style="width:15%">' . $objTeller->getTellerType() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:30%">' . $objTeller->getTellerName() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:40%">' . $objTeller->getTellerDesc() . '</td>' . "\n";
-			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" alt="Aktiver">' ) . '</a>' . "\n";
+			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" title="Deaktiver teller" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" title="Aktiver teller" alt="aktiver">' ) . '</a>' . "\n";
 			if ($objTeller->isActive()) {
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorder&tellerorder='. $objTeller->getOrder().'&telleract=up"><img src="'.MS_IMG_PATH.'up.png" alt="Flytt oppover"></a>';
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorder&tellerorder='. $objTeller->getOrder().'&telleract=down"><img src="'.MS_IMG_PATH.'down.png" alt="Flytt oppover"></a>';
+				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorderopp&tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'up.png" alt="opp" Title="Flytt oppover"></a>';
+				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorderned&tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'down.png" alt="ned" title="Flytt nedover"></a>';
 			}
 			$telleroutput .= '</td></tr>' . "\n";
 			
@@ -971,20 +976,21 @@ class msmodul_feilmrapport implements msmodul{
 			}
 		}
 		
-		$headers .= '<tr style="background-color: #DEE7EC">' . "\n";
-		$headers .= '<td style="width:15%">Tellertype:</td>' . "\n";
-		$headers .= '<td style="width:30%">Tellernavn:</td>' . "\n";
-		$headers .= '<td style="width:40%">Tellerlabel</td>' . "\n";
-		$headers .= '<td style="width:15%">Handlinger</td>' . "\n";
-		$headers .= '</tr>' . "\n";
+		$headers .= '
+			<tr style="background-color: #DEE7EC">
+				<td style="width:15%">Tellertype:</td>
+				<td style="width:30%">Tellernavn:</td>
+				<td style="width:40%">Tellerlabel</td>
+				<td style="width:15%">Handlinger</td>
+			</tr>';
 		
-		$output .= "<p><strong>Telleradministrasjon</strong></p>\n";
-		$output .= "<p><strong>Aktive tellere:</strong></p>\n";
+		$output .= '<p><span class="actheader">Telleradministrasjon</span></p>';
+		$output .= '<p><span class="subactheader">Aktive tellere:</span></p>';
 		$output .= "<table style=\"width:75%\">\n";
 		$output .= $headers;
 		$output .= $aktivoutput;
 		$output .= "</table>\n";
-		$output .= "<p><strong>Inaktive tellere:</strong></p>\n";
+		$output .= '<p><span class="subactheader">Inaktive tellere:</strong></p>';
 		$output .= "<table style=\"width:75%\">\n";
 		$output .= $headers;
 		$output .= $inaktivoutput;
@@ -1041,7 +1047,7 @@ class msmodul_feilmrapport implements msmodul{
 		$safetellertype = $msdb->quote($_REQUEST['tellertype']);
 		$safetellerdesc = $msdb->quote(htmlspecialchars(trim($_REQUEST['tellerdesc'])));
 		
-		$sql = "INSERT INTO feilrap_teller (tellernavn, tellerdesc, tellertype, isactive) VALUES ($safetellernavn, $safetellerdesc, $safetellertype, '1');";
+		$sql = "INSERT INTO feilrap_teller (tellernavn, tellerdesc, tellertype, isactive, tellerorder) VALUES ($safetellernavn, $safetellerdesc, $safetellertype, '0', NULL);";
 		$result = $msdb->exec($sql);
 		
 		if ($result === 1) {
@@ -1058,20 +1064,31 @@ class msmodul_feilmrapport implements msmodul{
 	private function _flipTeller() {
 		global $msdb;
 		
-		if (preg_match('/^[0-9]{1,4}$/AD', $_REQUEST['tellerid'])) {
+		$tellerid = $_REQUEST['tellerid'];
+		if (preg_match('/^[0-9]{1,4}$/AD', $tellerid)) {
 			
-			$safetellerid = $msdb->quote($_REQUEST['tellerid']);
-			$sql = "UPDATE feilrap_teller SET isactive = NOT isactive, tellerorder = 0 WHERE tellerid=$safetellerid LIMIT 1;";
-			$result = $msdb->exec($sql);
+			$objTeller = SkiftFactory::getTeller($tellerid);
+			if (!($objTeller instanceof Teller)) {
+				msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
+				return false;
+			}
 			
-			if ($result === 1) {
+			try {
+				$resultat = $objTeller->modIsActive();
+			}
+			catch (Exception $e) {
+				msg('Klarte ikke å endre teller: ' . $e->getMessage());
+				return false;
+			}
+			
+			
+			if ($resultat) {
 				msg('Endret status på teller', 1);
 				return true;
 			} else {
 				msg('Klarte ikke å endre tellerstatus', -1);
 				return false;
 			}
-			
 			
 		} else {
 			msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
@@ -1128,7 +1145,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		
 		try {
-			$objTeller = SkiftFactory::getTeller($tellerid, $skiftid);
+			$objTeller = SkiftFactory::getTellerForSkift($tellerid, $skiftid);
 			$objTeller->modTeller($verdi, $decrease);
 		} 
 		catch (Exception $e){
@@ -1137,6 +1154,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 	}
+	
 	private function _changeTeller() {
 
 			$inputverdi = $_REQUEST['modtellerverdi'];
@@ -1170,7 +1188,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 		
 		try {
-			$objTeller = SkiftFactory::getTeller($tellerid, $skiftid);
+			$objTeller = SkiftFactory::getTellerForSkift($tellerid, $skiftid);
 			$objTeller->modTeller($inputverdi, $decrease);
 		} 
 		catch (Exception $e){

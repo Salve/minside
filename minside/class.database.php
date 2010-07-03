@@ -13,6 +13,7 @@ class Database {
 		
 		try {
 			$this->hConn = new PDO('mysql:host=' . mscfg::$db['host'] . ';dbname=' . mscfg::$db['name'], mscfg::$db['user'], mscfg::$db['password']);
+			$this->hConn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
 		catch(PDOException $e) {
 			throw new Exception("En feil har oppstått ved oppkobling mot database: " . $e->getMessage(), E_USER_ERROR);
@@ -27,7 +28,7 @@ class Database {
 		try {
 			$stmt = $this->hConn->prepare("$sqlstring");
 			$stmt->execute();
-		} catch (Exception $e) {
+		} catch (PDOException $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
 		if ($fetchone) {
@@ -52,7 +53,7 @@ class Database {
 		try {
 			$stmt = $this->hConn->prepare("$sqlstring");
 			$stmt->execute();
-		} catch (Exception $e) {
+		} catch (PDOException $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
 		if ($fetchone) {
@@ -75,7 +76,7 @@ class Database {
 		
 		try {
 			$result = $this->hConn->exec("$sqlstring");
-		} catch (Exception $e) {
+		} catch (PDOException $e) {
 			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
 		}
 		
@@ -110,5 +111,19 @@ class Database {
 		return $this->hConn;
 	}
 	
+	public function startTrans() {
+		$this->hConn->beginTransaction();
+		if ($this->debug) msg('Starter transaction', 2);
+	}
+	
+	public function commit() {
+		$this->hConn->commit();
+		if ($this->debug) msg('Comitter transaction', 1);
+	}
+	
+	public function rollBack() {
+		$this->hConn->rollBack();
+		if ($this->debug) msg('Rollback transaction', -1);
+	}
 
 }
