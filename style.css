@@ -268,6 +268,13 @@ div.minside .feilmtable td {
 	border-style: solid none none none*/;
 }
 
+div.minside div.feilmtablecols {
+	width: 150px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 div.minside .mstemplatelist td {
 	border: 1px solid #8cacbb;
 	border-collapse: collapse;
@@ -430,6 +437,10 @@ div.minside div.mswarningbar {
 	text-align:justify;
 	vertical-align:middle;
 	width:40% !important;
+}
+
+div.minside div#warningentellere {
+	width: 100% !important;
 }
 
 div.tellertable {
