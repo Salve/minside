@@ -419,8 +419,7 @@ class Rapport {
 	}
 	
 	public function estimateSkiftType() {
-		$rapporttime = date('G', $this->_rapportCreatedTime); // 0-23
-
+		$rapporttime = date('G', strtotime($this->_rapportCreatedTime)); // 0-23
 		if ($rapporttime >= 6 && $rapporttime < 10) {
 			$skifttype = 'N';
 		} elseif ($rapporttime >= 14 && $rapporttime < 18) {
