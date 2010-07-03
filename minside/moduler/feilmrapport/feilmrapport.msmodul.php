@@ -1035,7 +1035,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= "</table>\n";
 		}
 		
-		$output .= '<p><span class="subactheader">Inaktive tellere:</strong></p>';
+		$output .= '<p><span class="subactheader">Inaktive tellere:</span></p>';
 		if ($numInaktiveTellere == 0) {
 			$output .= $notellere;
 		} else {
