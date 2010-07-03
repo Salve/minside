@@ -835,8 +835,19 @@ class msmodul_feilmrapport implements msmodul{
 		$colUlogget = new TellerCollection();
 		$colUloggetNotNull = new TellerCollection();
 		
-		$skiftout .= '<div class="tellertable"><fieldset id="tellerfieldset" class="msfieldset"><legend>Tellere</legend>';
-		$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
+		$skiftout .= '<div class="tellertable">';
+		
+		if ($objSkift->getNumActiveTellere() == 0) {
+			// Ingen aktive tellere
+			$skiftout .= '<div class="mswarningbar" id="warningentellere">';
+			$skiftout .= 'Ingen aktive tellere!<br /><br />';
+			$skiftout .= 'En person med rette adgangsnivå må opprette/aktivere tellere for at de skal vises her.';
+			$skiftout .= '</div>'; // warningentellere
+		} else {
+			$skiftout .= '<fieldset id="tellerfieldset" class="msfieldset"><legend>Tellere</legend>';
+			$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
+		}
+		
 		foreach($objSkift->tellere as $objTeller) {
 			if (!$objTeller->isActive()) continue;
 			
@@ -846,7 +857,7 @@ class msmodul_feilmrapport implements msmodul{
 									
 					$skiftout .= '<tr>' . "\n";
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-					$skiftout .= '<td class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</td>' . "\n"; // Tellerbeskrivelse
+					$skiftout .= '<td class="feilmtablecols"><div class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</div></td>' . "\n"; // Tellerbeskrivelse
 					$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />' . "\n";
@@ -897,11 +908,13 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= "</tr>\n\n";
 		}
 		
-		$skiftout .= '</table>' . "\n";
-		$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-		$skiftout .= '<input type="hidden" name="act" value="angre_teller" />' . "\n";
-		$skiftout .= '<input type="submit" name="angre" value="Angre siste endring" class="msbutton" />' . "\n";
-		$skiftout .= '</form></fieldset><br /><br />' . "\n";
+		if ($objSkift->getNumActiveTellere() > 0) {
+			$skiftout .= '</table>' . "\n";
+			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$skiftout .= '<input type="hidden" name="act" value="angre_teller" />' . "\n";
+			$skiftout .= '<input type="submit" name="angre" value="Angre siste endring" class="msbutton" />' . "\n";
+			$skiftout .= '</form></fieldset><br /><br />' . "\n";
+		}
 		
 		$skiftout .= '<div class="antalltall">';
 		
@@ -934,7 +947,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			$skiftout .= '</p>' . "\n";
 		}
-		$skiftout .= '</div></div>'; // antalltall
+		$skiftout .= '</div></div>'; // antalltall tellertable
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
@@ -976,6 +989,8 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genTellerAdm() {
 		$tellercol = SkiftFactory::getAlleTellere(); // type TellerCollection
+		$numAktiveTellere = 0;
+		$numInaktiveTellere = 0;
 		
 		foreach ($tellercol as $objTeller) {
 			$telleroutput = '';
@@ -992,8 +1007,10 @@ class msmodul_feilmrapport implements msmodul{
 			
 			if ($objTeller->isActive()) {
 				$aktivoutput .= $telleroutput;
+				$numAktiveTellere++;
 			} else {
 				$inaktivoutput .= $telleroutput;
+				$numInaktiveTellere++;
 			}
 		}
 		
@@ -1004,18 +1021,29 @@ class msmodul_feilmrapport implements msmodul{
 				<td style="width:40%">Tellerlabel</td>
 				<td style="width:15%">Handlinger</td>
 			</tr>';
+			
+		$notellere = '<div class="mswarningbar warningentemplates" id="ingenlivetemplates">Ingen tellere her.</div>';
 		
 		$output .= '<p><span class="actheader">Telleradministrasjon</span></p>';
 		$output .= '<p><span class="subactheader">Aktive tellere:</span></p>';
-		$output .= "<table style=\"width:75%\">\n";
-		$output .= $headers;
-		$output .= $aktivoutput;
-		$output .= "</table>\n";
+		if ($numAktiveTellere == 0) {
+			$output .= $notellere;
+		} else {
+			$output .= "<table style=\"width:75%\">\n";
+			$output .= $headers;
+			$output .= $aktivoutput;
+			$output .= "</table>\n";
+		}
+		
 		$output .= '<p><span class="subactheader">Inaktive tellere:</strong></p>';
-		$output .= "<table style=\"width:75%\">\n";
-		$output .= $headers;
-		$output .= $inaktivoutput;
-		$output .= "</table>\n";
+		if ($numInaktiveTellere == 0) {
+			$output .= $notellere;
+		} else {
+			$output .= "<table style=\"width:75%\">\n";
+			$output .= $headers;
+			$output .= $inaktivoutput;
+			$output .= "</table>\n";
+		}
 		
 		$output .= "<p><strong>Legg til teller:</strong></p>\n";
 		$output .= '

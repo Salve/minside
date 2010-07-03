@@ -34,6 +34,19 @@ class Skift {
 		return $this->_id;
 	}
 	
+	public function getNumActiveTellere() {
+		if ($this->tellere->length() == 0) return 0; // sørger for at tellere er lastet via callback
+		
+		$tellercounter = 0;
+		
+		foreach ($this->tellere as $objTeller) {
+			if ($objTeller->isActive()) $tellercounter++;
+		}
+		
+		return $tellercounter;
+		
+	}
+	
 	public function getSkiftCreatedTime() {
 		return $this->_skiftCreatedTime;
 	}
