@@ -143,12 +143,10 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
 	
-		$output .= '<div class="toc">'."\n";
-		$output .= '<div class="tocheader toctoggle" id="toc__header">Min Side - Meny</div>'."\n";
-		$output .= '<div id="toc__inside">'."\n";
+		$output .= '<div class="mstoc">'."\n";
+		$output .= '<div class="mstocheader">Min Side - Meny</div>'."\n";
 		$output .= '<div class="meny">'."\n";
 		$output .= $this->_genMenyitem($meny, 1); // recursive funksjon som kaller seg selv dersom et item har underitems
-		$output .= '</div>'."\n";
 		$output .= '</div>'."\n";
 		$output .= '</div>'."\n";
 		
@@ -159,9 +157,9 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 	private function _genMenyitem(MenyitemCollection &$col, $lvl) { // recursive funksjon som kaller seg selv dersom et item har underitems
 		if ($lvl > 5) { return; }  // endres for å bestemme maks nivåer i meny
-		$output .= '<ul class="toc">';
+		$output .= '<ul class="mstoc">';
 		foreach ($col as $menyitem) {
-			$output .= '<li class="level$lvl">';
+			$output .= "<li class=\"level$lvl\">";
 			$output .= '<div class="li"><span class="li"><a href="' . MS_LINK . $menyitem->getHref() . '" class="toc">' . $menyitem->getTekst() . '</a></span></div>';
 			$output .= '</li>';
 			if ($menyitem->hasChildren()) {

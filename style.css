@@ -5,7 +5,7 @@ div.minside {
 	text-align:left;
 	position:relative;
 	padding-left:20px;
-	normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
+	font: normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
 }
 
 div.minside input.msbutton {
@@ -20,6 +20,12 @@ div.minside input.msbutton {
   padding: 0.125em 0.4em;
 }
 
+div.minside input.msbuttonincdec {
+	width: 24px;
+	height: 22px;
+	font-size: 120%;
+}
+
 html>body div.minside input.msbutton,
 html>body div.minside button.msbutton {
   background:  #fff url(./minside/bilder/buttonshadow.png) repeat-x bottom;
@@ -31,8 +37,11 @@ html>body div.minside button.msbutton {
 }
 
 #notattekst {
-	width: 95%;
-	margin: 5px;	
+	width: 96%;
+	height: 90px;
+	margin: 5px;
+	margin-left: 1px;
+	overflow: auto;
 }
 
 div.minside div.secedit input.msbutton {
@@ -68,6 +77,10 @@ div.minside select.msedit {
   margin: 1px;
   padding: 0.20em 0.3em;
   display: inline;
+}
+
+div.minside select.tellerdropdown {
+	width: 147px;
 }
 
 /* nice alphatransparency background except for IE <7 */
@@ -180,30 +193,26 @@ div.minside li.msclosed {
     /*list-style-type: disc;*/
 }
 
-div.minside div.toc {
+div.minside div.mstoc {
 	position: absolute;
-	right: -210px;
-	/*top: 0;*/
+	right: -205px;
+	clear:both;
+	float:right;
+	font-size:100%;
+	margin:1.2em 0 0 2em;
+	width:200px;
 }
 
-div.mstoc {
-	position:relative;
-	width:300px;
-	height: 50px;
-	margin: auto;
-	border: 1px #8cacbb;
-	border-style: solid none solid solid;
-	background-color: #DEE7EF;
+div.minside ul.mstoc {
+	color:#638C9C;
+	line-height:1.5em;
+	list-style-image:none;
+	list-style-type:square;
+	margin:0 0 0 3.5em;
 }
-div.mstoc .resultater {
-	width: 149px;
-	height: 50px;
-	border: 1px;
-	border-color:  #8cacbb;
-	border-style: none solid none none;
-	background-color: white;
-	float:left;
 
+div.minside ul.mstoc ul.mstoc {
+	margin: 0 0 0 1.5em;
 }
 
 div.resultater .top {
@@ -213,16 +222,11 @@ div.resultater .top {
 
 div.mstoc .meny {
 	width: 100%;
-	/*border: 1px #8cacbb;
-	border-style: none none none solid;*/
+	border: 1px #8cacbb;
+	border-style: solid;
 	float:left;
 	background-color: white;
-	height: 90px;
-	overflow: auto;
-}
-div.mstoc .menytop {
-	width: 100%;
-	background-color: #dee7ef;	
+	overflow: hidden;
 }
 
 div.minside #mstoc__inside {
@@ -233,8 +237,8 @@ div.minside #mstoc__inside {
 }
 
 div.minside div.mstocheader {
-  border: 1px solid #8b7355;
-  background-color: #33ff99;
+  border: 1px solid #8CACBB;
+  background-color: #DEE7EC;
   text-align: left;
   font-weight: bold;
   padding: 3px;
@@ -250,6 +254,7 @@ div.minside th {
 
 div.minside th.top {
 	font-size: 0.9em;
+	text-align: center;
 }
 
 div.minside table {
@@ -259,6 +264,7 @@ div.minside table {
 div.minside .feilmtable {
 	position:relative;
 	border-collapse: collapse;
+	margin-top: 1em;
 }
 
 div.minside .feilmtable td {
@@ -459,21 +465,25 @@ div.tellertable {
 	padding-left:5px;
 	padding-right:5px;
 	padding-bottom: 1em;
+	padding-top: 0em;
 }
 
 div.notater {
 	position:relative;
-	width: 40%;
+	width: 45%;
 	float:right;
 	right: 2em;
+	word-wrap: break-word;
+	overflow: hidden;
 }
 #notatfield {
 	position:relative;
 	text-align:left;
-	width:100%;
+	width:90%;
 	padding-left:1em;
 	padding-right:1em;
 	margin-bottom: 2em;
+	padding-top: 0;
 }
 
 .skift_full {

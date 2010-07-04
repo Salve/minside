@@ -845,7 +845,7 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '</div>'; // warningentellere
 		} else {
 			$skiftout .= '<fieldset id="tellerfieldset" class="msfieldset"><legend>Tellere</legend>';
-			$skiftout .= '<table class="feilmtable"><th class="top">Teller</th><th class="top">Verdi</th><th class="top">Endre</th>';	
+			$skiftout .= '<table class="feilmtable"><th class="top">Beskrivelse</th><th class="top" colspan="2">Endre verdi</th>';	
 		}
 		
 		foreach($objSkift->tellere as $objTeller) {
@@ -857,11 +857,11 @@ class msmodul_feilmrapport implements msmodul{
 									
 					$skiftout .= '<tr>' . "\n";
 					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-					$skiftout .= '<td class="feilmtablecols"><div class="feilmtablecols">' . $objTeller->getTellerDesc() . ':</div></td>' . "\n"; // Tellerbeskrivelse
+					$skiftout .= '<td class="feilmtablecols"><div class="feilmtablecols">' . $objTeller->getTellerDesc() . '</div></td>' . "\n"; // Tellerbeskrivelse
 					$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 					$skiftout .= '<input type="hidden" name="tellerid" value="' . $objTeller->getId() . '" />' . "\n";
-					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
+					$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton msbuttonincdec" name="inc_teller" value="+" /><input type="submit" class="msbutton msbuttonincdec" name="dec_teller" value="-" /></div></td>' . "\n";
 					$skiftout .= '</form>' . "\n";
 					$skiftout .= "</tr>\n\n";
 					break;
@@ -880,14 +880,14 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
-			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
-			$skiftout .= '<option value="NOSEL">Annet: </option>' . "\n";
+			$skiftout .= '<td><select name="tellerid" class="msedit tellerdropdown">' . "\n";
+			$skiftout .= '<option value="NOSEL">Flere tellere: </option>' . "\n";
 			foreach ($colSecTeller as $objTeller) {
 				$skiftout .= '<option value="' . $objTeller->getId() . '">' . $objTeller->getTellerDesc() . '</option>' . "\n";
 			}
 			$skiftout .= '</select></td>' . "\n";
 			$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton msbuttonincdec" name="inc_teller" value="+" /><input type="submit" class="msbutton msbuttonincdec" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}		
@@ -896,14 +896,14 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
-			$skiftout .= '<td><select name="tellerid" class="msedit" style="width:100%;">' . "\n";
-			$skiftout .= '<option value="NOSEL">Ulogget: </option>' . "\n";
+			$skiftout .= '<td><select name="tellerid" class="msedit tellerdropdown">' . "\n";
+			$skiftout .= '<option value="NOSEL">Uloggede samtaler: </option>' . "\n";
 			foreach ($colUlogget as $objTeller) {
 				$skiftout .= '<option value="' . $objTeller->getId() . '">' . $objTeller->getTellerDesc() . '</option>' . "\n";
 			}
 			$skiftout .= '</select></td>' . "\n";
 			$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
-			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton" name="inc_teller" value="+" /><input type="submit" class="msbutton" name="dec_teller" value="-" /></div></td>' . "\n";
+			$skiftout .= '<td><div class="inc_dec"><input type="submit" class="msbutton msbuttonincdec" name="inc_teller" value="+" /><input type="submit" class="msbutton msbuttonincdec" name="dec_teller" value="-" /></div></td>' . "\n";
 			$skiftout .= '</form>' . "\n";
 			$skiftout .= "</tr>\n\n";
 		}
