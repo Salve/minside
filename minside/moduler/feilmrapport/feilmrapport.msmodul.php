@@ -143,7 +143,7 @@ class msmodul_feilmrapport implements msmodul{
 				$this->_frapout .= $this->genSkift();
 				break;
 			case "angre_teller":
-				$this->_redoSisteEndring();
+				$this->_undoSisteEndring();
 				$this->_frapout .= $this->genSkift();
 				break;
 			case "modtellerorderned":
@@ -523,7 +523,7 @@ class msmodul_feilmrapport implements msmodul{
 				$rappoutput .= $objRapport->genMailForm();
 			
 			} elseif ($submitsave) {
-				$rappoutput = '<div class="rapporthaserrors">Rapporten kunne ikke genereres da ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
+				$rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
 				try {
 					$rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
 				}
@@ -1162,20 +1162,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
 	}
 	
-	public function getParamValue($param, &$fromrequest = false){
-		if (array_key_exists($param, $this->_msmodulvars)) {
-			$fromrequest = false;
-			return $this->_msmodulvars[$param];
-		} else if (array_key_exists($param, $_REQUEST)) {
-			$fromrequest = true;
-			return $_REQUEST[$param];
-		} else {
-			return false;
-		}
-	
-	}
-	
-	private function _redoSisteEndring() {
+	private function _undoSisteEndring() {
 		global $msdb;
 		$skiftid = $this->getCurrentSkiftId();
 		$safeskiftid = $msdb->quote($skiftid);
