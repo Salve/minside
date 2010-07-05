@@ -15,12 +15,14 @@ CREATE TABLE `feilrap_skift` (
 DROP TABLE IF EXISTS `feilrap_teller`;
 CREATE TABLE `feilrap_teller` (
   `tellerid` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `tellernavn` varchar(45) NOT NULL DEFAULT 'TELLER UTEN NAVN',
-  `tellerdesc` varchar(200) DEFAULT NULL,
+  `tellernavn` varchar(20) NOT NULL,
+  `tellerdesc` varchar(200) DEFAULT 'TELLER UTEN NAVN',
   `tellertype` varchar(20) NOT NULL,
   `isactive` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `tellerorder` int(6) unsigned DEFAULT NULL,
   PRIMARY KEY (`tellerid`),
-  UNIQUE KEY `tellerid_UNIQUE` (`tellerid`)
+  UNIQUE KEY `tellerid_UNIQUE` (`tellerid`),
+  UNIQUE KEY `tellernavn_UNIQUE` (`tellernavn`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `feilrap_tellerakt`;
@@ -43,6 +45,10 @@ CREATE TABLE `internusers` (
   `createtime` datetime NOT NULL,
   `lastlogin` datetime DEFAULT NULL,
   `isactive` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  `wikifullname` varchar(60) DEFAULT 'NO NAME',
+  `wikiepost` varchar(60) DEFAULT 'NO EMAIL',
+  `wikigroups` varchar(200) DEFAULT NULL,
+  `modifytime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `fullname_UNIQUE` (`wikiname`)
