@@ -72,7 +72,7 @@ CREATE TABLE `feilrap_rapport` (
   UNIQUE KEY `rapportid_UNIQUE` (`rapportid`),
   KEY `rapportowner` (`rapportowner`),
   KEY `timeindex` (`createtime`)
-) ENGINE=InnoDB AUTO_INCREMENT=3023 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `feilrap_rapportdata`;
 CREATE TABLE `feilrap_rapportdata` (
@@ -84,13 +84,17 @@ CREATE TABLE `feilrap_rapportdata` (
   PRIMARY KEY (`rapportdataid`),
   UNIQUE KEY `rapportdataid_UNIQUE` (`rapportdataid`),
   KEY `rapportid` (`rapportid`)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `feilrap_raptpl`;
 CREATE TABLE `feilrap_raptpl` (
   `raptplid` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `templatetekst` text,
   `tplisactive` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `createdate` datetime NOT NULL,
+  `activesince` datetime DEFAULT NULL,
+  `isdeleted` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`raptplid`),
   UNIQUE KEY `raptplid_UNIQUE` (`raptplid`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
