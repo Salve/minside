@@ -617,18 +617,17 @@ class msmodul_feilmrapport implements msmodul{
 			'X-MinSide-SenderID: ' . $userid . "\r\n" .
 			'MIME-Version: 1.0' . "\r\n" .
 			'Content-type: text/html; charset="utf-8"' . "\r\n";
-			
-		$mailcounter = 0;
-		foreach ($mailmottakere as $mailmottaker) {
-			$resultat = mail($mailmottaker, $subject, $rapporthtml, $headers);
-			if ($resultat) {
-				$mailcounter++;
-			} else {
-				msg('Mail til mottaker: ' . $mailmottaker . ' feilet!', -1);
-			}
-		}
+		$mailto = implode(', ', $mailmottakere);
+		$mailcounter = count($mailmottakere);
 		
-		if ($mailcounter > 0) msg('Rapport sendt til ' . $mailcounter . ' mottakere.', 1);
+		$resultat = mail($mailto, $subject, $rapporthtml, $headers);
+		if ($resultat) {
+			msg('Rapport sendt til ' . $mailcounter . ' mottakere.', 1);
+			return true;
+		} else {
+			msg('Mail-utsendelse feilet!', -1);
+			return false;
+		}
 		
 	}
 	
