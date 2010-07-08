@@ -39,7 +39,7 @@ class RappValidator {
 	public static function ValDesimalTall($input, &$output, &$error) {
 		
 		$input = trim($input);
-		$result = preg_match('/^[1-9][0-9]{0,4}([,.][0-9]{1,3})?$/uAD', $input, $matches);
+		$result = preg_match('/^[0-9]{0,5}([,.][0-9]{1,3})?$/uAD', $input, $matches);
 		
 		if ($result) {
 			$output = (float) str_replace(',', '.', $matches[0]);
