@@ -1,7 +1,12 @@
 <?php
 if(!defined('MS_INC')) die();
-class msmodul_nyheter implements msmodul{
+define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
 
+class msmodul_nyheter implements msmodul {
+
+	public $dispatcher;
+	
+	private $debug = true;
 	private $_msmodulact;
 	private $_msmodulvars;
 	private $_userID;
@@ -14,12 +19,26 @@ class msmodul_nyheter implements msmodul{
 	
 	public function gen_msmodul($act, $vars){
 		$this->_msmodulact = $act;
-		$this->_msmodulvars = $vars;
+		$this->_msmodulvars = $vars; // ikke i bruk
 		
-		$output .= 'Nyheter her! UserId er: '. $this->_userID . ' act er: ' . $this->_msmodulact . '<br />';
-
-		return $output;
+		// Opprett ny dispatcher
+		$this->dispatcher = new ActDispatcher($this, $this->_adgangsNiva);
+		// Funksjon som definerer handles for act-values
+		$this->_setHandlers($this->dispatcher);
+		
+		// Dispatch $act, dispatcher returnerer output
 	
+			$output = $this->dispatcher->dispatch($act);
+			return $output;
+
+	}
+	
+	private function _setHandlers(&$dispatcher) {
+		$dispatcher->addAct(
+			'show',
+			'gen_nyheter_full',
+			MSAUTH_1
+		);
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
@@ -36,5 +55,13 @@ class msmodul_nyheter implements msmodul{
 		}
 			
 	}
+	
+/********************************\
+ *       HANDLERS                *
+\********************************/
+
+	public function gen_nyheter_full() {
+		return 'TESTOUTPUT';
+	}	
 	
 }
