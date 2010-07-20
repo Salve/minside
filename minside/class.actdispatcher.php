@@ -12,14 +12,23 @@ class ActDispatcher {
 		$this->actlist = array();
 	}
 	
-	function addAct($act, $handlers, $access) {
+	function addAct($act, $handlers, $access, $param = null) {
 		$arNewAct['adgang'] = $access;
+		
 		if (is_array($handler)) {
 			foreach ($handlers as $handler) {
 				$arNewAct['handlers'][] = (string) $handler;
 			}
 		} else {
 			$arNewAct['handlers'][] = (string) $handlers;
+		}
+		
+		if (is_array($param)) {
+			$arNewAct['param'] = $param;
+		} elseif (isset($param)) {
+			$arNewAct['param'][] = $param;
+		} else {
+			$arNewAct['param'] = array();
 		}
 		
 		$this->actlist["$act"] = $arNewAct;
@@ -39,7 +48,8 @@ class ActDispatcher {
 		}
 		
 		foreach ($this->actlist["$inputact"]['handlers'] as $handler) {
-			$output .= call_user_func(array($this->caller, $handler));
+			$output .= call_user_func_array(array($this->caller, $handler),
+				$this->actlist["$inputact"]['param']);
 		}
 		
 		return $output;
