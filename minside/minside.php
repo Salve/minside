@@ -15,12 +15,14 @@ require_once('msconfig.php');
 require_once('class.database.php');
 require_once('interface.msmodul.php');
 require_once('class.msdispatcher.php');
+require_once('class.actdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 
+class AdgangsException extends Exception { }
 
 class minside { // denne classen instansieres og gen_minside() kjøres for å generere minside
 
