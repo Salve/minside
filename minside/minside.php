@@ -55,7 +55,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
 		} else {
-			$page = 'feilmrapport';
+			$page = 'nyheter';
 		}
 		
 		if(array_key_exists('act', $_REQUEST)) {

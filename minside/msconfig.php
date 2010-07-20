@@ -10,6 +10,7 @@ class mscfg {
 	);
 	
 	public static $moduler = array(
+	'nyheter',
 	'feilmrapport',
 	'diff',
 	'testmodul',
