@@ -11,13 +11,13 @@ define('MSAUTH_5',16); // Slette
 define('MSAUTH_ADMIN',255); // Wiki-admin
 define('MS_IMG_PATH', DOKU_REL . 'lib/plugins/minside/minside/bilder/');
 
-require_once('msconfig.php');
-require_once('class.database.php');
 require_once('interface.msmodul.php');
-require_once('class.msdispatcher.php');
-require_once('class.actdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
+require_once('msconfig.php');
+require_once('class.database.php');
+require_once('class.msdispatcher.php');
+require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');

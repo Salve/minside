@@ -1,6 +1,8 @@
 <?php
 if(!defined('MS_INC')) die();
 define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
+require_once('class.nyheter.nyhetcollection.php');
+require_once('class.nyheter.msnyhet.php');
 
 class msmodul_nyheter implements msmodul {
 
@@ -34,11 +36,8 @@ class msmodul_nyheter implements msmodul {
 	}
 	
 	private function _setHandlers(&$dispatcher) {
-		$dispatcher->addAct(
-			'show',
-			'gen_nyheter_full',
-			MSAUTH_1
-		);
+		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
+		
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
@@ -57,11 +56,17 @@ class msmodul_nyheter implements msmodul {
 	}
 	
 /********************************\
- *       HANDLERS                *
+ *           HANDLERS           *
 \********************************/
 
 	public function gen_nyheter_full() {
-		return 'TESTOUTPUT';
-	}	
-	
+		ob_start();
+		html_edit('test');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		return $output;
+		
+	}
+
 }
