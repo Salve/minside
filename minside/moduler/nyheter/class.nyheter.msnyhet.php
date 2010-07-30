@@ -1,7 +1,7 @@
 <?php
 if(!defined('MS_INC')) die();
 
-abstract class MsNyhet {
+class MsNyhet {
 	
 	protected $_id;	
 	protected $_tilgang;
@@ -33,6 +33,14 @@ abstract class MsNyhet {
 		}
 		
 		$this->_id = $inputid;
+		return true;
+	}
+	
+	public function getType() {
+		return $this->_type;
+	}
+	public function setType($input) {
+		$this->_type = $input;
 		return true;
 	}
 	
@@ -91,6 +99,13 @@ abstract class MsNyhet {
 	
 	public function hasImage() {
 		return isset($this->_imgpath);
+	}
+	public function getImagePath() {
+		return $this->_imgpath;
+	}
+	public function setImagePath($input) {
+		$this->_imgpath = $input;
+		return true;
 	}
 	
 	public function getWikiPath() {

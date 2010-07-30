@@ -3,6 +3,7 @@ if(!defined('MS_INC')) die();
 define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
 require_once('class.nyheter.nyhetcollection.php');
 require_once('class.nyheter.msnyhet.php');
+require_once('class.nyheter.nyhetgen.php');
 
 class msmodul_nyheter implements msmodul {
 
