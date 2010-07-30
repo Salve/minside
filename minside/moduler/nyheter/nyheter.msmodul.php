@@ -30,8 +30,7 @@ class msmodul_nyheter implements msmodul {
 		
 		// Dispatch $act, dispatcher returnerer output
 	
-			$output = $this->dispatcher->dispatch($act);
-			return $output;
+			return $this->dispatcher->dispatch($act);
 
 	}
 	
@@ -60,11 +59,8 @@ class msmodul_nyheter implements msmodul {
 \********************************/
 
 	public function gen_nyheter_full() {
-		ob_start();
-		html_edit('test');
-		$output = ob_get_contents();
-		ob_end_clean();
-		
+		$output = 'Test';
+
 		return $output;
 		
 	}
