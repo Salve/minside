@@ -502,12 +502,13 @@ div.minside div.nyhet {
 }
 
 div.minside div.nyhettopbar {
-    background-color: #C4D3E0;
+    background-color: #DEE7EF;
 }
 
 div.minside div.nyhettitle {
     float: left;
     font-size: 140%;
+    color: #426973;
     font-weight: bold;
     padding: 0.5em 0 0.5em 0.5em;
 }
