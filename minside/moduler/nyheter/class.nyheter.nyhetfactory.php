@@ -5,6 +5,9 @@ require_once('class.nyheter.nyhetcollection.php');
 
 class NyhetFactory {
 
+    const SQL_NYHET_FIELDS =
+        'nyhetid, tilgangsgrupper, nyhetstype, viktighet, createtime, modtime, deletetime, wikipath, wikihash, nyhettitle, imgpath, nyhetbodycache';
+
     private function __construct() { }
     
     public static function getTestNyhet() {
@@ -23,6 +26,34 @@ class NyhetFactory {
         
         return $objNyhet;
     
+    }
+    
+    public static function getNyhetById($input_nyhetid) {
+        global $msdb;
+        
+        $safeid = $msdb->quote($input_nyhetid);
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE nyhetid=$safeid LIMIT 1;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetsobjektByDbRow($res[0]);
+        
+    }
+    
+    protected static function createNyhetsobjektByDbRow(array &$row) {
+        
+        $objNyhet = new MsNyhet(true, $row['nyhetid']);
+        
+        $objNyhet->setType($row['nyhetstype']);
+        $objNyhet->setTilgang($row['tilgangsgrupper']);
+		$objNyhet->setViktighet($row['viktighet']);
+		$objNyhet->setTitle($row['nyhettitle']);
+		$objNyhet->setHtmlBody($row['nyhetbodycache']);
+		$objNyhet->setCreateTime($row['createtime']);
+		$objNyhet->setLastModTime($row['modtime']);
+		$objNyhet->setDeleteTime($row['deletetime']);
+        
+        return $objNyhet;
+        
     }
     
 }

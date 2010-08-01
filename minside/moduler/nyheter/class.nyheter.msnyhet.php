@@ -20,8 +20,13 @@ class MsNyhet {
 	protected $_wikihash;
 	protected $_wikitekst;
 	
-	public function __construct($isSaved = false) {
-		$this->_issaved = $isSaved;
+	public function __construct($isSaved = false, $id = null) {
+		if ($isSaved && !$id) {
+            throw new Exception('Logic Error: NyhetID mÃ¥ settes nÃ¥r isSaved = true');
+        }
+        
+        $this->_issaved = $isSaved;
+        $this->_id = $id;
 	}
 	
 	public function getId() {
@@ -29,7 +34,7 @@ class MsNyhet {
 	}
 	public function setId($inputid) {
 		if (isset($this->_id)) {
-			throw new Exception('Logic Error: ID på nyhet er allerede satt!');
+			throw new Exception('Logic Error: ID pÃ¥ nyhet er allerede satt!');
 		}
 		
 		$this->_id = $inputid;
@@ -163,8 +168,8 @@ class MsNyhet {
 	
 	protected function write_wikitext() {
 		// function saveWikiText($id,$text,$summary,$minor=false)
-		// definert i /inc/common.php på linje 927
-		// Denne kaller funksjonen io_writeWikiPage som er definert på linje 145 i /inc/io.php
+		// definert i /inc/common.php pÃ¥ linje 927
+		// Denne kaller funksjonen io_writeWikiPage som er definert pÃ¥ linje 145 i /inc/io.php
 		//
 		// $id = full path til wikiside, f.eks. "siebel:henvendelser"
 		// $text = content som skal skrives, streng
@@ -173,7 +178,7 @@ class MsNyhet {
 		
 		$id = $this->getWikiPath();
 		$text = $this->getWikiText();
-		$summary = 'Nyhetsendring utført gjennom MinSide.';
+		$summary = 'Nyhetsendring utfÃ¸rt gjennom MinSide.';
 		$minor = false;
 		
 		$resultat = saveWikiText($id, $text, $summary, $minor);

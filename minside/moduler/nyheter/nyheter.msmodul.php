@@ -62,8 +62,10 @@ class msmodul_nyheter implements msmodul {
 
 	public function gen_nyheter_full() {
 		
-		$output = NyhetGen::genFullNyhetViewOnly(NyhetFactory::getTestNyhet());
-		
+        for ($i = 0;$i < 4; $i++) {
+            $output .= NyhetGen::genFullNyhetViewOnly(NyhetFactory::getNyhetById(1));
+		}
+        
 		return $output;
 		
 	}
