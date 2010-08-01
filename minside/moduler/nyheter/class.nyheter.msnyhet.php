@@ -20,7 +20,7 @@ class MsNyhet {
 	protected $_wikihash;
 	protected $_wikitekst;
 	
-	protected function __construct($isSaved = false) {
+	public function __construct($isSaved = false) {
 		$this->_issaved = $isSaved;
 	}
 	
@@ -40,8 +40,7 @@ class MsNyhet {
 		return $this->_type;
 	}
 	public function setType($input) {
-		$this->_type = $input;
-		return true;
+		return $this->set_var($this->_type, $input);
 	}
 	
 	public function getTilgang() {
@@ -150,6 +149,16 @@ class MsNyhet {
 
 	public function isSaved() {
 		return (bool) $this->_issaved;
+	}
+	
+	protected function set_var(&$var, &$value) {
+		
+		if (($this->_issaved && isset($var)) || !$this->_issaved) {
+			$this->_hasunsavedchanges = true;
+		}
+		
+		$var = $value;
+		return true;
 	}
 	
 	protected function write_wikitext() {

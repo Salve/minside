@@ -28,8 +28,14 @@ class NyhetGen {
 		$title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
 		
-		$options = 'lest';
-		
+		$opt[] = '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'success.png" />';
+		$opt[] = '<img alt="rediger" title="Rediger nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'pencil.png" />';
+		$opt[] = '<img alt="slett" title="Slett nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'trash.png" />';
+		$options = implode('&nbsp;', $opt);
+        
 		$output = "
 			<div class=\"nyhetcontainer\">
 			<div class=\"nyhet\">
@@ -37,6 +43,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$title</div>
 					<div class=\"nyhetoptions\">$options</div>
+                    <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
 					<div class=\"nyhetimgleft\">$img</div>
@@ -46,6 +53,8 @@ class NyhetGen {
 			</div>
 			</div>
 		";
+		
+		return $output;
 		
 	}
 	
