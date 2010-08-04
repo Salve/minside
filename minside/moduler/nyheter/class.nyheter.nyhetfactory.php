@@ -51,6 +51,7 @@ class NyhetFactory {
 		$objNyhet->setCreateTime($row['createtime']);
 		$objNyhet->setLastModTime($row['modtime']);
 		$objNyhet->setDeleteTime($row['deletetime']);
+		$objNyhet->setWikiPath($row['wikipath']);
         
         return $objNyhet;
         

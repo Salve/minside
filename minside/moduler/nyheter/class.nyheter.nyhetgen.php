@@ -30,8 +30,9 @@ class NyhetGen {
 		
 		$opt[] = '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
-		$opt[] = '<img alt="rediger" title="Rediger nyhet" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'pencil.png" />';
+		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
+            '<img alt="rediger" title="Rediger nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
 		$opt[] = '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" />';
 		$options = implode('&nbsp;', $opt);
@@ -57,5 +58,15 @@ class NyhetGen {
 		return $output;
 		
 	}
+    
+    public static function genEdit(msnyhet &$objNyhet) {
+        
+        $output .= '<div class="editnyhet">';
+        $output .= '<p><strong>Rediger nyhet</strong></p>';
+        $output .= 'Editor for nyhet nummer ' . $objNyhet->getId();
+        $output .= '</div>'; // editnyhet
+        
+        return $output;
+    }
 	
 }

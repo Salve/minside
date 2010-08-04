@@ -52,16 +52,14 @@ class MsNyhet {
 		return $this->_tilgang;
 	}
 	public function setTilgang($input) {
-		$this->_tilgang = $input;
-		return true;
+        return $this->set_var($this->_tilgang, $input);
 	}
 	
 	public function getViktighet() {
 		return $this->_viktighet;
 	}
 	public function setViktighet($input) {
-		$this->_viktighet = $input;
-		return true;
+		return $this->set_var($this->_viktighet, $input);
 	}
 	
 	public function getCreateTime() {
@@ -158,7 +156,9 @@ class MsNyhet {
 	
 	protected function set_var(&$var, &$value) {
 		
-		if (($this->_issaved && isset($var)) || !$this->_issaved) {
+		if (($this->_issaved && isset($var) && ($var != $value)) || 
+            (!$this->_issaved && !empty($value))) {
+            
 			$this->_hasunsavedchanges = true;
 		}
 		
@@ -186,5 +186,10 @@ class MsNyhet {
 		msg('saveWikiText kallt, resultat: ' . $strResultat);
 	
 	}
+    
+    protected function updateWikiTekst() {
+        $newtekst = p_wiki_xhtml($this->getWikiPath(), '', false);
+        $this->setWikiTekst($newtekst);
+    }
 	
 }

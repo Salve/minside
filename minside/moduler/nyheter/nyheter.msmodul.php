@@ -38,6 +38,7 @@ class msmodul_nyheter implements msmodul {
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
+		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_3);
 		
 	}
 	
@@ -62,12 +63,32 @@ class msmodul_nyheter implements msmodul {
 
 	public function gen_nyheter_full() {
 		
+        $objNyhet = NyhetFactory::getNyhetById(1);
+        
         for ($i = 0;$i < 4; $i++) {
-            $output .= NyhetGen::genFullNyhetViewOnly(NyhetFactory::getNyhetById(1));
+            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
 		}
+        
+        $output .= rawWiki($objNyhet->getWikiPath());
+        
+        $output .= p_wiki_xhtml($objNyhet->getWikiPath(), '', false);
         
 		return $output;
 		
 	}
+    
+    public function gen_edit_nyhet() {
+    
+        $nyhetid = $_REQUEST['nyhetid'];
+        try{
+            $objNyhet = NyhetFactory::getNyhetById($nyhetid);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste redigeringsverktøy for nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+            return false;
+        }
+        
+        return NyhetGen::genEdit($objNyhet);
+    
+    }
 
 }
