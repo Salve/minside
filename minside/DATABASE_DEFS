@@ -104,3 +104,30 @@ CREATE TABLE `feilrap_raptpl` (
   UNIQUE KEY `raptplid_UNIQUE` (`raptplid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `nyheter_nyhet`;
+CREATE TABLE `nyheter_nyhet` (
+  `nyhetid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tilgangsgrupper` varchar(500) DEFAULT NULL,
+  `nyhetstype` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `viktighet` tinyint(3) unsigned NOT NULL,
+  `createtime` datetime DEFAULT NULL,
+  `modtime` datetime DEFAULT NULL,
+  `deletetime` datetime DEFAULT NULL,
+  `wikipath` varchar(100) DEFAULT NULL,
+  `wikihash` varchar(50) DEFAULT NULL,
+  `nyhettitle` varchar(250) DEFAULT NULL,
+  `imgpath` varchar(100) DEFAULT NULL,
+  `nyhetbodycache` text,
+  PRIMARY KEY (`nyhetid`),
+  UNIQUE KEY `nyhetid_UNIQUE` (`nyhetid`),
+  KEY `type` (`nyhetstype`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `nyheter_lest`;
+CREATE TABLE `nyheter_lest` (
+  `nyhetid` int(10) unsigned NOT NULL,
+  `brukerid` int(10) unsigned NOT NULL,
+  `readtime` datetime NOT NULL,
+  KEY `idlookup` (`nyhetid`,`brukerid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
