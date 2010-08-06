@@ -21,7 +21,7 @@ class msdispatcher {
 			if ($this->adgang->sjekkAdgang($this->ms) > 0) {
 				return $this->msmoduler["$this->ms"]->gen_msmodul($this->act, $this->vars);
 			} else {
-				return '<p>Dispatcher: Innlogget bruker har ikke adgang til å vise modulen "' . $this->ms . '".</p>';
+				throw new AdgangsException('Dispatcher: Innlogget bruker har ikke adgang til å vise modulen "' . $this->ms . '".');
 			}
 		} else {
 			return '<p>Dispatcher: Klarte ikke å laste modulen "' . $this->ms . '".</p>';		

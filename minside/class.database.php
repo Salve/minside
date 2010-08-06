@@ -39,7 +39,7 @@ class Database {
 		
 		$db_endtime = microtime(true);
 		
-		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		if ($this->debug) msg(htmlspecialchars($sqlstring) . ' : ' . round(($db_endtime - $db_starttime), 5));
 		
 		$this->querytime += ($db_endtime - $db_starttime);
 		$this->num_queries++;
@@ -64,7 +64,7 @@ class Database {
 		
 		$db_endtime = microtime(true);
 		
-		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		if ($this->debug) msg(htmlspecialchars($sqlstring) . ' : ' . round(($db_endtime - $db_starttime), 5));
 		$this->querytime += $db_endtime - $db_starttime;
 		$this->num_queries++;
 		
@@ -82,7 +82,7 @@ class Database {
 		
 		$db_endtime = microtime(true);
 		
-		if ($this->debug) msg($sqlstring . ' : ' . round(($db_endtime - $db_starttime), 5));
+		if ($this->debug) msg(htmlspecialchars($sqlstring) . ' : ' . round(($db_endtime - $db_starttime), 5), 2);
 		$this->querytime += ($db_endtime - $db_starttime);
 		$this->num_queries++;
 		

@@ -24,13 +24,25 @@ require_once('class.menyitemcollection.php');
 
 class AdgangsException extends Exception { }
 
-class minside { // denne classen instansieres og gen_minside() kjøres for å generere minside
+class MinSide { // denne classen instansieres og gen_minside() kjøres for å generere minside
+
+private static $_objMinside;
 
 private $_msmod = array(); // array som holder alle lastede moduler som objekter
 private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
-
-	public function __construct($username) { // kalles når class instansieres
+    
+    public static function getInstance() {
+        if(!isset(self::$_objMinside)) {
+            self::$_objMinside = new self($_SERVER['REMOTE_USER']);
+        }
+        
+        return self::$_objMinside;
+    }
+    
+    private function __clone() { }
+    
+	private function __construct($username) { // kalles når class instansieres
 	
 		try {
 			$GLOBALS['msdb'] = new Database(); // $msdb blir en globalt tilgjengelig db-class, se class.database.php
@@ -78,6 +90,12 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		
 	}
+    
+    public function genModul($page, $act, $vars = array()) {
+        $this->_lastmoduler();
+        $dispatcher = new msdispatcher($page, $this->_msmod, $this, $act, $vars);
+        return $dispatcher->dispatch();
+    }
 	
 	private function _lastmoduler() {
 		

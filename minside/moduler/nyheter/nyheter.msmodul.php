@@ -23,22 +23,23 @@ class msmodul_nyheter implements msmodul {
 	
 	public function gen_msmodul($act, $vars){
 		$this->_msmodulact = $act;
-		$this->_msmodulvars = $vars; // ikke i bruk
-		
+		$this->_msmodulvars = $vars;
+
 		// Opprett ny dispatcher
 		$this->dispatcher = new ActDispatcher($this, $this->_adgangsNiva);
 		// Funksjon som definerer handles for act-values
 		$this->_setHandlers($this->dispatcher);
 		
 		// Dispatch $act, dispatcher returnerer output
-	
-			return $this->dispatcher->dispatch($act);
+		return $this->dispatcher->dispatch($act);
 
 	}
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_3);
+		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_3);
+		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_1);
 		
 	}
 	
@@ -65,13 +66,9 @@ class msmodul_nyheter implements msmodul {
 		
         $objNyhet = NyhetFactory::getNyhetById(1);
         
-        for ($i = 0;$i < 4; $i++) {
-            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
-		}
+        $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
         
-        $output .= rawWiki($objNyhet->getWikiPath());
-        
-        $output .= p_wiki_xhtml($objNyhet->getWikiPath(), '', false);
+        //$output .= p_wiki_xhtml($objNyhet->getWikiPath(), '', false);
         
 		return $output;
 		
@@ -89,6 +86,42 @@ class msmodul_nyheter implements msmodul {
         
         return NyhetGen::genEdit($objNyhet);
     
+    }
+    
+    public function save_nyhet_changes() {
+        
+        $nyhetid = $_REQUEST['nyhetid'];
+        try{
+            $objNyhet = NyhetFactory::getNyhetById($nyhetid);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste redigeringsverktøy for nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+            return false;
+        }
+        
+        $objNyhet->setTitle($_POST['nyhettitle']);
+        $objNyhet->setWikiTekst($_POST['wikitext']);        
+        
+        if ($objNyhet->hasUnsavedChanges()) {
+            $objNyhet->update_db();
+        } else {
+            msg('Ingen endringer, oppdaterer ikke db.');
+        }
+        
+        return NyhetGen::genFullNyhetViewOnly($objNyhet);
+    }
+    
+    public function update_nyhet_from_wp() {
+        msg('Oppdaterer nyhet basert på ekstern redigering');
+        
+        $data = $this->_msmodulvars;
+        
+        $wikipath = $data[1] . ':' . $data[2];
+        $wikitext = $data[0][1];
+        
+        $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
+        $objNyhet->setWikiTekst($wikitext);
+
+        return $objNyhet->update_db();
     }
 
 }

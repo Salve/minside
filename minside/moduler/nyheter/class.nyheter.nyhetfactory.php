@@ -39,9 +39,21 @@ class NyhetFactory {
         
     }
     
+    public static function getNyhetByWikiPath($input_wikipath) {
+        global $msdb;
+        
+        $safewikipath = $msdb->quote($input_wikipath);
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE wikipath=$safewikipath LIMIT 1;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetsobjektByDbRow($res[0]);
+        
+    }
+    
     protected static function createNyhetsobjektByDbRow(array &$row) {
         
         $objNyhet = new MsNyhet(true, $row['nyhetid']);
+        $objNyhet->under_construction = true;
         
         $objNyhet->setType($row['nyhetstype']);
         $objNyhet->setTilgang($row['tilgangsgrupper']);
@@ -52,6 +64,9 @@ class NyhetFactory {
 		$objNyhet->setLastModTime($row['modtime']);
 		$objNyhet->setDeleteTime($row['deletetime']);
 		$objNyhet->setWikiPath($row['wikipath']);
+		$objNyhet->setWikiHash($row['wikihash']);
+        
+        $objNyhet->under_construction = false;
         
         return $objNyhet;
         

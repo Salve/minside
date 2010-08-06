@@ -2,6 +2,8 @@
 if(!defined('MS_INC')) die();
 
 class MsNyhet {
+
+    public $under_construction = false;
 	
 	protected $_id;	
 	protected $_tilgang;
@@ -28,6 +30,13 @@ class MsNyhet {
         $this->_issaved = $isSaved;
         $this->_id = $id;
 	}
+    
+    public function __destruct() {
+        if ($this->hasUnsavedChanges()) {
+            $id = $this->getId();
+            msg("Nyhet $id destructed with unsaved changes", -1);
+        }
+    }
 	
 	public function getId() {
 		return $this->_id;
@@ -66,17 +75,14 @@ class MsNyhet {
 		return $this->_createtime;
 	}
 	public function setCreateTime($input) {
-		$this->_createtime = $input;
-		return true;
+        return $this->set_var($this->_createtime, $input);
 	}
 
-	
 	public function getLastModTime() {
 		return $this->_lastmodtime;
 	}
 	public function setLastModTime($input) {
-		$this->_lastmodtime = $input;
-		return true;
+        return $this->set_var($this->_lastmodtime, $input);
 	}
 
 	public function hasUnsavedChanges() {
@@ -91,8 +97,7 @@ class MsNyhet {
 		return $this->_deletetime;
 	}
 	public function setDeleteTime($input) {
-		$this->_deletetime = $input;
-		return true;
+        return $this->set_var($this->_deletetime, $input);
 	}
 
 	public function isDeleted() {
@@ -106,48 +111,62 @@ class MsNyhet {
 		return $this->_imgpath;
 	}
 	public function setImagePath($input) {
-		$this->_imgpath = $input;
-		return true;
+        return $this->set_var($this->_imgpath, $input);
 	}
 	
 	public function getWikiPath() {
 		return $this->_wikipath;
 	}
 	public function setWikiPath($input) {
-		$this->_wikipath = $input;
-		return true;
+        return $this->set_var($this->_wikipath, $input);
 	}
 	
 	public function getTitle() {
 		return $this->_title;
 	}	
 	public function setTitle($input) {
-		$this->_title = $input;
-		return true;
+        return $this->set_var($this->_title, $input);
 	}
 	
 	public function getHtmlBody() {
-		return $this->_htmlbody;
+		if (!isset($this->_htmlbody)) {
+            $this->update_html();
+        }
+        
+        return $this->_htmlbody;
 	}
 	public function setHtmlBody($input) {
-		$this->_htmlbody = $input;
-		return true;
+        return $this->set_var($this->_htmlbody, $input);
 	}
 
 	public function getWikiTekst() {
+        // if (empty($this->_wikitekst) && $this->isSaved()) {
+            // $rawwiki = rawWiki($this->getWikiPath());
+            // $this->setWikiTekst($rawwiki);
+        // }
 		return $this->_wikitekst;
 	}
 	public function setWikiTekst($input) {
-		$this->_wikitekst = $input;
-		return true;
+        $newhash = md5($input);
+        $oldhash = $this->getWikiHash();
+        if ($newhash != $oldhash) {
+            msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
+            $this->set_var($this->_wikitekst, $input);
+            $this->setWikiHash($newhash);
+            $this->write_wikitext();
+            $this->update_html();
+        } else {
+            msg('setWikiTekst called, no changes');
+        }
+        
+        return true;
 	}
 
 	public function getWikiHash() {
 		return $this->_wikihash;
 	}
 	public function setWikiHash($input) {
-		$this->_wikihash = $input;
-		return true;
+        return $this->set_var($this->_wikihash, $input);
 	}
 
 	public function isSaved() {
@@ -156,10 +175,13 @@ class MsNyhet {
 	
 	protected function set_var(&$var, &$value) {
 		
-		if (($this->_issaved && isset($var) && ($var != $value)) || 
-            (!$this->_issaved && !empty($value))) {
+		if (!$this->under_construction && ($var != $value)) {
             
-			$this->_hasunsavedchanges = true;
+            $trace = debug_backtrace();
+            $caller = $trace[1]['function'];
+            msg('Endring av nyhet fra funksjon: ' . $caller);
+            
+            $this->_hasunsavedchanges = true;
 		}
 		
 		$var = $value;
@@ -176,20 +198,73 @@ class MsNyhet {
 		// $summary = edit-notat, vises i endringslogg
 		// $minor = minor-edit checkbox i wiki-redigerings ui
 		
+        // Sørger for at IO_WIKIPAGE_WRITE handler i acthandler.php
+        // ikke trigger ekstra db-update når vi skriver til wiki.
+        $GLOBALS['ms_writing_to_dw'] = true;
+        
 		$id = $this->getWikiPath();
-		$text = $this->getWikiText();
+		$text = $this->getWikiTekst();
 		$summary = 'Nyhetsendring utført gjennom MinSide.';
 		$minor = false;
 		
 		$resultat = saveWikiText($id, $text, $summary, $minor);
-		$strResultat = (string) $resultat;
-		msg('saveWikiText kallt, resultat: ' . $strResultat);
-	
+		
+        $GLOBALS['ms_writing_to_dw'] = false;
+
+		msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
+        
+        
 	}
     
-    protected function updateWikiTekst() {
+    public function update_html() {
+        msg('update html kallt');
+        global $conf;
+        $keep = $conf['allowdebug'];
+        $conf['allowdebug'] = 0;
+        
         $newtekst = p_wiki_xhtml($this->getWikiPath(), '', false);
-        $this->setWikiTekst($newtekst);
+        
+        $conf['allowdebug'] = $keep;
+
+        $this->setHtmlBody($newtekst);
+    }
+    
+    public function update_db() {
+        msg('update db kallt');
+        global $msdb;
+        
+        if (!$this->isSaved()) {
+            throw new Exception('Logic error: kan ikke benytte "update_db"-metoden på nyheter som ikke er lagret.');
+        }
+        
+        $safeid = $msdb->quote($this->getId());
+        $safetilgang = $msdb->quote($this->getTilgang());
+        $safetype = $msdb->quote($this->getType());
+        $safeviktighet = $msdb->quote($this->getId());
+        $safewikipath = $msdb->quote($this->getWikiPath());
+        $safeimgpath = $msdb->quote($this->getImagePath());
+        $safetitle = $msdb->quote($this->getTitle());
+        $safehtmlbody = $msdb->quote($this->getHtmlBody());
+        $safewikihash = $msdb->quote($this->getWikiHash());        
+        
+        $sql = "UPDATE nyheter_nyhet SET
+                tilgangsgrupper = $safetilgang,
+                nyhetstype = $safetype,
+                viktighet = $safeviktighet,
+                modtime = NOW(),
+                wikipath = $safewikipath,
+                wikihash = $safewikihash,
+                nyhettitle = $safetitle,
+                imgpath = $safeimgpath,
+                nyhetbodycache = $safehtmlbody
+                WHERE nyhetid = $safeid
+                LIMIT 1;";
+        
+        $res = $msdb->exec($sql);
+        $this->_hasunsavedchanges = false;
+        
+        // return true dersom db ble endret
+        return (bool) $res;
     }
 	
 }
