@@ -118,6 +118,10 @@ class MsNyhet {
 		return $this->_wikipath;
 	}
 	public function setWikiPath($input) {
+        if ($input == 'auto') {
+            $input = 'msnyheter:ks:' . date('Ymd ') . $this->getTitle();
+            $input = cleanID($input, true);
+        }
         return $this->set_var($this->_wikipath, $input);
 	}
 	
@@ -147,6 +151,7 @@ class MsNyhet {
 		return $this->_wikitekst;
 	}
 	public function setWikiTekst($input) {
+        $input = cleanText($input);
         $newhash = md5($input);
         $oldhash = $this->getWikiHash();
         if ($newhash != $oldhash) {
@@ -200,19 +205,20 @@ class MsNyhet {
 		
         // Sørger for at IO_WIKIPAGE_WRITE handler i acthandler.php
         // ikke trigger ekstra db-update når vi skriver til wiki.
-        $GLOBALS['ms_writing_to_dw'] = true;
+        
         
 		$id = $this->getWikiPath();
 		$text = $this->getWikiTekst();
 		$summary = 'Nyhetsendring utført gjennom MinSide.';
 		$minor = false;
+        
+        if (empty($id) || empty($text)) throw new Exception('Logic error: Kan ikke lagre nyhet i wiki uten både wikipath og tekst.');
 		
+        $GLOBALS['ms_writing_to_dw'] = true;
 		$resultat = saveWikiText($id, $text, $summary, $minor);
-		
         $GLOBALS['ms_writing_to_dw'] = false;
 
 		msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
-        
         
 	}
     
@@ -233,35 +239,47 @@ class MsNyhet {
         msg('update db kallt');
         global $msdb;
         
-        if (!$this->isSaved()) {
-            throw new Exception('Logic error: kan ikke benytte "update_db"-metoden på nyheter som ikke er lagret.');
-        }
-        
         $safeid = $msdb->quote($this->getId());
         $safetilgang = $msdb->quote($this->getTilgang());
         $safetype = $msdb->quote($this->getType());
-        $safeviktighet = $msdb->quote($this->getId());
+        $safeviktighet = $msdb->quote($this->getViktighet());
         $safewikipath = $msdb->quote($this->getWikiPath());
         $safeimgpath = $msdb->quote($this->getImagePath());
         $safetitle = $msdb->quote($this->getTitle());
         $safehtmlbody = $msdb->quote($this->getHtmlBody());
         $safewikihash = $msdb->quote($this->getWikiHash());        
+ 
         
-        $sql = "UPDATE nyheter_nyhet SET
-                tilgangsgrupper = $safetilgang,
+        $midsql = "tilgangsgrupper = $safetilgang,
                 nyhetstype = $safetype,
                 viktighet = $safeviktighet,
-                modtime = NOW(),
                 wikipath = $safewikipath,
                 wikihash = $safewikihash,
                 nyhettitle = $safetitle,
                 imgpath = $safeimgpath,
                 nyhetbodycache = $safehtmlbody
-                WHERE nyhetid = $safeid
-                LIMIT 1;";
+                ";
+                
+        if (!$this->isSaved()) {
+            $presql = "INSERT INTO nyheter_nyhet SET\n";
+            $presql .= "nyhetid = DEFAULT,\n";
+            $presql .= "createtime = NOW(),\n";
+            $postsql = ";";
+        } else {
+            $presql = "UPDATE nyheter_nyhet SET\n";
+            $presql .= "modtime = NOW(),\n";
+            $postsql = "WHERE nyhetid = $safeid LIMIT 1;";
+        }
         
+        $sql = $presql . $midsql . $postsql;
         $res = $msdb->exec($sql);
         $this->_hasunsavedchanges = false;
+        
+        if(!$this->isSaved()) {
+            $this->setId($msdb->getLastInsertId());
+        }
+        
+        $this->_issaved = true;
         
         // return true dersom db ble endret
         return (bool) $res;

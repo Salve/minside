@@ -35,7 +35,17 @@ class NyhetFactory {
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE nyhetid=$safeid LIMIT 1;";
         $res = $msdb->assoc($sql);
         
-        return self::createNyhetsobjektByDbRow($res[0]);
+        return self::createNyhetsobjektFromDbRow($res[0]);
+        
+    }
+    
+    public static function getAlleNyheter() {
+        global $msdb;
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet ORDER BY nyhetid DESC;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
         
     }
     
@@ -46,11 +56,22 @@ class NyhetFactory {
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE wikipath=$safewikipath LIMIT 1;";
         $res = $msdb->assoc($sql);
         
-        return self::createNyhetsobjektByDbRow($res[0]);
+        return self::createNyhetsobjektFromDbRow($res[0]);
         
     }
     
-    protected static function createNyhetsobjektByDbRow(array &$row) {
+    protected static function createNyhetCollectionFromDbResult(array &$result) {
+        $objNyhetCol = new NyhetCollection();
+        
+        foreach ($result as $row) {
+            $objNyhet = self::createNyhetsobjektFromDbRow($row);
+            $objNyhetCol->addItem($objNyhet, $objNyhet->getId());
+        }
+        
+        return $objNyhetCol;
+    }
+    
+    protected static function createNyhetsobjektFromDbRow(array &$row) {
         
         $objNyhet = new MsNyhet(true, $row['nyhetid']);
         $objNyhet->under_construction = true;

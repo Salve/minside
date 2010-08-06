@@ -106,6 +106,10 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Vi bryr oss kun om namespacet :msnyheter:
         if (substr($event->data[1], 0, 9) != 'msnyheter') return false;
         
+        // Denne eventen triggres også når MinSide skriver til wiki
+        // viktig at vi ikke stopper denne
+        if ($GLOBALS['ms_writing_to_dw'] === true) return false;
+        
         // Tom side skrives, forsøk på å slette nyhet!
         if (empty($event->data[0][1])) {
             die("Oppdaget førsøk på å slette nyhet gjennom DokuWiki\n<br />Vennligst benytt MinSide til å slette nyheter.");

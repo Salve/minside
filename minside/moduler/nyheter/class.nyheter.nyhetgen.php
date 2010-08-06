@@ -70,7 +70,7 @@ class NyhetGen {
 
         
         
-        $rawwiki = rawWiki($objNyhet->getWikiPath());
+        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
         
         $output .= '
             <div style="width:99%;">

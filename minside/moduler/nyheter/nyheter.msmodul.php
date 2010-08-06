@@ -40,6 +40,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_3);
 		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_1);
+		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
 		
 	}
 	
@@ -48,11 +49,11 @@ class msmodul_nyheter implements msmodul {
 	
 		if ($lvl > MSAUTH_NONE) { 
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
-			/*if (isset($this->_msmodulact)) { // Modul er lastet/vises
-				if ($lvl == MSAUTH_ADMIN) {
-					$toppmeny->addChild(new Menyitem('Nyhetsadmin','&page=nyheter&act=admin'));
+			if (isset($this->_msmodulact)) { // Modul er lastet/vises
+				if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
-			}*/
+			}
 			$meny->addItem($toppmeny);
 		}
 			
@@ -64,11 +65,11 @@ class msmodul_nyheter implements msmodul {
 
 	public function gen_nyheter_full() {
 		
-        $objNyhet = NyhetFactory::getNyhetById(1);
+        $objNyhetCol = NyhetFactory::getAlleNyheter();
         
-        $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
-        
-        //$output .= p_wiki_xhtml($objNyhet->getWikiPath(), '', false);
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+        }
         
 		return $output;
 		
@@ -88,18 +89,36 @@ class msmodul_nyheter implements msmodul {
     
     }
     
+    public function gen_add_nyhet() {
+    
+        $objNyhet = new MsNyhet();
+        
+        return NyhetGen::genEdit($objNyhet);
+    
+    }
+    
     public function save_nyhet_changes() {
         
         $nyhetid = $_REQUEST['nyhetid'];
-        try{
-            $objNyhet = NyhetFactory::getNyhetById($nyhetid);
-        } catch (Exception $e) {
-            msg('Klarte ikke å laste redigeringsverktøy for nyhet med id: ' . htmlspecialchars($nyhetid), -1);
-            return false;
+        if ($nyhetid) {
+            try{
+                $objNyhet = NyhetFactory::getNyhetById($nyhetid);
+            } catch (Exception $e) {
+                msg('Klarte ikke å laste redigeringsverktøy for nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+                return false;
+            }
+        } else {
+            $objNyhet = new MsNyhet();
         }
         
         $objNyhet->setTitle($_POST['nyhettitle']);
-        $objNyhet->setWikiTekst($_POST['wikitext']);        
+        if (!$objNyhet->isSaved()) {
+            $objNyhet->setWikiPath('auto');
+            $objNyhet->setType(1);
+            $objNyhet->setViktighet(1);
+            $objNyhet->setTilgang('ksusr');
+        }
+        $objNyhet->setWikiTekst($_POST['wikitext']);
         
         if ($objNyhet->hasUnsavedChanges()) {
             $objNyhet->update_db();
