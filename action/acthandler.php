@@ -20,45 +20,23 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 	// DokuWiki krever info, vises i admin panel
     function getInfo() {
         return array(
-            'author' => 'Salve Spinnangr',
+            'author' => 'Salve Spinnangr, Njål Kollbotn',
             'email'  => 'salve.spinnangr@gmail.com',
-            'date'   => '2010-05-15',
+            'date'   => '2010-08-07',
             'name'   => 'Min Side - acthandler',
-            'desc'   => 'Min Side er en brukerspesifik side, samt et sett verktøy laget for bruk i Lyse AS. '.
-						'Denne klassen er bindeledd mellom Min Side-scriptet og DokuWiki. Når en DokuWiki url '.
-						'som inneholder do=minside fanges opp, sørger denne klassen for å generere en dynamisk side, tilpasset brukeren.',
-            'url'    => 'http://79.161.213.78/doku.php?id=hjelp:minside',
+            'desc'   => 'Min Side er en brukerspesifik side, samt et sett verktøy laget for bruk i Lyse AS.',
+            'url'    => ''
         );
     }
      
     // Registrer event handlers
     function register(&$controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, 'handleDokiWikiStarted');
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleActPreprocess');
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handleTplActUnknown');
         
         // For nyheter - gjør nødvendige oppdateringer før/etter endringer
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
-    }
-    
-    /**
-     * Handler for DOKUWIKI_STARTED, genererer sidebar her 
-     */
-    function handleDokiWikiStarted(&$event, $param) {
-        global $INFO;
-        ob_start();
-        var_dump($INFO);
-        $res = ob_get_contents();
-        ob_end_clean();
-        msg($res);
-        
-        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
-        $objMinSide = MinSide::getInstance();
-        $data['includemstoc'] = false;
-        $res = $objMinSide->genModul('sidebar', 'show', $data);
-        
-        msg($res);
     }
      
     /**
@@ -105,6 +83,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 			require_once(DOKU_PLUGIN.'minside/minside/minside.php');
 			
 			$objMinSide = MinSide::getInstance();
+            
 			print $objMinSide->gen_minside();
 			
 			$ms_endtime = microtime(true);
