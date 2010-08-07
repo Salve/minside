@@ -6,7 +6,19 @@ require_once('class.nyheter.nyhetcollection.php');
 class NyhetFactory {
 
     const SQL_NYHET_FIELDS =
-        'nyhetid, tilgangsgrupper, nyhetstype, viktighet, createtime, modtime, deletetime, wikipath, wikihash, nyhettitle, imgpath, nyhetbodycache';
+        '   nyheter_nyhet.nyhetid AS nyhetid,
+            nyheter_nyhet.tilgangsgrupper AS tilgangsgrupper,
+            nyheter_nyhet.nyhetstype AS nyhetstype,
+            nyheter_nyhet.viktighet AS viktighet,
+            nyheter_nyhet.createtime AS createtime,
+            nyheter_nyhet.modtime AS modtime,
+            nyheter_nyhet.deletetime AS deletetime,
+            nyheter_nyhet.wikipath AS wikipath,
+            nyheter_nyhet.wikihash AS wikihash,
+            nyheter_nyhet.nyhettitle AS nyhettitle,
+            nyheter_nyhet.imgpath AS imgpath,
+            nyheter_nyhet.nyhetbodycache AS nyhetbodycache
+        ';
 
     private function __construct() { }
     
@@ -43,6 +55,26 @@ class NyhetFactory {
         global $msdb;
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet ORDER BY nyhetid DESC;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+    
+    public static function getUlesteNyheterForBrukerId($brukerid) {
+        global $msdb;
+        
+        $safebrukerid = $msdb->quote($brukerid);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . "
+                FROM nyheter_nyhet 
+                LEFT JOIN nyheter_lest 
+                ON nyheter_nyhet.nyhetid = nyheter_lest.nyhetid 
+                    AND nyheter_lest.brukerid = $safebrukerid 
+                WHERE nyheter_lest.nyhetid IS NULL
+                ORDER BY nyheter_nyhet.nyhetid DESC
+            ;";
+            
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);

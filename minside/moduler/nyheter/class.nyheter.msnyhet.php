@@ -192,6 +192,22 @@ class MsNyhet {
 		$var = $value;
 		return true;
 	}
+    
+    public function merkLest($brukerid) {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        $safebrukerid = $msdb->quote($brukerid);
+        
+        $sql = "INSERT INTO nyheter_lest SET
+                nyhetid = $safenyhetid,
+                brukerid = $safebrukerid,
+                readtime = NOW();";
+                
+        $res = $msdb->exec($sql);
+        
+        return (bool) $res;
+    }
 	
 	protected function write_wikitext() {
 		// function saveWikiText($id,$text,$summary,$minor=false)

@@ -28,7 +28,8 @@ class NyhetGen {
 		$title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
 		
-		$opt[] = '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
+		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
+            '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
 		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .

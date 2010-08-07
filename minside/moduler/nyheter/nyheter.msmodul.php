@@ -36,11 +36,14 @@ class msmodul_nyheter implements msmodul {
 	}
 	
 	private function _setHandlers(&$dispatcher) {
-		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
+		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
+		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_3);
 		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_1);
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
+		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
+		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		
 	}
 	
@@ -53,6 +56,7 @@ class msmodul_nyheter implements msmodul {
 				if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
+                $toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
 			}
 			$meny->addItem($toppmeny);
 		}
@@ -66,6 +70,18 @@ class msmodul_nyheter implements msmodul {
 	public function gen_nyheter_full() {
 		
         $objNyhetCol = NyhetFactory::getAlleNyheter();
+        
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+        }
+        
+		return $output;
+		
+	}
+    
+	public function gen_nyheter_ulest() {
+		
+        $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
@@ -141,6 +157,26 @@ class msmodul_nyheter implements msmodul {
         $objNyhet->setWikiTekst($wikitext);
 
         return $objNyhet->update_db();
+    }
+    
+    public function merk_nyhet_lest() {
+        $inputid = (int) $_REQUEST['nyhetid'];
+        
+        if ($inputid < 1 || $inputid > 9999999999) {
+            throw new Exception('Ugyldig nyhetid gitt.');
+        }
+        
+        try{
+            $objNyhet = NyhetFactory::getNyhetById($inputid);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste redigeringsverktøy for nyhet med id: ' . htmlspecialchars($inputid), -1);
+            return false;
+        }
+        
+        ($objNyhet->merkLest($this->_userID))?
+            msg("Merket nyhetid $inputid som lest", 1):
+            msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
+        
     }
 
 }
