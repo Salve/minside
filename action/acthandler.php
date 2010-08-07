@@ -33,8 +33,28 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
      
     // Registrer event handlers
     function register(&$controller) {
+        $controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, 'handleDokiWikiStarted');
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleActPreprocess');
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handleTplActUnknown');
+    }
+    
+    /**
+     * Handler for DOKUWIKI_STARTED, genererer sidebar her 
+     */
+    function handleDokiWikiStarted(&$event, $param) {
+        global $INFO;
+        ob_start();
+        var_dump($INFO);
+        $res = ob_get_contents();
+        ob_end_clean();
+        msg($res);
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        $objMinSide = MinSide::getInstance();
+        $data['includemstoc'] = false;
+        $res = $objMinSide->genModul('sidebar', 'show', $data);
+        
+        msg($res);
     }
      
     /**
