@@ -490,3 +490,35 @@ div.notater {
 	width: 100%;	
 }
 
+/* Nyheter */
+
+div.minside div.nyhet {
+    border: 1px dashed #000000;
+    overflow: hidden;
+    width: 80%;
+    margin-left: 20px;
+    margin-bottom: 1em;
+    padding: 5px;
+}
+
+div.minside div.nyhettopbar {
+    background-color: #DEE7EF;
+}
+
+div.minside div.nyhettitle {
+    float: left;
+    font-size: 140%;
+    color: #426973;
+    font-weight: bold;
+    padding: 0.5em 0 0.5em 0.5em;
+}
+
+div.minside div.nyhetoptions {
+    float: right;
+    margin-top: 0.25em;
+    margin-right: 0.25em;
+}
+
+div.minside div.nyhetbody {
+    margin-top: 0.5em;
+}

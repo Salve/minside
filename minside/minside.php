@@ -11,24 +11,38 @@ define('MSAUTH_5',16); // Slette
 define('MSAUTH_ADMIN',255); // Wiki-admin
 define('MS_IMG_PATH', DOKU_REL . 'lib/plugins/minside/minside/bilder/');
 
-require_once('msconfig.php');
-require_once('class.database.php');
 require_once('interface.msmodul.php');
-require_once('class.msdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
+require_once('msconfig.php');
+require_once('class.database.php');
+require_once('class.msdispatcher.php');
+require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 
+class AdgangsException extends Exception { }
 
-class minside { // denne classen instansieres og gen_minside() kjøres for å generere minside
+class MinSide { // denne classen instansieres og gen_minside() kjøres for å generere minside
+
+private static $_objMinside;
 
 private $_msmod = array(); // array som holder alle lastede moduler som objekter
 private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
-
-	public function __construct($username) { // kalles når class instansieres
+    
+    public static function getInstance() {
+        if(!isset(self::$_objMinside)) {
+            self::$_objMinside = new self($_SERVER['REMOTE_USER']);
+        }
+        
+        return self::$_objMinside;
+    }
+    
+    private function __clone() { }
+    
+	private function __construct($username) { // kalles når class instansieres
 	
 		try {
 			$GLOBALS['msdb'] = new Database(); // $msdb blir en globalt tilgjengelig db-class, se class.database.php
@@ -55,7 +69,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
 		} else {
-			$page = 'feilmrapport';
+			$page = 'nyheter';
 		}
 		
 		if(array_key_exists('act', $_REQUEST)) {
@@ -76,6 +90,12 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		
 	}
+    
+    public function genModul($page, $act, $vars = array()) {
+        $this->_lastmoduler();
+        $dispatcher = new msdispatcher($page, $this->_msmod, $this, $act, $vars);
+        return $dispatcher->dispatch();
+    }
 	
 	private function _lastmoduler() {
 		
