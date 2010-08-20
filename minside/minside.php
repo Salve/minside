@@ -31,7 +31,8 @@ private static $_objMinside;
 private $_msmod = array(); // array som holder alle lastede moduler som objekter
 private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
-    
+private $toc; // inneholder xhtml for ms-toc når den er generert
+
     public static function getInstance() {
         if(!isset(self::$_objMinside)) {
             self::$_objMinside = new self($_SERVER['REMOTE_USER']);
@@ -84,7 +85,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 
 		$msoutput .= '<div class="msclearer"></div></div>';
 		
-		$msoutput = $mspremenu . $this->_genMeny() . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
+		$msoutput = $mspremenu . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
 																// valgfrihet i hvilke menyitems som skal vises, men
 		return $msoutput;										// legges i starten av output.
 		
@@ -155,8 +156,12 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 	}
 	
-	private function _genMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
-	
+	public function genMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
+        
+        if (isset($this->toc)) {
+            return $this->toc; // cached streng med toc
+        }
+        
 		$meny = new MenyitemCollection(); // collection-variabel som sendes til alle lastede moduler
 		
 		foreach ($this->_msmod as $msmod) {
@@ -172,6 +177,8 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		$output .= '';
 		
+        $this->toc = $output;
+        
 		return $output;
 	}
 	

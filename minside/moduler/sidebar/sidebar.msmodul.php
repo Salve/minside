@@ -38,6 +38,7 @@ class msmodul_sidebar implements msmodul{
     private function getSidebar() {
         if(auth_quickaclcheck('msauth:vismeny:info') >= AUTH_READ){
             $minside = '<tr><td class="menu_title" align="left"><a href="doku.php?do=minside" class="menu_item">Min Side</a> </td></tr>';
+            $minside .= '<tr><td>' . $this->_getTOC() . '</td></tr>';
         }
         if(auth_quickaclcheck('feilbed:index') >= AUTH_READ) {
             $feilbed = '<tr><td class="menu_title" align="left"><a href="doku.php?id=feilbed:index" class="menu_item">FeilBed</a></td></tr>';
@@ -112,5 +113,10 @@ class msmodul_sidebar implements msmodul{
         ';
         
         return $output;
+    }
+    
+    private function _getTOC() {
+        $objMinSide = MinSide::getInstance();
+        return $objMinSide->genMeny();
     }
 }

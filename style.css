@@ -193,17 +193,17 @@ div.minside li.msclosed {
     /*list-style-type: disc;*/
 }
 
-div.minside div.mstoc {
-	position: absolute;
+div.mstoc {
+	/*position: absolute;
 	right: -205px;
 	clear:both;
 	float:right;
 	font-size:100%;
 	margin:1.2em 0 0 2em;
-	width:200px;
+	width:200px;*/
 }
 
-div.minside ul.mstoc {
+ul.mstoc {
 	color:#638C9C;
 	line-height:1.5em;
 	list-style-image:none;
@@ -211,7 +211,7 @@ div.minside ul.mstoc {
 	margin:0 0 0 3.5em;
 }
 
-div.minside ul.mstoc ul.mstoc {
+ul.mstoc ul.mstoc {
 	margin: 0 0 0 1.5em;
 }
 
@@ -224,19 +224,19 @@ div.mstoc .meny {
 	width: 100%;
 	border: 1px #8cacbb;
 	border-style: solid;
-	float:left;
+	/*float:left;*/
 	background-color: white;
 	overflow: hidden;
 }
 
-div.minside #mstoc__inside {
+#mstoc__inside {
   border: 1px solid #8b7355;
 
   text-align: left;
   padding: 0.5em 0 0.7em 0;
 }
 
-div.minside div.mstocheader {
+div.mstocheader {
   border: 1px solid #8CACBB;
   background-color: #DEE7EC;
   text-align: left;
