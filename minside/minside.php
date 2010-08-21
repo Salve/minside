@@ -34,6 +34,7 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 private $toc; // inneholder xhtml for ms-toc når den er generert
 
     public static function getInstance() {
+    
         if(!isset(self::$_objMinside)) {
             self::$_objMinside = new self($_SERVER['REMOTE_USER']);
         }
@@ -65,7 +66,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		
 		// Kode under er midlertidig hack for å vise "et eller annet" på forsiden
 		
-		$mspremenu .= '<div class="minside">'; 
+		$msoutput .= '<div class="minside">'; 
 		
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
@@ -85,9 +86,9 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 
 		$msoutput .= '<div class="msclearer"></div></div>';
 		
-		$msoutput = $mspremenu . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
-																// valgfrihet i hvilke menyitems som skal vises, men
-		return $msoutput;										// legges i starten av output.
+        $this->getMeny(); // Kalles for at meny skal genereres og caches nå
+											
+		return $msoutput;
 		
 		
 	}
@@ -156,8 +157,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 	}
 	
-	public function genMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
-        
+	public function getMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
         if (isset($this->toc)) {
             return $this->toc; // cached streng med toc
         }

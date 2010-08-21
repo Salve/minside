@@ -203,12 +203,12 @@ div.mstoc {
 	width:200px;*/
 }
 
-ul.mstoc {
+div.dokuwiki ul.mstoc {
 	color:#638C9C;
 	line-height:1.5em;
 	list-style-image:none;
 	list-style-type:square;
-	margin:0 0 0 3.5em;
+	margin:0 0 0 1.5em;
 }
 
 ul.mstoc ul.mstoc {

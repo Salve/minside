@@ -117,6 +117,6 @@ class msmodul_sidebar implements msmodul{
     
     private function _getTOC() {
         $objMinSide = MinSide::getInstance();
-        return $objMinSide->genMeny();
+        return $objMinSide->getMeny();
     }
 }
