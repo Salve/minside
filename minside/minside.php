@@ -28,7 +28,7 @@ class MinSide { // denne classen instansieres og gen_minside() kjøres for å ge
 
 private static $_objMinside;
 
-private $_msmod = array(); // array som holder alle lastede moduler som objekter
+private $_msmod; // array som holder alle lastede moduler som objekter
 private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
 private $toc; // inneholder xhtml for ms-toc når den er generert
@@ -85,8 +85,6 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		$msoutput .= $msdisp->dispatch();
 
 		$msoutput .= '<div class="msclearer"></div></div>';
-		
-        $this->getMeny(); // Kalles for at meny skal genereres og caches nå
 											
 		return $msoutput;
 		
@@ -100,13 +98,14 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
     }
 	
 	private function _lastmoduler() {
-		
-		foreach (mscfg::$moduler as $modulnavn) { 											// se msconfig.php
-			require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.msmodul.php';		// f.eks. moduler/testmodul/testmodul.msmodul.php
-			$msclassnavn = 'msmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. msmodul_testmodul
-			$this->_msmod[$modulnavn] = new $msclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
-			// $this->_msmod holder alle lastede moduler
-		}
+		if (!isset($this->_msmod)) {
+            foreach (mscfg::$moduler as $modulnavn) { 											// se msconfig.php
+                require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.msmodul.php';		// f.eks. moduler/testmodul/testmodul.msmodul.php
+                $msclassnavn = 'msmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. msmodul_testmodul
+                $this->_msmod[$modulnavn] = new $msclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
+                // $this->_msmod holder alle lastede moduler
+            }
+        }
 	
 	}
 	
