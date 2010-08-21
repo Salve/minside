@@ -11,26 +11,40 @@ define('MSAUTH_5',16); // Slette
 define('MSAUTH_ADMIN',255); // Wiki-admin
 define('MS_IMG_PATH', DOKU_REL . 'lib/plugins/minside/minside/bilder/');
 
-require_once('msconfig.php');
-require_once('class.database.php');
 require_once('interface.msmodul.php');
-require_once('class.msdispatcher.php');
-require_once('class.actdispatcher.php');
 require_once('class.collectioniterator.php');
 require_once('class.collection.php');
+require_once('msconfig.php');
+require_once('class.database.php');
+require_once('class.msdispatcher.php');
+require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 
 class AdgangsException extends Exception { }
 
-class minside { // denne classen instansieres og gen_minside() kjøres for å generere minside
+class MinSide { // denne classen instansieres og gen_minside() kjøres for å generere minside
 
-private $_msmod = array(); // array som holder alle lastede moduler som objekter
+private static $_objMinside;
+
+private $_msmod; // array som holder alle lastede moduler som objekter
 private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
 private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
+private $toc; // inneholder xhtml for ms-toc når den er generert
 
-	public function __construct($username) { // kalles når class instansieres
+    public static function getInstance() {
+    
+        if(!isset(self::$_objMinside)) {
+            self::$_objMinside = new self($_SERVER['REMOTE_USER']);
+        }
+        
+        return self::$_objMinside;
+    }
+    
+    private function __clone() { }
+    
+	private function __construct($username) { // kalles når class instansieres
 	
 		try {
 			$GLOBALS['msdb'] = new Database(); // $msdb blir en globalt tilgjengelig db-class, se class.database.php
@@ -52,12 +66,12 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		// Kode under er midlertidig hack for å vise "et eller annet" på forsiden
 		
-		$mspremenu .= '<div class="minside">'; 
+		$msoutput .= '<div class="minside">'; 
 		
 		if(array_key_exists('page', $_REQUEST)) {
 			$page = $_REQUEST['page'];
 		} else {
-			$page = 'feilmrapport';
+			$page = 'nyheter';
 		}
 		
 		if(array_key_exists('act', $_REQUEST)) {
@@ -71,22 +85,27 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		$msoutput .= $msdisp->dispatch();
 
 		$msoutput .= '<div class="msclearer"></div></div>';
-		
-		$msoutput = $mspremenu . $this->_genMeny() . $msoutput; // meny genereres til slutt for å gi moduler mest mulig
-																// valgfrihet i hvilke menyitems som skal vises, men
-		return $msoutput;										// legges i starten av output.
+											
+		return $msoutput;
 		
 		
 	}
+    
+    public function genModul($page, $act, $vars = array()) {
+        $this->_lastmoduler();
+        $dispatcher = new msdispatcher($page, $this->_msmod, $this, $act, $vars);
+        return $dispatcher->dispatch();
+    }
 	
 	private function _lastmoduler() {
-		
-		foreach (mscfg::$moduler as $modulnavn) { 											// se msconfig.php
-			require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.msmodul.php';		// f.eks. moduler/testmodul/testmodul.msmodul.php
-			$msclassnavn = 'msmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. msmodul_testmodul
-			$this->_msmod[$modulnavn] = new $msclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
-			// $this->_msmod holder alle lastede moduler
-		}
+		if (!isset($this->_msmod)) {
+            foreach (mscfg::$moduler as $modulnavn) { 											// se msconfig.php
+                require_once 'moduler/' . $modulnavn . '/' . $modulnavn . '.msmodul.php';		// f.eks. moduler/testmodul/testmodul.msmodul.php
+                $msclassnavn = 'msmodul_' . $modulnavn;											// modulens hoved class skal være f.eks. msmodul_testmodul
+                $this->_msmod[$modulnavn] = new $msclassnavn($this->getUserID(), $this->sjekkAdgang($modulnavn)); // alle moduler får userid og accessnivå i forhold til modul @ instansiering
+                // $this->_msmod holder alle lastede moduler
+            }
+        }
 	
 	}
 	
@@ -137,8 +156,11 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 	
 	}
 	
-	private function _genMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
-	
+	public function getMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
+        if (isset($this->toc)) {
+            return $this->toc; // cached streng med toc
+        }
+        
 		$meny = new MenyitemCollection(); // collection-variabel som sendes til alle lastede moduler
 		
 		foreach ($this->_msmod as $msmod) {
@@ -154,6 +176,8 @@ private $username; // brukernavn som oppgis når script kalles, alltid tilgjenge
 		
 		$output .= '';
 		
+        $this->toc = $output;
+        
 		return $output;
 	}
 	
