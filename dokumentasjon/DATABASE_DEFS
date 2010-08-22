@@ -131,3 +131,14 @@ CREATE TABLE `nyheter_lest` (
   KEY `idlookup` (`nyhetid`,`brukerid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `sidebar_blokk`;
+CREATE TABLE `sidebar_blokk` (
+  `blokkid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `blokknavn` varchar(100) NOT NULL DEFAULT 'NONAME',
+  `blokkurl` varchar(250) DEFAULT NULL,
+  `blokktype` tinyint(4) NOT NULL,
+  `blokkorder` int(10) unsigned NOT NULL,
+  `blokkacl` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`blokkid`),
+  UNIQUE KEY `blokkid_UNIQUE` (`blokkid`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
