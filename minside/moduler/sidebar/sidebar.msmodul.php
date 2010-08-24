@@ -1,5 +1,9 @@
 <?php
 if(!defined('MS_INC')) die();
+
+require_once('class.sidebarfactory.php');
+require_once('class.sidebargen.php');
+
 class msmodul_sidebar implements msmodul{
 
     private $_msmodulact;
@@ -19,17 +23,58 @@ class msmodul_sidebar implements msmodul{
         $this->_msmodulact = $act;
         $this->_msmodulvars = $vars;
         
-        $output = $this->getSidebar();
-        
-        return $output; 
+		switch($act) {
+			case 'show':
+				return $this->getSidebar();
+				break;
+			case 'add':
+				if ($this->_adgangsNiva >= MSAUTH_2) 
+					$this->_doAdd();
+			case 'admin':
+				if ($this->_adgangsNiva >= MSAUTH_2) 
+					return $this->_genAdmin();
+				break;
+		} 
     
     }
+	
+	private function _genAdmin() {
+		$objSidebar = SidebarFactory::getSidebar();		
+		return SidebarGen::genAdmin($objSidebar);
+	}
+	
+	private function _doAdd() {
+		switch ($_REQUEST['addaction']) {
+			case 'Overskrift':
+				$navn = 'Ny overskrift';
+				$type = Menyitem::TYPE_HEADER;
+				break;
+			case 'Vanlig lenke':
+				$navn = 'Ny lenke';
+				$type = Menyitem::TYPE_NORMAL;
+				$href = 'doku.php?id=';
+				break;
+			case 'Spacer':
+				$navn = 'Spacer';
+				$type = Menyitem::TYPE_SPACER;
+				$href = '';
+				break;
+			case 'MinSide meny':
+				$navn = 'MinSide Meny';
+				$type = Menyitem::TYPE_MSTOC;
+				$href= 'doku.php?do=minside';
+				break;
+		}
+		$objMenyitem = new Menyitem($navn, $href, NULL, $type);
+		$objMenyitem->updateDb();
+		
+	}
     
     public function registrer_meny(MenyitemCollection &$meny){ 
         $lvl = $this->_adgangsNiva;
     
         if ($lvl > MSAUTH_NONE) {
-            $toppmeny = new Menyitem('Sidebar','&page=sidebar');
+            $toppmeny = new Menyitem('Sidebar','&page=sidebar&act=admin');
             $meny->addItem($toppmeny);
         }
     

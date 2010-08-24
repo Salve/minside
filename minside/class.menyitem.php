@@ -35,6 +35,10 @@ class Menyitem {
     public function isSaved() {
         return isset($this->_id);
     }
+	
+	public function getId() {
+		return $this->_id;
+	}
     
 	public function getTekst() {
 		return $this->_tekst;
@@ -125,7 +129,11 @@ class Menyitem {
     }
     
     public function updateDb() {
-        global $msdb;
+        if ($this->isSaved() && !$this->_hasUnsavedChanges) {
+			return false;
+		}
+		
+		global $msdb;
         
         $safeid = $msdb->quote($this->_id);
         $safetekst = $msdb->quote($this->_tekst);
@@ -136,7 +144,8 @@ class Menyitem {
         
         if (!$this->isSaved()) {
             msg('Writing new sidebar blokk to db...', 2);
-            $safeorder = $msdb->quote($this->getLastOrder());
+            $order = $this->getLastOrder();
+			$safeorder = $msdb->quote($order);
             $sql = "INSERT INTO sidebar_blokk SET
                     blokknavn = $safetekst,
                     blokkurl = $safehref,
@@ -157,9 +166,11 @@ class Menyitem {
         $result = $msdb->exec($sql);
         
         if (!$this->isSaved()) {
-            $this->_id = $msdb->getLastInsertId();
+            $this->setSaved($msdb->getLastInsertId(), $order);
         }
         
+		return $result;
+		
     }
     
     public function modOrderOpp() {
