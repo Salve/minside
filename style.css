@@ -523,6 +523,13 @@ div.minside div.nyhetbody {
     margin-top: 0.5em;
 }
 
+div.dokuwiki div.nyhetbody div.tags {
+	border: none;
+	clear:both;
+	font-size:95%;
+	text-align:left;
+}
+
 /* Sidebar */
 
 table.sidebaradm td {
