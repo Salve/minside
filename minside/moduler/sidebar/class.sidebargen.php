@@ -77,10 +77,13 @@ class SidebarGen {
 		
 		$output .= '<div class="sidebaradmin_right" style="float: right;">';
 		$output .= '<p><strong>Legg til menyelementer</strong></p>';
-		$output .= '<input type="submit" name="addaction" value="Overskrift" class="msbutton"><br />';
-		$output .= '<input type="submit" name="addaction" value="Vanlig lenke" class="msbutton"><br />';
+		$output .= '<div class="label">Tekst: </div><input type="text" name="addtekst" class="edit"><br />';
+		$output .= '<div class="label">URL: </div><input type="text" name="addhref" class="edit"><br />';
+		$output .= '<div class="label">ACL: </div><input type="text" name="addacl" class="edit"><br />';
+		$output .= '<input type="submit" name="addaction" value="Lag overskrift" class="msbutton"><br />';
+		$output .= '<input type="submit" name="addaction" value="Lag vanlig lenke" class="msbutton"><br />';
+		$output .= '<br /><p><strong>Legg til spesialblokker</strong></p>';
 		$output .= '<input type="submit" name="addaction" value="Spacer" class="msbutton"><br />';
-		$output .= '<p><strong>Legg til spesialblokker</strong></p>';
 		$output .= '<input type="submit" name="addaction" value="MinSide meny" class="msbutton"><br />';
 		$output .= '</div> <!-- end sidebaradmin_right -->';
 		$output .= '<div class="msclearer"></div>';

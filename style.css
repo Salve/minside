@@ -522,3 +522,23 @@ div.minside div.nyhetoptions {
 div.minside div.nyhetbody {
     margin-top: 0.5em;
 }
+
+/* Sidebar */
+
+table.sidebaradm td {
+	padding-right: 5px;
+}
+
+div.sidebaradmin_right input.msbutton {
+	width: 150px;
+}
+
+div.sidebaradmin_right div.label {
+	width: 3em;
+	float: left;
+	line-height: 20px;
+}
+
+div.sidebaradmin_right input.edit {
+	width: 105px;
+}

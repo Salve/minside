@@ -76,29 +76,46 @@ class msmodul_sidebar implements msmodul{
 	}
 	
 	private function _doAdd() {
-	
+		
 		switch ($_REQUEST['addaction']) {
-			case 'Overskrift':
-				$navn = 'Ny overskrift';
+			case 'Lag overskrift':
+				if (empty($_REQUEST['addtekst'])) {
+					msg('Tekst er obligatorisk for overskrift', -1);
+					return false;
+				}
+				$navn = htmlspecialchars($_REQUEST['addtekst']);
+				$href = htmlspecialchars($_REQUEST['addhref']);
+				$acl = cleanID($_REQUEST['addacl'], true);
 				$type = Menyitem::TYPE_HEADER;
 				break;
-			case 'Vanlig lenke':
-				$navn = 'Ny lenke';
+			case 'Lag vanlig lenke':
+				if (empty($_REQUEST['addtekst'])) {
+					msg('Tekst er obligatorisk for lenker', -1);
+					return false;
+				}
+				if (empty($_REQUEST['addhref'])) {
+					msg('URL er obligatorisk for lenker', -1);
+					return false;
+				}
+				$navn = htmlspecialchars($_REQUEST['addtekst']);
+				$href = htmlspecialchars($_REQUEST['addhref']);
+				$acl = cleanID($_REQUEST['addacl'], true);
 				$type = Menyitem::TYPE_NORMAL;
-				$href = 'doku.php?id=';
 				break;
 			case 'Spacer':
 				$navn = 'Spacer';
 				$type = Menyitem::TYPE_SPACER;
-				$href = '';
+				$acl = cleanID($_REQUEST['addacl'], true);
 				break;
 			case 'MinSide meny':
 				$navn = 'MinSide Meny';
 				$type = Menyitem::TYPE_MSTOC;
 				$href= 'doku.php?do=minside';
+				$acl = cleanID($_REQUEST['addacl'], true);
 				break;
 		}
-		$objMenyitem = new Menyitem($navn, $href, NULL, $type);
+		
+		$objMenyitem = new Menyitem($navn, $href, $acl, $type);
 		$objMenyitem->updateDb();
 		
 	}
