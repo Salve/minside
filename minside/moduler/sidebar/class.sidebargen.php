@@ -62,6 +62,10 @@ class SidebarGen {
 		$output .= '<form action="' . MS_LINK . '&page=sidebar&act=InsOrMov" method="POST">';
 		$output .= '<div class="sidebaradmin_left" style="float: left;">';
 		
+		if ($objSidebar->length() === 0) {
+			$output .= '<div class="mswarningbar">Ingenting her!</div>';
+		}
+		
 		$output .= '<div class="left_sidebar">' .
 				   '<table class="sidebaradm">';
 		
