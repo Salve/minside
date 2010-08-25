@@ -8,7 +8,7 @@ class SidebarFactory {
 	public static function getSidebar() {
 		global $msdb;
 		
-		$sql = "SELECT " . SidebarFactory::DB_COLS . " FROM sidebar_blokk;";
+		$sql = "SELECT " . SidebarFactory::DB_COLS . " FROM sidebar_blokk ORDER BY blokkorder ASC;";
 		
 		$result = $msdb->assoc($sql);
 		

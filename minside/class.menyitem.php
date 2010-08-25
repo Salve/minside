@@ -74,6 +74,49 @@ class Menyitem {
     public function setOrder($input) {
         $this->_setvar($this->_order, $input);
     }
+	public function changeOrder($neworder) {
+		global $msdb;
+		
+		$oldorder = $this->_order;
+		
+		$safeneworder = $msdb->quote($neworder);
+		$safeoldorder = $msdb->quote($oldorder);
+		$safeid = $msdb->quote($this->_id);
+		
+		if ($neworder < $oldorder) {
+			// Blokk flyttes oppover
+			$sql_makeroom = "UPDATE sidebar_blokk
+				SET blokkorder = blokkorder + 1
+				WHERE blokkorder >= $safeneworder
+				AND blokkorder < $safeoldorder;";
+			
+			$sql_move = "UPDATE sidebar_blokk
+				SET blokkorder = $safeneworder
+				WHERE blokkid = $safeid";
+				
+		} else {
+			// Blokk flyttes nedover
+			$sql_makeroom = "UPDATE sidebar_blokk
+				SET blokkorder = blokkorder - 1
+				WHERE blokkorder > $safeoldorder
+				AND blokkorder <= $safeneworder;";
+			
+			$sql_move = "UPDATE sidebar_blokk
+				SET blokkorder = $safeneworder
+				WHERE blokkid = $safeid";
+		}
+				
+		$msdb->startTrans();
+		$res1 = $msdb->exec($sql_makeroom);
+		$res2 = $msdb->exec($sql_move);
+		if ($res1 === false || $res2 === false) {
+			throw new Exception('Flytting feilet!');
+			$msdb->rollBack();
+		} else {
+			$msdb->commit();
+			return true;
+		}
+	}
     
     public function checkAcl() {
         if (!isset($this->_acl)) return true;

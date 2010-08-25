@@ -59,11 +59,11 @@ class SidebarGen {
 	public static function GenAdmin(MenyitemCollection $objSidebar) {
 		
 		$output .= '<div class="sidebaradmin">';
-		$output .= '<form action="' . MS_LINK . '&page=sidebar&act=add" method="POST">';
+		$output .= '<form action="' . MS_LINK . '&page=sidebar&act=InsOrMov" method="POST">';
 		$output .= '<div class="sidebaradmin_left" style="float: left;">';
 		
 		$output .= '<div class="left_sidebar">' .
-				   '<table cellspacing=4>';
+				   '<table class="sidebaradm">';
 		
 		foreach ($objSidebar as $objMenyitem) {
 			if ($objMenyitem->checkAcl() === true) {
@@ -101,31 +101,34 @@ class SidebarGen {
 			$menyitem = $tekst;
 		}
 		
+		$opt['move'] = '<input type="image" src="'.MS_IMG_PATH.'insert.gif" width=16 height=16 alt="flytt" ' .
+					'title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . $objMenyitem->getId() . '">';
 		$opt['trash'] = '<a href="'. MS_LINK.'&page=sidebar&act=rem&blokkid='. $objMenyitem->getId() .
-					'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" title="Slett blokk"></a>';
+					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" title="Slett blokk"></a>';
 		
 		switch ($objMenyitem->getType()) {
 			case Menyitem::TYPE_HEADER:
-				$output = '<tr><td>' . implode($opt) . '</td>' .
-						  '<td class="menu_title" align="left">' .
-						  $menyitem .
-						  '</td></tr>' . "\n";
+				$blokk = '<td class="menu_title" align="left">' . $menyitem . '</td>';
 				break;
 			case Menyitem::TYPE_NORMAL:
-				$output = '<tr><td>' . implode($opt) . '</td>' .
-						  "<td> $menyitem </td></tr>";
+				$blokk = "<td> $menyitem </td>";
 				break;
 			case Menyitem::TYPE_SPACER:
-				$output = "<tr><td>" . implode($opt) . "</td><td>SPACER</td></tr>\n";
+				$blokk = "<td>SPACER</td>";
 				break;
 			case Menyitem::TYPE_MSTOC:
-				return '<tr><td class="menu_title" align="left">' . 
-					   'MinSide meny her' . 
-					   '</td></tr>';
+				$blokk = '<td class="menu_title" align="left">MinSide meny her</td>';
 				break;
 			default:
 				throw new Exception('Ukjent menyitem-type: ' . $objMenyitem->getType());
 		}
+		
+		$output = '<tr>';
+		$output .= '<td><input type="radio" name="targetblokkid" value="' . 
+			$objMenyitem->getId() . '" /></td>';
+		$output .= '<td>' . implode($opt) . '</td>';
+		$output .= $blokk;
+		$output .= '</tr>';
 		
 		return $output;		
 	}

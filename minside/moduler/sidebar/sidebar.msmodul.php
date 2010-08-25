@@ -33,9 +33,13 @@ class msmodul_sidebar implements msmodul{
 					return $this->_genAdmin();
 				}
 				break;
-			case 'add':
+			case 'InsOrMov':
 				if ($this->_adgangsNiva >= MSAUTH_2) {
-					$this->_doAdd();
+					if (isset($_REQUEST['addaction'])) {
+						$this->_doAdd();
+					} elseif (isset($_REQUEST['movblokkid'])) {
+						$this->_doMov();
+					}
 					return $this->_genAdmin();
 				}
 				break;
@@ -52,7 +56,27 @@ class msmodul_sidebar implements msmodul{
 		return SidebarGen::genAdmin($objSidebar);
 	}
 	
+	private function _doMov() {
+		
+		if (!isset($_REQUEST['targetblokkid'])) {
+			msg('Du må velge ny posisjon for å flytte blokk.', -1);
+			return false;
+		}
+		
+		try {
+			$objTarget = SidebarFactory::getBlokkById($_REQUEST['targetblokkid']);
+			$objObject = SidebarFactory::getBlokkById($_REQUEST['movblokkid']);
+			
+			$objObject->changeOrder($objTarget->getOrder());
+		} catch (Exception $e) {
+			msg('Klarte ikke å flytte blokk: ' . $e->getMessage(), -1);
+			return;
+		}
+		
+	}
+	
 	private function _doAdd() {
+	
 		switch ($_REQUEST['addaction']) {
 			case 'Overskrift':
 				$navn = 'Ny overskrift';
