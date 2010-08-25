@@ -27,9 +27,18 @@ class msmodul_sidebar implements msmodul{
 			case 'show':
 				return $this->getSidebar();
 				break;
+			case 'rem':
+				if ($this->_adgangsNiva >= MSAUTH_2) {
+					$this->_doRem();
+					return $this->_genAdmin();
+				}
+				break;
 			case 'add':
-				if ($this->_adgangsNiva >= MSAUTH_2) 
+				if ($this->_adgangsNiva >= MSAUTH_2) {
 					$this->_doAdd();
+					return $this->_genAdmin();
+				}
+				break;
 			case 'admin':
 				if ($this->_adgangsNiva >= MSAUTH_2) 
 					return $this->_genAdmin();
@@ -67,6 +76,19 @@ class msmodul_sidebar implements msmodul{
 		}
 		$objMenyitem = new Menyitem($navn, $href, NULL, $type);
 		$objMenyitem->updateDb();
+		
+	}
+	private function _doRem() {
+		try {
+			$objMenyitem = SidebarFactory::getBlokkById($_REQUEST['blokkid']);
+			$objMenyitem->delete();
+		} catch (Exception $e) {
+			msg('Klarte ikke å slette blokk: ' . $e->getMessage(), -1);
+			return;
+		}
+		
+		msg('Slettet sidebar-blokk.', 1);
+		return true;
 		
 	}
     

@@ -101,19 +101,22 @@ class SidebarGen {
 			$menyitem = $tekst;
 		}
 		
+		$opt['trash'] = '<a href="'. MS_LINK.'&page=sidebar&act=rem&blokkid='. $objMenyitem->getId() .
+					'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" title="Slett blokk"></a>';
+		
 		switch ($objMenyitem->getType()) {
 			case Menyitem::TYPE_HEADER:
-				$output = '<tr><td class="menu_title" align="left">' .
+				$output = '<tr><td>' . implode($opt) . '</td>' .
+						  '<td class="menu_title" align="left">' .
 						  $menyitem .
 						  '</td></tr>' . "\n";
 				break;
 			case Menyitem::TYPE_NORMAL:
-				$output = '<tr><td>' .
-						  $menyitem .
-						  '</td></tr>';
+				$output = '<tr><td>' . implode($opt) . '</td>' .
+						  "<td> $menyitem </td></tr>";
 				break;
 			case Menyitem::TYPE_SPACER:
-				$output = "<tr><td>SPACER</td></tr>\n";
+				$output = "<tr><td>" . implode($opt) . "</td><td>SPACER</td></tr>\n";
 				break;
 			case Menyitem::TYPE_MSTOC:
 				return '<tr><td class="menu_title" align="left">' . 

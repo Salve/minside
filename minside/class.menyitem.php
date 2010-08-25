@@ -127,6 +127,35 @@ class Menyitem {
         $var = $input;
         
     }
+	
+	public function delete() {
+		if (!$this->isSaved()) {
+			throw new Exception('Kan ikke slette menyitem som ikke er lagret i database.');
+		}
+		
+		global $msdb;
+		$safeid = $msdb->quote($this->_id);
+		$safeorder = $msdb->quote($this->_order);
+		$sql_delete = "DELETE FROM sidebar_blokk WHERE blokkid=$safeid LIMIT 1;";
+		$sql_update = "UPDATE sidebar_blokk SET blokkorder = blokkorder -1 WHERE blokkorder > $safeorder;";
+		
+		$msdb->startTrans();
+		
+		$result = $msdb->exec($sql_delete);
+		if ($result !== 1) {
+			$msdb->rollBack();
+			throw new Exception('Feil ved sletting av blokk!');
+		}
+		
+		$result = $msdb->exec($sql_update);
+		if ($result === false) {
+			$msdb->rollBack();
+			throw new Exception('Feil ved oppdatering av rekkefølge!');
+		}
+		
+		$msdb->commit();	
+		
+	}
     
     public function updateDb() {
         if ($this->isSaved() && !$this->_hasUnsavedChanges) {
