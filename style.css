@@ -542,3 +542,8 @@ div.sidebaradmin_right div.label {
 div.sidebaradmin_right input.edit {
 	width: 105px;
 }
+
+div#main_page > div.left_sidebar {
+	width: 140px;
+	overflow: hidden;
+}

@@ -101,9 +101,16 @@ class SidebarGen {
 		
 		$href = $objMenyitem->getHref();
 		$tekst = $objMenyitem->getTekst();
+		$acl = $objMenyitem->getAcl();
+		
+		if (empty($acl)) { 
+			$acl = 'Ingen ACL satt, alle kan se denne.';
+		} else {
+			$acl = 'Blokk kun synlig for brukere med lesetilgang til: ' . $acl;
+		}
 		
 		if (!empty($href)) {
-			$menyitem = "<a href=\"$href\" class=\"menu_item\">$tekst</a>";
+			$menyitem = "<span title=\"$acl\"><a href=\"$href\" class=\"menu_item\">$tekst</a></span>";
 		} else {
 			$menyitem = $tekst;
 		}
@@ -121,7 +128,7 @@ class SidebarGen {
 				$blokk = "<td> $menyitem </td>";
 				break;
 			case Menyitem::TYPE_SPACER:
-				$blokk = "<td>SPACER</td>";
+				$blokk = "<td><span title=\"$acl\">SPACER</span></td>";
 				break;
 			case Menyitem::TYPE_MSTOC:
 				$blokk = '<td class="menu_title" align="left">MinSide meny her</td>';

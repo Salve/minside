@@ -118,6 +118,16 @@ class msmodul_sidebar implements msmodul{
 		$objMenyitem = new Menyitem($navn, $href, $acl, $type);
 		$objMenyitem->updateDb();
 		
+		if (isset($_REQUEST['targetblokkid'])) {
+			try {
+				$objTarget = SidebarFactory::getBlokkById($_REQUEST['targetblokkid']);
+				$objMenyitem->changeOrder($objTarget->getOrder());
+			} catch (Exception $e) {
+				msg('Klarte ikke å plassere ny blokk på ønsket plass: ' . $e->getMessage(), -1);
+				return;
+			}
+		}
+		
 	}
 	private function _doRem() {
 		try {
@@ -136,7 +146,7 @@ class msmodul_sidebar implements msmodul{
     public function registrer_meny(MenyitemCollection &$meny){ 
         $lvl = $this->_adgangsNiva;
     
-        if ($lvl > MSAUTH_NONE) {
+        if ($lvl >= MSAUTH_2) {
             $toppmeny = new Menyitem('Sidebar','&page=sidebar&act=admin');
             $meny->addItem($toppmeny);
         }

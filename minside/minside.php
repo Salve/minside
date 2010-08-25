@@ -156,8 +156,8 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 	}
 	
-	public function getMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
-        if (isset($this->toc)) {
+	public function getMeny($getObj = false) { // returnerer streng med nødvendig xhtml for å vise menyen
+        if (isset($this->toc) && !$getObj) {
             return $this->toc; // cached streng med toc
         }
         
@@ -166,6 +166,8 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		foreach ($this->_msmod as $msmod) {
 			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
+		
+		if ($getObj) return $meny;
 	
 		$output .= '<div class="mstoc">'."\n";
 		$output .= '<div class="mstocheader">Min Side - Meny</div>'."\n";
