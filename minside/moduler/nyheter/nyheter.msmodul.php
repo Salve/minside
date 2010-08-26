@@ -186,7 +186,7 @@ class msmodul_nyheter implements msmodul {
 	
 	public function gen_omrade_admin() {
 		
-		$arOmrader = NyhetOmrade::getOmrader('msnyheter');
+		$arOmrader = NyhetOmrade::getOmrader('msnyheter', 255);
 		return NyhetGen::genOmradeAdmin($arOmrader);
 		
 	}
