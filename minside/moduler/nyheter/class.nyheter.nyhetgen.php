@@ -110,4 +110,16 @@ class NyhetGen {
         return $output;
     }
 	
+	public static function genOmradeAdmin($arOmrader) {
+		
+		$output .= "Tilgjengelige områder: <br /><br />\n";
+		
+		foreach ($arOmrader as $omrade) {
+			$output .= "$omrade<br />\n";
+		}
+		
+		return $output;
+	
+	}
+	
 }

@@ -3,6 +3,7 @@ if(!defined('MS_INC')) die();
 define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
 require_once('class.nyheter.nyhetcollection.php');
 require_once('class.nyheter.msnyhet.php');
+require_once('class.nyheter.omrade.php');
 require_once('class.nyheter.nyhetfactory.php');
 require_once('class.nyheter.nyhetgen.php');
 
@@ -44,6 +45,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		
 	}
 	
@@ -53,10 +55,13 @@ class msmodul_nyheter implements msmodul {
 		if ($lvl > MSAUTH_NONE) { 
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
+				$toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
 				if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
-                $toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
+				if ($lvl = MSAUTH_ADMIN) {
+					$toppmeny->addChild(new Menyitem('Områder','&page=nyheter&act=omradeadm'));
+				}
 			}
 			$meny->addItem($toppmeny);
 		}
@@ -178,5 +183,12 @@ class msmodul_nyheter implements msmodul {
             msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
         
     }
+	
+	public function gen_omrade_admin() {
+		
+		$arOmrader = NyhetOmrade::getOmrader('msnyheter');
+		return NyhetGen::genOmradeAdmin($arOmrader);
+		
+	}
 
 }
