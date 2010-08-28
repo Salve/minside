@@ -62,27 +62,45 @@ class NyhetGen {
     
     public static function genEdit(msnyhet &$objNyhet) {
 		
+		// Område
 		if ($objNyhet->isSaved()) {
 			$html_omrade = 'Område:
 				<input type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
 			$html_omrade = 'Område: <select name="nyhetomrade">';
-			foreach ($colOmrader as $objOmrade) {
-				$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '">'. 
-					$objOmrade->getOmrade() . '</value>';
+			if ($colOmrader->length() === 0) {
+				$html_omrade .= 'Du har ikke tilgang til noen områder!';
+			} else {
+				foreach ($colOmrader as $objOmrade) {
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '">'. 
+						$objOmrade->getOmrade() . '</value>';
+				}
 			}
 			$html_omrade .= '</select>';
 			
 		}
+		
+		// Viktighet
+		$html_viktighet = 'Visningstid: <select name="nyhetviktighet">';
+		for ($i=1;$i<=3;$i++) {
+			if ((int) $i === (int) $objNyhet->getViktighet()) {
+				$selected = ' selected="selected"';
+			} else {
+				$selected = '';
+			}
+			$html_viktighet .= "<option value=\"$i\"$selected>" . constant("MsNyhet::VIKTIGHET_$i") . "</option>\n";
+		}
+		$html_viktighet .= '</select>';
 		
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
         $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
         $output .= '<input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />';
         $output .= 'Overskrift: ';
-		$output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />';
-		$output .= $html_omrade;
+		$output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
+		$output .= $html_omrade . "<br />\n";
+		$output .= $html_viktighet . "<br />\n";
         
         $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
         

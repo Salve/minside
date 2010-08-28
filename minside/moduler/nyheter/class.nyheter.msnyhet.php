@@ -2,6 +2,10 @@
 if(!defined('MS_INC')) die();
 
 class MsNyhet {
+	
+	const VIKTIGHET_1 = '7 dager';
+	const VIKTIGHET_2 = '5 dager';
+	const VIKTIGHET_3 = '3 dager';
 
     public $under_construction = false;
 	
@@ -75,6 +79,10 @@ class MsNyhet {
 		return $this->_viktighet;
 	}
 	public function setViktighet($input) {
+		$input = (int) $input;
+		if ($input < 1 || $input > 3) {
+			throw new Exception('Ugyldig input for viktighet! Må være 1, 2 eller 3');
+		}
 		return $this->set_var($this->_viktighet, $input);
 	}
 	

@@ -137,8 +137,8 @@ class msmodul_nyheter implements msmodul {
 			$objNyhet->setOmrade($_POST['nyhetomrade']);
             $objNyhet->setWikiPath('auto');
             $objNyhet->setType(1);
-            $objNyhet->setViktighet(1);
         }
+		$objNyhet->setViktighet($_POST['nyhetviktighet']);
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
         if ($objNyhet->hasUnsavedChanges()) {
