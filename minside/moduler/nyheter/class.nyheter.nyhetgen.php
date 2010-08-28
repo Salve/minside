@@ -61,19 +61,33 @@ class NyhetGen {
 	}
     
     public static function genEdit(msnyhet &$objNyhet) {
-        
+		
+		if ($objNyhet->isSaved()) {
+			$html_omrade = 'Område:
+				<input type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
+		} else {
+			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
+			$html_omrade = 'Område: <select name="nyhetomrade">';
+			foreach ($colOmrader as $objOmrade) {
+				$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '">'. 
+					$objOmrade->getOmrade() . '</value>';
+			}
+			$html_omrade .= '</select>';
+			
+		}
+		
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
         $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
         $output .= '<input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />';
         $output .= 'Overskrift: ';
-        $output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />';
-
-        
+		$output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />';
+		$output .= $html_omrade;
         
         $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
         
         $output .= '
+			
             <div style="width:99%;">
             <div class="toolbar">
                 <div id="draft__status"></div>
@@ -86,7 +100,7 @@ class NyhetGen {
              </div>
              
             
-            <input type="hidden" name="id" value="msnyheter:ks:00001_en_liten_testnyhet" />
+            <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
             <input type="hidden" name="rev" value="" />
             <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" >'
             . $rawwiki .

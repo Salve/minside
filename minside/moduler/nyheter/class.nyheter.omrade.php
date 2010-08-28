@@ -26,11 +26,11 @@ class NyhetOmrade {
 	}
 	
 	public function checkAcl($lvl) {
-		return (auth_quickaclcheck($this->_omrade_full) >= $lvl);
+		return (auth_quickaclcheck($this->_omrade_full.':*') >= $lvl);
 	}
 	
 	public function getAcl() {
-		return auth_quickaclcheck($this->_omrade_full);
+		return auth_quickaclcheck($this->_omrade_full.':*');
 	}
 	
 	public static function getOmrader($parent_ns, $acl = 0) {
@@ -67,7 +67,7 @@ class NyhetOmrade {
 		foreach ($filerfunnet as $fil) {
 			$objOmrade = new NyhetOmrade($fil['id']);
 			if ($objOmrade->checkAcl($acl)) {
-				$OmradeCol->additem($objOmrade);
+				$OmradeCol->additem($objOmrade, $objOmrade->getOmrade());
 			}
 		}
 		

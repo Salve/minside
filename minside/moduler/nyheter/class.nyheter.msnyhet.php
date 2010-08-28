@@ -6,7 +6,7 @@ class MsNyhet {
     public $under_construction = false;
 	
 	protected $_id;	
-	protected $_tilgang;
+	protected $_omrade;
 	protected $_type;
 	protected $_viktighet;
 	protected $_createtime;
@@ -57,11 +57,18 @@ class MsNyhet {
 		return $this->set_var($this->_type, $input);
 	}
 	
-	public function getTilgang() {
-		return $this->_tilgang;
+	public function getOmrade() {
+		return $this->_omrade;
 	}
-	public function setTilgang($input) {
-        return $this->set_var($this->_tilgang, $input);
+	public function setOmrade($input) {
+		if (!$this->under_construction) {
+			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
+			if (!$colOmrader->exists($input)) {
+				throw new Exception('Ugyldig område angitt!');
+			}
+		}
+		
+        return $this->set_var($this->_omrade, $input);
 	}
 	
 	public function getViktighet() {
@@ -119,7 +126,7 @@ class MsNyhet {
 	}
 	public function setWikiPath($input) {
         if ($input == 'auto') {
-            $input = 'msnyheter:ks:' . date('Ymd ') . $this->getTitle();
+            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $this->getTitle();
             $input = cleanID($input, true);
         }
         return $this->set_var($this->_wikipath, $input);
@@ -256,7 +263,7 @@ class MsNyhet {
         global $msdb;
         
         $safeid = $msdb->quote($this->getId());
-        $safetilgang = $msdb->quote($this->getTilgang());
+        $safeomrade = $msdb->quote($this->getOmrade());
         $safetype = $msdb->quote($this->getType());
         $safeviktighet = $msdb->quote($this->getViktighet());
         $safewikipath = $msdb->quote($this->getWikiPath());
@@ -266,7 +273,7 @@ class MsNyhet {
         $safewikihash = $msdb->quote($this->getWikiHash());        
  
         
-        $midsql = "tilgangsgrupper = $safetilgang,
+        $midsql = "omrade = $safeomrade,
                 nyhetstype = $safetype,
                 viktighet = $safeviktighet,
                 wikipath = $safewikipath,

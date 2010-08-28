@@ -59,7 +59,7 @@ class msmodul_nyheter implements msmodul {
 				if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
-				if ($lvl = MSAUTH_ADMIN) {
+				if ($lvl == MSAUTH_ADMIN) {
 					$toppmeny->addChild(new Menyitem('Områder','&page=nyheter&act=omradeadm'));
 				}
 			}
@@ -134,10 +134,10 @@ class msmodul_nyheter implements msmodul {
         
         $objNyhet->setTitle($_POST['nyhettitle']);
         if (!$objNyhet->isSaved()) {
+			$objNyhet->setOmrade($_POST['nyhetomrade']);
             $objNyhet->setWikiPath('auto');
             $objNyhet->setType(1);
             $objNyhet->setViktighet(1);
-            $objNyhet->setTilgang('ksusr');
         }
         $objNyhet->setWikiTekst($_POST['wikitext']);
         

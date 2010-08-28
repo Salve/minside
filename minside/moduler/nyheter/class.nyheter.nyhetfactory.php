@@ -7,7 +7,7 @@ class NyhetFactory {
 
     const SQL_NYHET_FIELDS =
         '   nyheter_nyhet.nyhetid AS nyhetid,
-            nyheter_nyhet.tilgangsgrupper AS tilgangsgrupper,
+            nyheter_nyhet.omrade AS omrade,
             nyheter_nyhet.nyhetstype AS nyhetstype,
             nyheter_nyhet.viktighet AS viktighet,
             nyheter_nyhet.createtime AS createtime,
@@ -64,6 +64,14 @@ class NyhetFactory {
     public static function getUlesteNyheterForBrukerId($brukerid) {
         global $msdb;
         
+		$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_READ);
+		$arOmrader = array();
+		foreach ($colOmrader as $objOmrade) {
+			$arOmrader[] = $msdb->quote($objOmrade->getOmrade());
+		}
+		$omrader = implode(',', $arOmrader);
+		$omrader = ($omrader) ?: "''";
+		
         $safebrukerid = $msdb->quote($brukerid);
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . "
@@ -72,6 +80,7 @@ class NyhetFactory {
                 ON nyheter_nyhet.nyhetid = nyheter_lest.nyhetid 
                     AND nyheter_lest.brukerid = $safebrukerid 
                 WHERE nyheter_lest.nyhetid IS NULL
+					AND nyheter_nyhet.omrade IN ($omrader)
                 ORDER BY nyheter_nyhet.nyhetid DESC
             ;";
             
@@ -109,7 +118,7 @@ class NyhetFactory {
         $objNyhet->under_construction = true;
         
         $objNyhet->setType($row['nyhetstype']);
-        $objNyhet->setTilgang($row['tilgangsgrupper']);
+        $objNyhet->setOmrade($row['omrade']);
 		$objNyhet->setViktighet($row['viktighet']);
 		$objNyhet->setTitle($row['nyhettitle']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
