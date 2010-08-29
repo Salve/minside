@@ -21,6 +21,7 @@ require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
+require_once('class.calendar.php');
 
 class AdgangsException extends Exception { }
 

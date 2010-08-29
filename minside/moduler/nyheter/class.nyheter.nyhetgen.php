@@ -93,6 +93,19 @@ class NyhetGen {
 		}
 		$html_viktighet .= '</select>';
 		
+		// Publiseringsdato
+		$objCalendar = new tc_calendar("nyhetpubdato", true);
+		$objCalendar->setPath('lib/plugins/minside/minside/');
+		$objCalendar->startMonday(true);
+		$objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+		$objCalendar->setDate(14, 9, 2010);
+		
+		ob_start(); // må ta vare på output...
+		$objCalendar->writeScript();
+		$html_calendar = ob_get_clean();
+		
+		$output .= $html_calendar . '<br />';
+		
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
         $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
