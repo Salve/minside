@@ -94,18 +94,28 @@ class NyhetGen {
 		$html_viktighet .= '</select>';
 		
 		// Publiseringsdato
+		
+		$pubtime = $objNyhet->getPublishTime();
+		if (!empty($pubtime)) {
+			$pubtimestamp = strtotime($pubtime);
+			$dag = (int) date('j', $pubtimestamp);
+			$md = (int) date('n', $pubtimestamp);
+			$aar = (int) date('Y', $pubtimestamp);
+		} else {
+			$dag = $md = $aar = 0;
+		}
+		
 		$objCalendar = new tc_calendar("nyhetpubdato", true);
 		$objCalendar->setPath('lib/plugins/minside/minside/');
 		$objCalendar->startMonday(true);
 		$objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
-		$objCalendar->setDate(14, 9, 2010);
+		$objCalendar->setDate($dag, $md, $aar);
 		
 		ob_start(); // må ta vare på output...
 		$objCalendar->writeScript();
-		$html_calendar = ob_get_clean();
+		$html_calendar = 'Publiseringsdato: ' . ob_get_clean();
 		
-		$output .= $html_calendar . '<br />';
-		
+				
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
         $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
@@ -113,6 +123,7 @@ class NyhetGen {
         $output .= 'Overskrift: ';
 		$output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
 		$output .= $html_omrade . "<br />\n";
+		$output .= $html_calendar . "<br />\n";
 		$output .= $html_viktighet . "<br />\n";
         
         $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));

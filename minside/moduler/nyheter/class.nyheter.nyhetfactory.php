@@ -17,7 +17,8 @@ class NyhetFactory {
             nyheter_nyhet.wikihash AS wikihash,
             nyheter_nyhet.nyhettitle AS nyhettitle,
             nyheter_nyhet.imgpath AS imgpath,
-            nyheter_nyhet.nyhetbodycache AS nyhetbodycache
+            nyheter_nyhet.nyhetbodycache AS nyhetbodycache,
+            nyheter_nyhet.pubtime AS pubtime
         ';
 
     private function __construct() { }
@@ -81,6 +82,7 @@ class NyhetFactory {
                     AND nyheter_lest.brukerid = $safebrukerid 
                 WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
+					AND pubtime < NOW()
                 ORDER BY nyheter_nyhet.nyhetid DESC
             ;";
             
@@ -127,6 +129,7 @@ class NyhetFactory {
 		$objNyhet->setDeleteTime($row['deletetime']);
 		$objNyhet->setWikiPath($row['wikipath']);
 		$objNyhet->setWikiHash($row['wikihash']);
+		$objNyhet->setPublishTime($row['pubtime']);
         
         $objNyhet->under_construction = false;
         

@@ -19,6 +19,7 @@ class MsNyhet {
 	protected $_issaved;
 	protected $_hasunsavedchanges;
 	protected $_wikipath;
+	protected $_pubtime;
 	
 	protected $_imgpath;
 	protected $_title;
@@ -84,6 +85,26 @@ class MsNyhet {
 			throw new Exception('Ugyldig input for viktighet! Må være 1, 2 eller 3');
 		}
 		return $this->set_var($this->_viktighet, $input);
+	}
+	
+	public function getPublishTime() {
+		return $this->_pubtime;
+	}
+	public function setPublishTime($input) {
+		// Validerer ikke dersom objekt bygges av factory
+		if (!$this->under_construction) {
+			$input = trim($input);
+			// Matcher dato, optional tid. Sjekker skuddår
+			$pattern = "{^(((\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\d{4})(-)(0[469]|11)(-)([0][1-9]|[12][0-9]|30))|((\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468][048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(02)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02)(-)(29)))(\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))?$}";
+			if(!preg_match($pattern, $input)) {
+				// Vill skrives til db som NULL
+				$input = '';
+			} else {
+				// Må legge på 00:00:00 for å matche return fra db
+				$input = date('Y-m-d H:i:s', strtotime($input));
+			}
+		}
+		return $this->set_var($this->_pubtime, $input);
 	}
 	
 	public function getCreateTime() {
@@ -278,7 +299,8 @@ class MsNyhet {
         $safeimgpath = $msdb->quote($this->getImagePath());
         $safetitle = $msdb->quote($this->getTitle());
         $safehtmlbody = $msdb->quote($this->getHtmlBody());
-        $safewikihash = $msdb->quote($this->getWikiHash());        
+        $safewikihash = $msdb->quote($this->getWikiHash());
+		$safepubtime = ($this->getPublishTime()) ? $msdb->quote($this->getPublishTime()) : 'NULL';
  
         
         $midsql = "omrade = $safeomrade,
@@ -288,7 +310,8 @@ class MsNyhet {
                 wikihash = $safewikihash,
                 nyhettitle = $safetitle,
                 imgpath = $safeimgpath,
-                nyhetbodycache = $safehtmlbody
+                nyhetbodycache = $safehtmlbody,
+				pubtime = $safepubtime
                 ";
                 
         if (!$this->isSaved()) {

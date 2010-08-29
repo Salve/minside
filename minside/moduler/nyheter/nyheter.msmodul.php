@@ -119,7 +119,6 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function save_nyhet_changes() {
-        
         $nyhetid = $_REQUEST['nyhetid'];
         if ($nyhetid) {
             try{
@@ -139,6 +138,7 @@ class msmodul_nyheter implements msmodul {
             $objNyhet->setType(1);
         }
 		$objNyhet->setViktighet($_POST['nyhetviktighet']);
+		$objNyhet->setPublishTime($_POST['nyhetpubdato']);
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
         if ($objNyhet->hasUnsavedChanges()) {
