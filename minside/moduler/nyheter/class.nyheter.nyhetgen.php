@@ -34,6 +34,8 @@ class NyhetGen {
 		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
+		$opt[] = '<img onClick="openNyhetImgForm('.$id.')" class="ms_imgselect_nyhet" alt="img" title="Legg til bilde" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'image.png" />';
 		$opt[] = '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" />';
 		$options = implode('&nbsp;', $opt);

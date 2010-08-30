@@ -37,6 +37,9 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // For nyheter - gjør nødvendige oppdateringer før/etter endringer
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
+		
+		// Ajax handle for img-add på nyheter
+		$controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE',  $this, 'handleAjax');
     }
      
     /**
@@ -67,6 +70,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Hvis vi kommer hit er action 'minside' og brukeren er logget inn. Vi stopper videre behandling og aksepterer denne.
         $event->preventDefault();
         $event->stopPropagation();
+		
     }
      
     /**
@@ -161,5 +165,25 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         }
       
     }
+	
+	function handleAjax($event, $param) {
+		/*	Returnerer output direkte til ajax-caller
+		 *	Må printe en av følgende:
+		 *	'msok' dersom input er ok, og lagring gikk fint
+		 *	'mserror' dersom noe gikk galt, bruker får en feilmelding popup
+		 */
+	
+		if ($event->data != 'msimgsub') return;
+		
+		header('Content-Type: text/html; charset=utf-8');
+		print 'msok';
+		$fil = 'ajaxlogg.txt';
+		$fh = fopen($fil, 'a') or die();
+		$data = 'Value: ' . $_POST['q'] . ' NyhetID: ' . $_POST['nyhetid'] . "\r\n";
+		fwrite($fh, $data);
+		fclose($fh);
+		$event->preventDefault();
+		return;
+	}
     
 }

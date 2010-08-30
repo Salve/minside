@@ -1,3 +1,71 @@
+// Nyheter
+
+function openNyhetImgSelect() {
+	window.open(
+		DOKU_BASE+'lib/exe/mediamanager.php?ns=msbilder',
+		'mediaselect',
+		'width=750,height=500,left=20,top=20,scrollbars=yes,resizable=yes');
+	return false;
+}
+
+function openNyhetImgForm(nyhetid) {
+	window.open(
+		DOKU_BASE+'lib/plugins/minside/minside/moduler/nyheter/nyhet_img_add.php?nyhetid=' + nyhetid,
+		'img_add_nyheter',
+		'width=300,height=75,left=20,top=20,scrollbars=no,resizable=no');
+	return false;
+}
+
+// AJAX funksjoner for img-add submit
+
+function ajax_msimgsub_class(){
+  this.sack = null;
+  this.inObj = null;
+  this.nyhetID = null;
+  this.timer = null;
+}
+
+var ajax_msimgsub = new ajax_msimgsub_class();
+ajax_msimgsub.sack = new sack(DOKU_BASE + 'lib/exe/ajax.php');
+ajax_msimgsub.sack.AjaxFailedAlert = '';
+ajax_msimgsub.sack.encodeURIString = false;
+
+
+function submitFormImgSub() {
+	
+	ajax_msimgsub.init('wiki__text', 'nyhetidvalue');
+	ajax_msimgsub.exec();
+}
+
+ajax_msimgsub.init = function(inID, nyhetID){
+  ajax_msimgsub.inObj  = document.getElementById(inID);
+  ajax_msimgsub.nyhetID  = document.getElementById(nyhetID);
+
+  if(ajax_msimgsub.inObj === null){ return; }
+  if(ajax_msimgsub.nyhetID === null){ return; }
+
+  };
+
+ajax_msimgsub.exec = function(){
+  var value = ajax_msimgsub.inObj.value;
+  var nyhetid = ajax_msimgsub.nyhetID.value;
+  if(value === ''){ return; }
+  ajax_msimgsub.sack.runAJAX('call=msimgsub&q='+encodeURI(value)+'&nyhetid='+encodeURI(nyhetid));
+};
+
+ajax_msimgsub.sack.onCompletion = function(){
+  var data = ajax_msimgsub.sack.response;
+  if(data === ''){ return; }
+  if(data === 'mserror') { 
+	alert('MinSide oppdaget feil i bilde-strengen. Kontakt en wiki-administrator dersom feilen vedvarer.');
+	return;
+  }
+  if(data === 'msok') {
+	window.close();
+  }
+};
+
+// Calendar
 function toggleCalendar(objname){
 	var div_obj = document.getElementById('div_'+objname);
 	if (div_obj.style.visibility=="hidden") {
