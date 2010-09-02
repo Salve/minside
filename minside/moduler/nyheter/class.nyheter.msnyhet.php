@@ -141,7 +141,7 @@ class MsNyhet {
 	}
 	
 	public function hasImage() {
-		return isset($this->_imgpath);
+		return !empty($this->_imgpath);
 	}
 	public function getImagePath() {
 		return $this->_imgpath;

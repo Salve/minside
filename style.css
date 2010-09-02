@@ -530,6 +530,10 @@ div.dokuwiki div.nyhetbody div.tags {
 	text-align:left;
 }
 
+div.minside div.nyhetimgleft {
+	float: left;
+}
+
 /* Sidebar */
 
 table.sidebaradm td {

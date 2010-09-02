@@ -57,10 +57,13 @@ ajax_msimgsub.sack.onCompletion = function(){
   var data = ajax_msimgsub.sack.response;
   if(data === ''){ return; }
   if(data === 'mserror') { 
+	ajax_msimgsub.sack = 0;
 	alert('MinSide oppdaget feil i bilde-strengen. Kontakt en wiki-administrator dersom feilen vedvarer.');
+	window.close();
 	return;
   }
   if(data === 'msok') {
+	window.opener.location.reload();
 	window.close();
   }
 };

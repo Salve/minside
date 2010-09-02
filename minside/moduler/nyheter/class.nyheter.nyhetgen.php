@@ -23,7 +23,8 @@ class NyhetGen {
 		$type = $nyhet->getType();		
 		$id = $nyhet->getId();
 		if ($nyhet->hasImage()) {
-			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
+			$img = '<div class="nyhetimgleft">' .$nyhet->getImageTag(self::THUMB_BREDDE) .
+				'</div>';
 		} else {
 			$img = '';
 		}
@@ -52,7 +53,7 @@ class NyhetGen {
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
-					<div class=\"nyhetimgleft\">$img</div>
+					$img
 					<div class=\"nyhetbody\">$body</div>
 					<div class=\"msclearer\"></div>
 				</div>
