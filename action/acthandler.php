@@ -38,8 +38,6 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
 		
-		// Ajax handle for img-add på nyheter
-		$controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE',  $this, 'handleAjax');
     }
      
     /**
@@ -165,34 +163,5 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         }
       
     }
-	
-	function handleAjax($event, $param) {
-		/*	Returnerer output direkte til ajax-caller
-		 *	Må printe en av følgende:
-		 *	'msok' dersom input er ok, og lagring gikk fint
-		 *	'mserror' dersom noe gikk galt, bruker får en feilmelding popup
-		 */
-	
-		if ($event->data != 'msimgsub') return;
-		
-		require_once(DOKU_PLUGIN.'minside/minside/minside.php');
-        $objMinSide = MinSide::getInstance();
-		
-		$data = array(
-			'nyhetid' => $_POST['nyhetid'],
-			'rawimgpath' => $_POST['q']
-		);
-		$res = $objMinSide->genModul('nyheter', 'ajaxsetimgpath', $data);
-		
-		header('Content-Type: text/html; charset=utf-8');
-		print $res;
-		$fil = 'ajaxlogg.txt';
-		$fh = fopen($fil, 'a') or die();
-		$data = 'Value: ' . $_POST['q'] . ' NyhetID: ' . $_POST['nyhetid'] . "Resultat: $res\r\n";
-		fwrite($fh, $data);
-		fclose($fh);
-		$event->preventDefault();
-		return;
-	}
     
 }

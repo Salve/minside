@@ -16,57 +16,23 @@ function openNyhetImgForm(nyhetid) {
 	return false;
 }
 
-// AJAX funksjoner for img-add submit
-
-function ajax_msimgsub_class(){
-  this.sack = null;
-  this.inObj = null;
-  this.nyhetID = null;
-  this.timer = null;
-}
-
-var ajax_msimgsub = new ajax_msimgsub_class();
-ajax_msimgsub.sack = new sack(DOKU_BASE + 'lib/exe/ajax.php');
-ajax_msimgsub.sack.AjaxFailedAlert = '';
-ajax_msimgsub.sack.encodeURIString = false;
-
-
 function submitFormImgSub() {
+	var img_input = $('wiki__text').value;
+	var re = new RegExp('\{\{\:([a-z.:_0-9]*)\|\}\}');
+	var m = re.exec(img_input);
+	if (m == null) {
+		var resultat = '';
+	} else {
+		var resultat = m[1];
+	}
 	
-	ajax_msimgsub.init('wiki__text', 'nyhetidvalue');
-	ajax_msimgsub.exec();
-}
-
-ajax_msimgsub.init = function(inID, nyhetID){
-  ajax_msimgsub.inObj  = document.getElementById(inID);
-  ajax_msimgsub.nyhetID  = document.getElementById(nyhetID);
-
-  if(ajax_msimgsub.inObj === null){ return; }
-  if(ajax_msimgsub.nyhetID === null){ return; }
-
-  };
-
-ajax_msimgsub.exec = function(){
-  var value = ajax_msimgsub.inObj.value;
-  var nyhetid = ajax_msimgsub.nyhetID.value;
-  if(value === ''){ return; }
-  ajax_msimgsub.sack.runAJAX('call=msimgsub&q='+encodeURI(value)+'&nyhetid='+encodeURI(nyhetid));
-};
-
-ajax_msimgsub.sack.onCompletion = function(){
-  var data = ajax_msimgsub.sack.response;
-  if(data === ''){ return; }
-  if(data === 'mserror') { 
-	ajax_msimgsub.sack = 0;
-	alert('MinSide oppdaget feil i bilde-strengen. Kontakt en wiki-administrator dersom feilen vedvarer.');
+	var owner_infofield = window.opener.document.getElementById('nyhet__imgpath');
+	owner_infofield.value = resultat;
 	window.close();
 	return;
-  }
-  if(data === 'msok') {
-	window.opener.location.reload();
-	window.close();
-  }
-};
+	
+}
+
 
 // Calendar
 function toggleCalendar(objname){
