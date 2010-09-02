@@ -146,8 +146,30 @@ class MsNyhet {
 	public function getImagePath() {
 		return $this->_imgpath;
 	}
-	public function setImagePath($input) {
+	public function setImagePath($input, $strip = false) {
+		// strip settes når input er fra mediamanager, for å strippe wiki-syntax
+		if ($strip) {
+			$regexp = '/^\{\{\:(.*)\|\}\}$/';
+			$input = trim($input);
+			if (preg_match($regexp, $input, $matches) === 1) {
+				$input = cleanID($matches[0], false);
+				if (strlen($input) < 6) return false;
+			} else {
+				return false;
+			}
+		}
+	
         return $this->set_var($this->_imgpath, $input);
+	}
+	public function getImageTag($width) {
+		if (!$this->hasImage()) return false;
+		
+		$width = (int) $width;
+		if ($width < 10 || $width > 2000) throw new Exception('Thumbnailbredde out of bounds. Sjekk config.');
+		
+		$tagformat = '<img src="%1$slib/exe/fetch.php?w=%2$u&amp;media=%3$s" class="media" alt="" width="%2$u" />';
+		return sprintf($tagformat, DOKU_BASE, $width, $this->getImagePath());
+		
 	}
 	
 	public function getWikiPath() {
@@ -180,10 +202,6 @@ class MsNyhet {
 	}
 
 	public function getWikiTekst() {
-        // if (empty($this->_wikitekst) && $this->isSaved()) {
-            // $rawwiki = rawWiki($this->getWikiPath());
-            // $this->setWikiTekst($rawwiki);
-        // }
 		return $this->_wikitekst;
 	}
 	public function setWikiTekst($input) {

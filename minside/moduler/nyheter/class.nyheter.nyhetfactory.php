@@ -123,6 +123,7 @@ class NyhetFactory {
         $objNyhet->setOmrade($row['omrade']);
 		$objNyhet->setViktighet($row['viktighet']);
 		$objNyhet->setTitle($row['nyhettitle']);
+		$objNyhet->setImagePath($row['imgpath']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
 		$objNyhet->setCreateTime($row['createtime']);
 		$objNyhet->setLastModTime($row['modtime']);

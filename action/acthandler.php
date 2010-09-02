@@ -175,11 +175,20 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 	
 		if ($event->data != 'msimgsub') return;
 		
+		require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        $objMinSide = MinSide::getInstance();
+		
+		$data = array(
+			'nyhetid' => $_POST['nyhetid'],
+			'rawimgpath' => $_POST['q']
+		);
+		$res = $objMinSide->genModul('nyheter', 'ajaxsetimgpath', $data);
+		
 		header('Content-Type: text/html; charset=utf-8');
-		print 'msok';
+		print $res;
 		$fil = 'ajaxlogg.txt';
 		$fh = fopen($fil, 'a') or die();
-		$data = 'Value: ' . $_POST['q'] . ' NyhetID: ' . $_POST['nyhetid'] . "\r\n";
+		$data = 'Value: ' . $_POST['q'] . ' NyhetID: ' . $_POST['nyhetid'] . "Resultat: $res\r\n";
 		fwrite($fh, $data);
 		fclose($fh);
 		$event->preventDefault();

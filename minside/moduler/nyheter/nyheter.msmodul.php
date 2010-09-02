@@ -46,6 +46,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('ajaxsetimgpath', 'ajax_set_imgpath', MSAUTH_3);
 		
 	}
 	
@@ -188,6 +189,25 @@ class msmodul_nyheter implements msmodul {
 		
 		$arOmrader = NyhetOmrade::getOmrader('msnyheter', 255);
 		return NyhetGen::genOmradeAdmin($arOmrader);
+		
+	}
+	
+	public function ajax_set_imgpath() {
+		$data = $this->_msmodulvars;
+		
+		$nyhetid = $data['nyhetid'];
+		$rawimgpath = $data['rawimgpath'];
+		
+		try{
+            $objNyhet = NyhetFactory::getNyhetById($nyhetid);
+        } catch (Exception $e) {
+            return 'mserror';
+        }
+		
+		$resset = $objNyhet->setImagePath($rawimgpath, true);
+		$resupdate = $objNyhet->update_db();
+		
+		return ($resset) ? 'msok' : 'mserror';
 		
 	}
 

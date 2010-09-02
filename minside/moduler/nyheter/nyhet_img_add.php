@@ -18,7 +18,7 @@ var NS='msbilder';var SIG='Signatur ikke tilgjengelig';var JSINFO = {"id":"msbil
   <link rel="shortcut icon" href="/wiki/lib/tpl/simple_sidebar/images/favicon.ico" />
 
   <style type="text/css">
-	div.nyhetimgadd input#wiki__text {
+	div.nyhetimgadd textarea#wiki__text {
 		height: 1px;
 		width: 1px;
 		position: absolute;
@@ -32,9 +32,10 @@ var NS='msbilder';var SIG='Signatur ikke tilgjengelig';var JSINFO = {"id":"msbil
 <div class="nyhetimgadd">
 <form id="formsubimg" >
 	<input id="nyhetidvalue" type="hidden" value="<?php echo $_REQUEST['nyhetid'] ?>">
-	<input id="wiki__text" class="edit" type="text" onFocus="submitFormImgSub()" />
+	<textarea name="wikitext" id="wiki__text" class="edit" type="text" onFocus="submitFormImgSub()">
+	</textarea>
 </form>
 
-<a href="#" onClick="openNyhetImgSelect()">Trykk her dersom du har popup-blocker</a>
+<a href="#" onClick="openNyhetImgSelect()">Trykk her eller skru av popup blocker og prøv på nytt.</a>
 </div>
 </html>
