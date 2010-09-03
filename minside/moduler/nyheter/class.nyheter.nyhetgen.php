@@ -98,7 +98,7 @@ class NyhetGen {
 		
 		// Bilde
 		$html_bilde = 'Bilde: <input type="text" name="nyhetbilde" id="nyhet__imgpath"' .
-			'value="' . $objNyhet->getImagePath() . '" disabled /> ' .
+			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'image.png" />';
