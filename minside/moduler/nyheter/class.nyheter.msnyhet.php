@@ -12,7 +12,6 @@ class MsNyhet {
 	protected $_id;	
 	protected $_omrade;
 	protected $_type;
-	protected $_viktighet;
 	protected $_createtime;
 	protected $_createbynavn;
 	protected $_createbyepost;
@@ -80,17 +79,6 @@ class MsNyhet {
 		}
 		
         return $this->set_var($this->_omrade, $input);
-	}
-	
-	public function getViktighet() {
-		return $this->_viktighet;
-	}
-	public function setViktighet($input) {
-		$input = (int) $input;
-		if ($input < 1 || $input > 3) {
-			throw new Exception('Ugyldig input for viktighet! Må være 1, 2 eller 3');
-		}
-		return $this->set_var($this->_viktighet, $input);
 	}
 	
 	public function getPublishTime() {
@@ -363,7 +351,6 @@ class MsNyhet {
         $safeid = $msdb->quote($this->getId());
         $safeomrade = $msdb->quote($this->getOmrade());
         $safetype = $msdb->quote($this->getType());
-        $safeviktighet = $msdb->quote($this->getViktighet());
         $safewikipath = $msdb->quote($this->getWikiPath());
         $safeimgpath = $msdb->quote($this->getImagePath());
         $safetitle = $msdb->quote($this->getTitle());
@@ -374,7 +361,6 @@ class MsNyhet {
         
         $midsql = "omrade = $safeomrade,
                 nyhetstype = $safetype,
-                viktighet = $safeviktighet,
                 wikipath = $safewikipath,
                 wikihash = $safewikihash,
                 nyhettitle = $safetitle,

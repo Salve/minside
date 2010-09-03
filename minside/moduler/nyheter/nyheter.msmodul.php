@@ -138,7 +138,6 @@ class msmodul_nyheter implements msmodul {
             $objNyhet->setType(1);
         }
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
-		$objNyhet->setViktighet($_POST['nyhetviktighet']);
 		$objNyhet->setPublishTime($_POST['nyhetpubdato']);
         $objNyhet->setWikiTekst($_POST['wikitext']);
         

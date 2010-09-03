@@ -91,18 +91,6 @@ class NyhetGen {
 			
 		}
 		
-		// Viktighet
-		$html_viktighet = 'Visningstid: <select name="nyhetviktighet">';
-		for ($i=1;$i<=3;$i++) {
-			if ((int) $i === (int) $objNyhet->getViktighet()) {
-				$selected = ' selected="selected"';
-			} else {
-				$selected = '';
-			}
-			$html_viktighet .= "<option value=\"$i\"$selected>" . constant("MsNyhet::VIKTIGHET_$i") . "</option>\n";
-		}
-		$html_viktighet .= '</select>';
-		
 		// Bilde
 		$html_bilde = 'Bilde: <input type="text" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
@@ -165,7 +153,6 @@ class NyhetGen {
 		$output .= $html_omrade . "<br />\n";
 		$output .= $html_bilde . "<br />\n";
 		$output .= $html_calendar . "<br />\n";
-		$output .= $html_viktighet . "<br />\n";
             $output .= '<div id="wiki__editbar" >
             <div id="size__ctl" >
             </div>

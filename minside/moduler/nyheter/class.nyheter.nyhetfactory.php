@@ -9,7 +9,6 @@ class NyhetFactory {
         '   nyheter_nyhet.nyhetid AS nyhetid,
             nyheter_nyhet.omrade AS omrade,
             nyheter_nyhet.nyhetstype AS nyhetstype,
-            nyheter_nyhet.viktighet AS viktighet,
             nyheter_nyhet.createtime AS createtime,
             nyheter_nyhet.modtime AS modtime,
             nyheter_nyhet.deletetime AS deletetime,
@@ -123,7 +122,6 @@ class NyhetFactory {
         
         $objNyhet->setType($row['nyhetstype']);
         $objNyhet->setOmrade($row['omrade']);
-		$objNyhet->setViktighet($row['viktighet']);
 		$objNyhet->setTitle($row['nyhettitle']);
 		$objNyhet->setImagePath($row['imgpath']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
