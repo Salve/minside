@@ -137,6 +137,7 @@ class msmodul_nyheter implements msmodul {
             $objNyhet->setWikiPath('auto');
             $objNyhet->setType(1);
         }
+		$objNyhet->setIsSticky(($_POST['nyhetsticky'] == 'sticky') ? true : false);
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
 		$objNyhet->setPublishTime($_POST['nyhetpubdato']);
         $objNyhet->setWikiTekst($_POST['wikitext']);

@@ -9,6 +9,7 @@ class NyhetFactory {
         '   nyheter_nyhet.nyhetid AS nyhetid,
             nyheter_nyhet.omrade AS omrade,
             nyheter_nyhet.nyhetstype AS nyhetstype,
+            nyheter_nyhet.issticky AS issticky,
             nyheter_nyhet.createtime AS createtime,
             nyheter_nyhet.modtime AS modtime,
             nyheter_nyhet.deletetime AS deletetime,
@@ -124,6 +125,7 @@ class NyhetFactory {
         $objNyhet->setOmrade($row['omrade']);
 		$objNyhet->setTitle($row['nyhettitle']);
 		$objNyhet->setImagePath($row['imgpath']);
+		$objNyhet->setIsSticky($row['issticky']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
 		$objNyhet->setCreateTime($row['createtime']);
 		$objNyhet->setCreateByNavn($row['createby_fullname']);

@@ -36,7 +36,12 @@ class NyhetGen {
 			' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
 		$lastmod = '<div class="nyhetmod">Nyhet sist endret '. self::dispTime($nyhet->getLastModTime()) .
 			' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>';
-			
+		
+		$sticky = ($nyhet->isSticky()) 
+			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
+				MS_IMG_PATH . 'pin_icon.png" />' 
+			: '' ;
+		
 		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
@@ -52,7 +57,7 @@ class NyhetGen {
 			<div class=\"nyhet\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\">
-					<div class=\"nyhettitle\">$title</div>
+					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$options</div>
 					<div class=\"nyhetinfo\">$create$lastmod</div>
                     <div class=\"msclearer\"></div>
@@ -75,7 +80,7 @@ class NyhetGen {
 		// Område
 		if ($objNyhet->isSaved()) {
 			$html_omrade = 'Område:
-				<input type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
+				<input class="edit" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
 			$html_omrade = 'Område: <select name="nyhetomrade">';
@@ -91,8 +96,14 @@ class NyhetGen {
 			
 		}
 		
+		// Sticky
+		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
+		$html_sticky = 'Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
+			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
+			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky"'.$checked.' />';
+		
 		// Bilde
-		$html_bilde = 'Bilde: <input type="text" name="nyhetbilde" id="nyhet__imgpath"' .
+		$html_bilde = 'Bilde: <input class="edit" type="text" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
@@ -149,9 +160,10 @@ class NyhetGen {
             . $rawwiki .
             '</textarea>';
 			$output .= 'Overskrift: ';
-		$output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
+		$output .= '<input class="edit" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
 		$output .= $html_omrade . "<br />\n";
 		$output .= $html_bilde . "<br />\n";
+		$output .= $html_sticky . "<br />\n";
 		$output .= $html_calendar . "<br />\n";
             $output .= '<div id="wiki__editbar" >
             <div id="size__ctl" >

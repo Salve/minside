@@ -12,6 +12,7 @@ class MsNyhet {
 	protected $_id;	
 	protected $_omrade;
 	protected $_type;
+	protected $_issticky;
 	protected $_createtime;
 	protected $_createbynavn;
 	protected $_createbyepost;
@@ -105,21 +106,27 @@ class MsNyhet {
 		return $this->_createtime;
 	}
 	public function setCreateTime($input) {
-        return $this->set_var($this->_createtime, $input);
+        $this->_createtime = $input;
 	}
 	public function getCreateByNavn() {
 		return $this->_createbynavn;
 	}
 	public function setCreateByNavn($input) {
-        return $this->set_var($this->_createbynavn, $input);
+        $this->_createbynavn = $input;
 	}
 	public function getCreateByEpost() {
 		return $this->_createbyepost;
 	}
 	public function setCreateByEpost($input) {
-        return $this->set_var($this->_createbyepost, $input);
+        $this->_createbyepost = $input;
 	}
 	
+	public function isSticky() {
+		return (bool) $this->_issticky;
+	}
+	public function setIsSticky($input) {
+		return $this->set_var($this->_issticky, $input);
+	}
 
 	public function isModified() {
 		return !empty($this->_lastmodtime);
@@ -128,19 +135,19 @@ class MsNyhet {
 		return $this->_lastmodtime;
 	}
 	public function setLastModTime($input) {
-        return $this->set_var($this->_lastmodtime, $input);
+        $this->_lastmodtime = $input;
 	}
 	public function getLastModByNavn() {
 		return $this->_lastmodbynavn;
 	}
 	public function setLastModByNavn($input) {
-        return $this->set_var($this->_lastmodbynavn, $input);
+        $this->_lastmodbynavn = $input;
 	}
 	public function getLastModByEpost() {
 		return $this->_lastmodbyepost;
 	}
 	public function setLastModByEpost($input) {
-        return $this->set_var($this->_lastmodbyepost, $input);
+        $this->_lastmodbyepost = $input;
 	}
 
 	public function hasUnsavedChanges() {
@@ -151,19 +158,19 @@ class MsNyhet {
 		return $this->_deletetime;
 	}
 	public function setDeleteTime($input) {
-        return $this->set_var($this->_deletetime, $input);
+        $this->_deletetime = $input;
 	}
 	public function getDeleteByNavn() {
 		return $this->_deletebynavn;
 	}
 	public function setDeleteByNavn($input) {
-        return $this->set_var($this->_deletebynavn, $input);
+        $this->_deletebynavn = $input;
 	}
 	public function getDeleteByEpost() {
 		return $this->_deletebyepost;
 	}
 	public function setDeleteByEpost($input) {
-        return $this->set_var($this->_deletebyepost, $input);
+        $this->_deletebyepost = $input;
 	}
 
 
@@ -350,6 +357,7 @@ class MsNyhet {
         
         $safeid = $msdb->quote($this->getId());
         $safeomrade = $msdb->quote($this->getOmrade());
+        $safesticky = ($this->isSticky()) ? '1' : '0';
         $safetype = $msdb->quote($this->getType());
         $safewikipath = $msdb->quote($this->getWikiPath());
         $safeimgpath = $msdb->quote($this->getImagePath());
@@ -363,6 +371,7 @@ class MsNyhet {
                 nyhetstype = $safetype,
                 wikipath = $safewikipath,
                 wikihash = $safewikihash,
+				issticky = $safesticky,
                 nyhettitle = $safetitle,
                 imgpath = $safeimgpath,
                 nyhetbodycache = $safehtmlbody,
@@ -373,12 +382,12 @@ class MsNyhet {
             $presql = "INSERT INTO nyheter_nyhet SET\n";
             $presql .= "nyhetid = DEFAULT,\n";
             $presql .= "createtime = NOW(),\n";
-            $presql .= "createby = " . MinSide::$UserID . ",\n";
+            $presql .= "createby = " . MinSide::getUserID() . ",\n";
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
             $presql .= "modtime = NOW(),\n";
-			$presql .= "modby = " . MinSide::$UserID . ",\n";
+			$presql .= "modby = " . MinSide::getUserID() . ",\n";
             $postsql = "WHERE nyhetid = $safeid LIMIT 1;";
         }
         
