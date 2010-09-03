@@ -51,13 +51,16 @@ class NyhetFactory {
         
     }
     
-    public static function getAlleNyheter() {
+    public static function getAllePubliserteNyheter() {
         global $msdb;
+		
+		$omrader = self::getSafeReadOmrader();
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
-			" WHERE pubtime < NOW()" .
-			" ORDER BY nyhetid DESC;";
+			" WHERE pubtime < NOW()
+				AND nyheter_nyhet.omrade IN ($omrader)
+			ORDER BY nyhetid DESC;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
@@ -67,13 +70,7 @@ class NyhetFactory {
     public static function getUlesteNyheterForBrukerId($brukerid) {
         global $msdb;
         
-		$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_READ);
-		$arOmrader = array();
-		foreach ($colOmrader as $objOmrade) {
-			$arOmrader[] = $msdb->quote($objOmrade->getOmrade());
-		}
-		$omrader = implode(',', $arOmrader);
-		$omrader = ($omrader) ?: "''";
+		$omrader = self::getSafeReadOmrader();
 		
         $safebrukerid = $msdb->quote($brukerid);
         
@@ -149,4 +146,16 @@ class NyhetFactory {
         
     }
     
+	protected static function getSafeReadOmrader() {
+		global $msdb;
+		
+		$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_READ);
+		$arOmrader = array();
+		foreach ($colOmrader as $objOmrade) {
+			$arOmrader[] = $msdb->quote($objOmrade->getOmrade());
+		}
+		$omrader = implode(',', $arOmrader);
+		return ($omrader) ?: "''";
+	}
+	
 }
