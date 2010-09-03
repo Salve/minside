@@ -4,6 +4,7 @@ if(!defined('MS_INC')) die();
 class NyhetGen {
 
 	const THUMB_BREDDE = 100;
+	const TIME_FORMAT = 'd.m.Y \k\l. H.m';
 
 	private function __construct() { }
 	
@@ -31,6 +32,11 @@ class NyhetGen {
 		$title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
 		
+		$create = '<div class="nyhetcreate">Nyhet opprettet '. self::dispTime($nyhet->getCreateTime()) .
+			' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
+		$lastmod = '<div class="nyhetmod">Nyhet sist endret '. self::dispTime($nyhet->getLastModTime()) .
+			' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>';
+			
 		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
@@ -48,6 +54,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$title</div>
 					<div class=\"nyhetoptions\">$options</div>
+					<div class=\"nyhetinfo\">$create$lastmod</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -190,6 +197,16 @@ class NyhetGen {
 		
 		return $output;
 	
+	}
+	
+	protected static function getMailLink($name, $epost) {
+		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';
+		return sprintf($format, $name, $epost);
+	}
+	
+	protected static function dispTime($sqltime) {
+		$timestamp = strtotime($sqltime);
+		return date(self::TIME_FORMAT, $timestamp);
 	}
 	
 }

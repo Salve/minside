@@ -128,8 +128,8 @@ class NyhetFactory {
 		$objNyhet->setImagePath($row['imgpath']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
 		$objNyhet->setCreateTime($row['createtime']);
-		$objNyhet->setCreateByNavn($row['createbye_fullname']);
-		$objNyhet->setCreateByEpost($row['createbye_epost']);
+		$objNyhet->setCreateByNavn($row['createby_fullname']);
+		$objNyhet->setCreateByEpost($row['createby_epost']);
 		$objNyhet->setLastModTime($row['modtime']);
 		$objNyhet->setLastModByNavn($row['modby_fullname']);
 		$objNyhet->setLastModByEpost($row['modby_epost']);

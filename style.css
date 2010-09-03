@@ -513,6 +513,14 @@ div.minside div.nyhettitle {
     padding: 0.5em 0 0.5em 0.5em;
 }
 
+div.minside div.nyhetinfo {
+    float: left;
+    font-size: 80%;
+    color: #426973;
+	clear: left;
+    padding: 0.5em 0 0.5em 0.5em;
+}
+
 div.minside div.nyhetoptions {
     float: right;
     margin-top: 0.25em;
