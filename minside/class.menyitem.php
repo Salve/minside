@@ -125,6 +125,10 @@ class Menyitem {
     }
     
     public function updateDb() {
+        if (!$this->_hasUnsavedChanges && $this->isSaved()) {
+            return false;
+        }
+        
         global $msdb;
         
         $safeid = $msdb->quote($this->_id);
