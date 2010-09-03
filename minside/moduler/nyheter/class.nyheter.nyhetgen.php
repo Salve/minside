@@ -9,18 +9,30 @@ class NyhetGen {
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
-		return self::genFullNyhet($nyhet);
+		$arOptions = array('lest');
+		return self::genFullNyhet($nyhet, $arOptions);
 	}
 	
 	public static function genFullNyhetEdit(msnyhet &$nyhet) {
 		$arOptions = array(
-
+			'lest',
+			'edit',
+			'slett'
 		);
 		
 		return self::genFullNyhet($nyhet, $arOptions);
 	}
 	
-	private static function genFullNyhet(msnyhet &$nyhet, array $options = array()) {
+	public static function genFullNyhetDeleted(msnyhet &$nyhet) {
+		$arOptions = array(
+			'restore',
+			'permslett'
+		);
+		
+		return self::genFullNyhet($nyhet, $arOptions);
+	}
+	
+	private static function genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
 		$type = $nyhet->getType();		
 		$id = $nyhet->getId();
 		if ($nyhet->hasImage()) {
@@ -50,16 +62,30 @@ class NyhetGen {
 				MS_IMG_PATH . 'pin_icon.png" />' 
 			: '' ;
 		
-		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
+		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
-		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
+		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=slett&nyhetid=$id\">" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . "&act=slett&nyhetid=$id\">" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$options = implode('&nbsp;', $opt);
+		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
+            '<img alt="permslett" title="Slett nyhet permanent" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
+		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&act=restore&nyhetid=$id\">" .
+            '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+		
+		foreach ($inoptions as $k => $v) {
+			$options[] = $opt[$v];
+		}
+		if (!empty($options)) {
+			$valg = implode('&nbsp;', $options);
+		} else {
+			$vaøg = '';
+		}
         
 		$output = "
 			<div class=\"nyhetcontainer\">
@@ -67,7 +93,7 @@ class NyhetGen {
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$sticky$title</div>
-					<div class=\"nyhetoptions\">$options</div>
+					<div class=\"nyhetoptions\">$valg</div>
 					<div class=\"nyhetinfo\">$create$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
@@ -205,6 +231,10 @@ class NyhetGen {
 		
 		return $output;
 	
+	}
+	
+	public static function genIngenNyheter() {
+		return '<div class="mswarningbar">Ingen nyheter her!</div>';
 	}
 	
 	protected static function getMailLink($name, $epost) {

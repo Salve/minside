@@ -54,12 +54,13 @@ class NyhetFactory {
     public static function getAllePubliserteNyheter() {
         global $msdb;
 		
-		$omrader = self::getSafeReadOmrader();
+		$omrader = self::getSafeOmrader(MSAUTH_1);
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
 			" WHERE pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
+				AND deletetime IS NULL
 			ORDER BY nyhetid DESC;";
         $res = $msdb->assoc($sql);
         
@@ -70,7 +71,7 @@ class NyhetFactory {
     public static function getUlesteNyheterForBrukerId($brukerid) {
         global $msdb;
         
-		$omrader = self::getSafeReadOmrader();
+		$omrader = self::getSafeOmrader(MSAUTH_1);
 		
         $safebrukerid = $msdb->quote($brukerid);
         
@@ -83,9 +84,26 @@ class NyhetFactory {
                 " WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
+					AND deletetime IS NULL
                 ORDER BY nyheter_nyhet.nyhetid DESC
             ;";
             
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+	
+	public static function getDeletedNyheter() {
+        global $msdb;
+		
+		$omrader = self::getSafeOmrader(MSAUTH_2);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE deletetime IS NOT NULL
+				AND nyheter_nyhet.omrade IN ($omrader)
+			ORDER BY deletetime DESC;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
@@ -146,10 +164,10 @@ class NyhetFactory {
         
     }
     
-	protected static function getSafeReadOmrader() {
+	protected static function getSafeOmrader($auth) {
 		global $msdb;
 		
-		$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_READ);
+		$colOmrader = NyhetOmrade::getOmrader('msnyheter', $auth);
 		$arOmrader = array();
 		foreach ($colOmrader as $objOmrade) {
 			$arOmrader[] = $msdb->quote($objOmrade->getOmrade());

@@ -48,6 +48,11 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
+		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
+		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
+		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
+		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
 		
 	}
 	
@@ -60,6 +65,9 @@ class msmodul_nyheter implements msmodul {
 				$toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
 				if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
+				}
+				if ($lvl >= MSAUTH_5) {
+					$toppmeny->addChild(new Menyitem('Slettede nyheter','&page=nyheter&act=showdel'));
 				}
 				if ($lvl == MSAUTH_ADMIN) {
 					$toppmeny->addChild(new Menyitem('Områder','&page=nyheter&act=omradeadm'));
@@ -77,9 +85,24 @@ class msmodul_nyheter implements msmodul {
 	public function gen_nyheter_full() {
 		
         $objNyhetCol = NyhetFactory::getAllePubliserteNyheter();
+		
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
         
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+			switch($this->_adgangsNiva) {
+				case MSAUTH_1:
+					$output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+					break;
+				case MSAUTH_2:
+				case MSAUTH_3:
+				case MSAUTH_4:
+				case MSAUTH_5:
+				case MSAUTH_ADMIN:
+					$output .= NyhetGen::genFullNyhetEdit($objNyhet);
+					break;
+			}
         }
         
 		return $output;
@@ -90,8 +113,39 @@ class msmodul_nyheter implements msmodul {
 		
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
+		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+            switch($this->_adgangsNiva) {
+				case MSAUTH_1:
+					$output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
+					break;
+				case MSAUTH_2:
+				case MSAUTH_3:
+				case MSAUTH_4:
+				case MSAUTH_5:
+				case MSAUTH_ADMIN:
+					$output .= NyhetGen::genFullNyhetEdit($objNyhet);
+					break;
+			}
+        }
+        
+		return $output;
+		
+	}
+	
+	public function gen_nyheter_del() {
+		
+        $objNyhetCol = NyhetFactory::getDeletedNyheter();
+      
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhetDeleted($objNyhet);
         }
         
 		return $output;
@@ -166,6 +220,25 @@ class msmodul_nyheter implements msmodul {
 			? msg('Slettet nyhet: ' . $objNyhet->getTitle(), 1)
 			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
 		
+	}
+    
+	public function restore_nyhet() {
+		$nyhetid = $_REQUEST['nyhetid'];
+		try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			msg('Klarte ikke å gjenopprette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+			return false;
+		}
+		
+		($objNyhet->restore())
+			? msg('Gjenopprettet nyhet: ' . $objNyhet->getTitle(), 1)
+			: msg('Klarte ikke å gjenopprette nyhet med id: ' . $objNyhet->getId(), -1);
+		
+	}
+    
+	public function permslett_nyhet() {
+		return '<div class="mswarningbar">Permanent sletting ikke implementert enda :(</div>';
 	}
     
     public function update_nyhet_from_wp() {
