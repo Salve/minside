@@ -18,34 +18,33 @@ class NyhetFactory {
             nyheter_nyhet.nyhettitle AS nyhettitle,
             nyheter_nyhet.imgpath AS imgpath,
             nyheter_nyhet.nyhetbodycache AS nyhetbodycache,
-            nyheter_nyhet.pubtime AS pubtime
+            nyheter_nyhet.pubtime AS pubtime,
+			createby.wikifullname AS createby_fullname,
+			createby.wikiepost AS createby_epost,
+			modby.wikifullname AS modby_fullname,
+			modby.wikiepost AS modby_epost,
+			deleteby.wikifullname AS deleteby_fullname,
+			deleteby.wikiepost AS deleteby_epost
         ';
-
+	
+	const SQL_FULLNAME_JOINS =
+		'LEFT JOIN internusers AS createby
+			ON nyheter_nyhet.createby = createby.id
+		LEFT JOIN internusers AS modby
+			ON nyheter_nyhet.modby = modby.id
+		LEFT JOIN internusers AS deleteby
+			ON nyheter_nyhet.deleteby = deleteby.id
+		';
+	
     private function __construct() { }
-    
-    public static function getTestNyhet() {
-    
-        $objNyhet = new MsNyhet();
-        
-		$objNyhet->setType(1);
-		$objNyhet->setTilgang('feilm');
-		$objNyhet->setViktighet(2);
-		$objNyhet->setTitle('En liten testnyhet');
-		$objNyhet->setHtmlBody(nl2br(
-            '<strong>Her er nyheten!</strong> Lorem ipsum dolor sit amet osv. En masse tekst kommer som regel inn i nyheter. Blandt annet punktlister og sånt, men det får vi ta senere. Enda en setning hives på.
-            
-            For good measure tar vi også et avsnitt nummer to. Dette trenger ikke være like langt, men vi vil gjerne ha litt tekstbrytning for å sjekke at layout er lesbar.'
-        ));
-        
-        return $objNyhet;
-    
-    }
     
     public static function getNyhetById($input_nyhetid) {
         global $msdb;
         
         $safeid = $msdb->quote($input_nyhetid);
-        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE nyhetid=$safeid LIMIT 1;";
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE nyhetid=$safeid LIMIT 1;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetsobjektFromDbRow($res[0]);
@@ -55,7 +54,10 @@ class NyhetFactory {
     public static function getAlleNyheter() {
         global $msdb;
         
-        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet ORDER BY nyhetid DESC;";
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE pubtime < NOW()" .
+			" ORDER BY nyhetid DESC;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
@@ -79,8 +81,9 @@ class NyhetFactory {
                 FROM nyheter_nyhet 
                 LEFT JOIN nyheter_lest 
                 ON nyheter_nyhet.nyhetid = nyheter_lest.nyhetid 
-                    AND nyheter_lest.brukerid = $safebrukerid 
-                WHERE nyheter_lest.nyhetid IS NULL
+                    AND nyheter_lest.brukerid = $safebrukerid " . 
+				self::SQL_FULLNAME_JOINS .
+                " WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
                 ORDER BY nyheter_nyhet.nyhetid DESC
@@ -96,7 +99,9 @@ class NyhetFactory {
         global $msdb;
         
         $safewikipath = $msdb->quote($input_wikipath);
-        $sql = "SELECT " . self::SQL_NYHET_FIELDS . " FROM nyheter_nyhet WHERE wikipath=$safewikipath LIMIT 1;";
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE nyheter_nyhet.wikipath=$safewikipath LIMIT 1;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetsobjektFromDbRow($res[0]);
@@ -126,8 +131,14 @@ class NyhetFactory {
 		$objNyhet->setImagePath($row['imgpath']);
 		$objNyhet->setHtmlBody($row['nyhetbodycache']);
 		$objNyhet->setCreateTime($row['createtime']);
+		$objNyhet->setCreateByNavn($row['createbye_fullname']);
+		$objNyhet->setCreateByEpost($row['createbye_epost']);
 		$objNyhet->setLastModTime($row['modtime']);
+		$objNyhet->setLastModByNavn($row['modby_fullname']);
+		$objNyhet->setLastModByEpost($row['modby_epost']);
 		$objNyhet->setDeleteTime($row['deletetime']);
+		$objNyhet->setDeleteByNavn($row['deleteby_fullname']);
+		$objNyhet->setDeleteByEpost($row['deleteby_epost']);
 		$objNyhet->setWikiPath($row['wikipath']);
 		$objNyhet->setWikiHash($row['wikihash']);
 		$objNyhet->setPublishTime($row['pubtime']);

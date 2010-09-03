@@ -14,8 +14,14 @@ class MsNyhet {
 	protected $_type;
 	protected $_viktighet;
 	protected $_createtime;
+	protected $_createbynavn;
+	protected $_createbyepost;
 	protected $_lastmodtime;
+	protected $_lastmodbynavn;
+	protected $_lastmodbyepost;
 	protected $_deletetime;
+	protected $_deletebynavn;
+	protected $_deletebyepost;
 	protected $_issaved;
 	protected $_hasunsavedchanges;
 	protected $_wikipath;
@@ -113,20 +119,44 @@ class MsNyhet {
 	public function setCreateTime($input) {
         return $this->set_var($this->_createtime, $input);
 	}
+	public function getCreateByNavn() {
+		return $this->_createbynavn;
+	}
+	public function setCreateByNavn($input) {
+        return $this->set_var($this->_createbynavn, $input);
+	}
+	public function getCreateByEpost() {
+		return $this->_createbyepost;
+	}
+	public function setCreateByEpost($input) {
+        return $this->set_var($this->_createbyepost, $input);
+	}
+	
 
+	public function isModified() {
+		return !empty($this->_lastmodtime);
+	}
 	public function getLastModTime() {
 		return $this->_lastmodtime;
 	}
 	public function setLastModTime($input) {
         return $this->set_var($this->_lastmodtime, $input);
 	}
+	public function getLastModByNavn() {
+		return $this->_lastmodbynavn;
+	}
+	public function setLastModByNavn($input) {
+        return $this->set_var($this->_lastmodbynavn, $input);
+	}
+	public function getLastModByEpost() {
+		return $this->_lastmodbyepost;
+	}
+	public function setLastModByEpost($input) {
+        return $this->set_var($this->_lastmodbyepost, $input);
+	}
 
 	public function hasUnsavedChanges() {
 		return (bool) $this->_hasunsavedchanges;
-	}
-	
-	public function isModified() {
-		return isset($this->_lastmodtime);
 	}
 	
 	public function getDeleteTime() {
@@ -135,9 +165,22 @@ class MsNyhet {
 	public function setDeleteTime($input) {
         return $this->set_var($this->_deletetime, $input);
 	}
+	public function getDeleteByNavn() {
+		return $this->_deletebynavn;
+	}
+	public function setDeleteByNavn($input) {
+        return $this->set_var($this->_deletebynavn, $input);
+	}
+	public function getDeleteByEpost() {
+		return $this->_deletebyepost;
+	}
+	public function setDeleteByEpost($input) {
+        return $this->set_var($this->_deletebyepost, $input);
+	}
+
 
 	public function isDeleted() {
-		return isset($this->_deletetime);
+		return !empty($this->_deletetime);
 	}
 	
 	public function hasImage() {
@@ -156,6 +199,14 @@ class MsNyhet {
 				if (strlen($input) < 6) return false;
 			} else {
 				return false;
+			}
+		}
+		
+		if (!$this->under_construction && !empty($input)) {
+			$filename = mediaFN($input);
+			if (!@file_exists($filename)) {
+				msg('Bilde ble ikke lagret, filen finnes ikke!', -1);
+				$input = '';
 			}
 		}
 	
@@ -336,10 +387,12 @@ class MsNyhet {
             $presql = "INSERT INTO nyheter_nyhet SET\n";
             $presql .= "nyhetid = DEFAULT,\n";
             $presql .= "createtime = NOW(),\n";
+            $presql .= "createby = " . MinSide::$UserID . ",\n";
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
             $presql .= "modtime = NOW(),\n";
+			$presql .= "modby = " . MinSide::$UserID . ",\n";
             $postsql = "WHERE nyhetid = $safeid LIMIT 1;";
         }
         
