@@ -140,5 +140,5 @@ CREATE TABLE `sidebar_blokk` (
   `blokkorder` int(10) unsigned NOT NULL,
   `blokkacl` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`blokkid`),
-  UNIQUE KEY `blokkid_UNIQUE` (`blokkid`),
+  UNIQUE KEY `blokkid_UNIQUE` (`blokkid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

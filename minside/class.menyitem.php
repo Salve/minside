@@ -35,6 +35,10 @@ class Menyitem {
     public function isSaved() {
         return isset($this->_id);
     }
+	
+	public function getId() {
+		return $this->_id;
+	}
     
 	public function getTekst() {
 		return $this->_tekst;
@@ -70,6 +74,49 @@ class Menyitem {
     public function setOrder($input) {
         $this->_setvar($this->_order, $input);
     }
+	public function changeOrder($neworder) {
+		global $msdb;
+		
+		$oldorder = $this->_order;
+		
+		$safeneworder = $msdb->quote($neworder);
+		$safeoldorder = $msdb->quote($oldorder);
+		$safeid = $msdb->quote($this->_id);
+		
+		if ($neworder < $oldorder) {
+			// Blokk flyttes oppover
+			$sql_makeroom = "UPDATE sidebar_blokk
+				SET blokkorder = blokkorder + 1
+				WHERE blokkorder >= $safeneworder
+				AND blokkorder < $safeoldorder;";
+			
+			$sql_move = "UPDATE sidebar_blokk
+				SET blokkorder = $safeneworder
+				WHERE blokkid = $safeid";
+				
+		} else {
+			// Blokk flyttes nedover
+			$sql_makeroom = "UPDATE sidebar_blokk
+				SET blokkorder = blokkorder - 1
+				WHERE blokkorder > $safeoldorder
+				AND blokkorder <= $safeneworder;";
+			
+			$sql_move = "UPDATE sidebar_blokk
+				SET blokkorder = $safeneworder
+				WHERE blokkid = $safeid";
+		}
+				
+		$msdb->startTrans();
+		$res1 = $msdb->exec($sql_makeroom);
+		$res2 = $msdb->exec($sql_move);
+		if ($res1 === false || $res2 === false) {
+			throw new Exception('Flytting feilet!');
+			$msdb->rollBack();
+		} else {
+			$msdb->commit();
+			return true;
+		}
+	}
     
     public function checkAcl() {
         if (!isset($this->_acl)) return true;
@@ -123,13 +170,42 @@ class Menyitem {
         $var = $input;
         
     }
+	
+	public function delete() {
+		if (!$this->isSaved()) {
+			throw new Exception('Kan ikke slette menyitem som ikke er lagret i database.');
+		}
+		
+		global $msdb;
+		$safeid = $msdb->quote($this->_id);
+		$safeorder = $msdb->quote($this->_order);
+		$sql_delete = "DELETE FROM sidebar_blokk WHERE blokkid=$safeid LIMIT 1;";
+		$sql_update = "UPDATE sidebar_blokk SET blokkorder = blokkorder -1 WHERE blokkorder > $safeorder;";
+		
+		$msdb->startTrans();
+		
+		$result = $msdb->exec($sql_delete);
+		if ($result !== 1) {
+			$msdb->rollBack();
+			throw new Exception('Feil ved sletting av blokk!');
+		}
+		
+		$result = $msdb->exec($sql_update);
+		if ($result === false) {
+			$msdb->rollBack();
+			throw new Exception('Feil ved oppdatering av rekkefølge!');
+		}
+		
+		$msdb->commit();	
+		
+	}
     
     public function updateDb() {
-        if (!$this->_hasUnsavedChanges && $this->isSaved()) {
-            return false;
-        }
-        
-        global $msdb;
+        if ($this->isSaved() && !$this->_hasUnsavedChanges) {
+			return false;
+		}
+		
+		global $msdb;
         
         $safeid = $msdb->quote($this->_id);
         $safetekst = $msdb->quote($this->_tekst);
@@ -140,7 +216,8 @@ class Menyitem {
         
         if (!$this->isSaved()) {
             msg('Writing new sidebar blokk to db...', 2);
-            $safeorder = $msdb->quote($this->getLastOrder());
+            $order = $this->getLastOrder();
+			$safeorder = $msdb->quote($order);
             $sql = "INSERT INTO sidebar_blokk SET
                     blokknavn = $safetekst,
                     blokkurl = $safehref,
@@ -161,9 +238,11 @@ class Menyitem {
         $result = $msdb->exec($sql);
         
         if (!$this->isSaved()) {
-            $this->_id = $msdb->getLastInsertId();
+            $this->setSaved($msdb->getLastInsertId(), $order);
         }
         
+		return $result;
+		
     }
     
     public function modOrderOpp() {
