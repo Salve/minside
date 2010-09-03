@@ -39,9 +39,11 @@ class msmodul_nyheter implements msmodul {
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
-		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_3);
-		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_3);
-		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_1);
+		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
+		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
+		$dispatcher->addActHandler('slett', 'gen_nyheter_full', MSAUTH_1);
+		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
+		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
@@ -150,6 +152,21 @@ class msmodul_nyheter implements msmodul {
         
         return NyhetGen::genFullNyhetViewOnly($objNyhet);
     }
+	
+	public function slett_nyhet() {
+		$nyhetid = $_REQUEST['nyhetid'];
+		try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			msg('Klarte ikke å slette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+			return false;
+		}
+		
+		($objNyhet->slett())
+			? msg('Slettet nyhet: ' . $objNyhet->getTitle(), 1)
+			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
+		
+	}
     
     public function update_nyhet_from_wp() {
         msg('Oppdaterer nyhet basert på ekstern redigering');

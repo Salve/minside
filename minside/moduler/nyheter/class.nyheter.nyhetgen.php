@@ -32,10 +32,18 @@ class NyhetGen {
 		$title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
 		
-		$create = '<div class="nyhetcreate">Nyhet opprettet '. self::dispTime($nyhet->getCreateTime()) .
-			' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
-		$lastmod = '<div class="nyhetmod">Nyhet sist endret '. self::dispTime($nyhet->getLastModTime()) .
-			' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>';
+		$create = ($nyhet->isSaved())
+			? '<div class="nyhetcreate">Nyhet opprettet '. self::dispTime($nyhet->getCreateTime()) .
+				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
+			: '';
+		$lastmod = ($nyhet->isModified())
+			? '<div class="nyhetmod">Nyhet sist endret '. self::dispTime($nyhet->getLastModTime()) .
+				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
+			: '';
+		$delete = ($nyhet->isDeleted()) 
+			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
+				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
+			: '';
 		
 		$sticky = ($nyhet->isSticky()) 
 			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
@@ -48,8 +56,9 @@ class NyhetGen {
 		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt[] = '<img alt="slett" title="Slett nyhet" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'trash.png" />';
+		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=slett&nyhetid=$id\">" .
+            '<img alt="slett" title="Slett nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
 		$options = implode('&nbsp;', $opt);
         
 		$output = "
@@ -59,7 +68,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$options</div>
-					<div class=\"nyhetinfo\">$create$lastmod</div>
+					<div class=\"nyhetinfo\">$create$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">

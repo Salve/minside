@@ -309,6 +309,24 @@ class MsNyhet {
         return (bool) $res;
     }
 	
+	public function slett() {
+		if ($this->isDeleted()) {
+			return false;
+		}
+			
+		global $msdb;
+		
+		$safenyhetid = $msdb->quote($this->getId());
+		$safebrukerid = $msdb->quote(MinSide::getUserID());
+		
+		$sql = "UPDATE nyheter_nyhet
+				SET deletetime = NOW(),
+				deleteby = $safebrukerid
+				WHERE nyhetid = $safenyhetid;";
+		
+		return (bool) $msdb->exec($sql);
+	}
+	
 	protected function write_wikitext() {
 		// function saveWikiText($id,$text,$summary,$minor=false)
 		// definert i /inc/common.php på linje 927

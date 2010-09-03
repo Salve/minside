@@ -521,6 +521,14 @@ div.minside div.nyhetinfo {
     padding: 0.5em 0 0.5em 0.5em;
 }
 
+div.minside div.nyhetinfo div.nyhetdel {
+	color: #FF0000;
+}
+
+div.minside div.nyhetinfo div.nyhetdel a{
+	color: #FF0000;
+}
+
 div.minside div.nyhetoptions {
     float: right;
     margin-top: 0.25em;
