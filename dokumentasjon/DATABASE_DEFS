@@ -107,20 +107,24 @@ CREATE TABLE `feilrap_raptpl` (
 DROP TABLE IF EXISTS `nyheter_nyhet`;
 CREATE TABLE `nyheter_nyhet` (
   `nyhetid` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `tilgangsgrupper` varchar(500) DEFAULT NULL,
+  `omrade` varchar(150) DEFAULT NULL,
   `nyhetstype` tinyint(3) unsigned NOT NULL DEFAULT '1',
-  `viktighet` tinyint(3) unsigned NOT NULL,
-  `createtime` datetime DEFAULT NULL,
+  `createtime` datetime NOT NULL,
   `modtime` datetime DEFAULT NULL,
   `deletetime` datetime DEFAULT NULL,
-  `wikipath` varchar(100) DEFAULT NULL,
+  `wikipath` varchar(100) NOT NULL,
   `wikihash` varchar(50) DEFAULT NULL,
   `nyhettitle` varchar(250) DEFAULT NULL,
   `imgpath` varchar(100) DEFAULT NULL,
   `nyhetbodycache` text,
+  `pubtime` datetime DEFAULT NULL,
+  `createby` int(10) unsigned NOT NULL,
+  `modby` int(10) unsigned DEFAULT NULL,
+  `deleteby` int(10) unsigned DEFAULT NULL,
+  `issticky` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`nyhetid`),
   UNIQUE KEY `nyhetid_UNIQUE` (`nyhetid`),
-  KEY `type` (`nyhetstype`)
+  KEY `pubtime` (`pubtime`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `nyheter_lest`;
@@ -141,4 +145,4 @@ CREATE TABLE `sidebar_blokk` (
   `blokkacl` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`blokkid`),
   UNIQUE KEY `blokkid_UNIQUE` (`blokkid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
