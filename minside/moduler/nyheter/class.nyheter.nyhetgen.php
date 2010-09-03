@@ -45,11 +45,11 @@ class NyhetGen {
 		$body = $nyhet->getHtmlBody();
 		
 		$create = ($nyhet->isSaved())
-			? '<div class="nyhetcreate">Nyhet opprettet '. self::dispTime($nyhet->getCreateTime()) .
+			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
 			: '';
 		$lastmod = ($nyhet->isModified())
-			? '<div class="nyhetmod">Nyhet sist endret '. self::dispTime($nyhet->getLastModTime()) .
+			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
 				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
 			: '';
 		$delete = ($nyhet->isDeleted()) 
