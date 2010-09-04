@@ -2,7 +2,12 @@
 if(!defined('MS_INC')) die();
 
 class SidebarGen {
-	public static function GenSidebar(MenyitemCollection $objSidebar) {
+	public static function GenSidebar(MenyitemCollection $objSidebar, $adgang) {
+        
+        if ($objSidebar->length() === 0) {
+            return self::GenEmptySidebar($adgang);
+        }
+        
 		$output .= '<div class="left_sidebar">' .
 				   '<TABLE cellspacing=4>';
 		
@@ -146,6 +151,32 @@ class SidebarGen {
 		
 		return $output;		
 	}
-	
+    
+	protected static function GenEmptySidebar($adgang) {
+        $colDefaultSidebar = new MenyitemCollection();
+        
+        $objInfoItem = new Menyitem(
+			'Ingen meny satt opp!',
+			'doku.php',
+			'',
+			Menyitem::TYPE_NORMAL
+		);
+        
+        $colDefaultSidebar->additem($objInfoItem);
+        
+        if ($adgang == MSAUTH_ADMIN){
+            $objSpacer = new Menyitem('Spacer', '', '', Menyitem::TYPE_SPACER);
+            $objAdmin = new Menyitem(
+                'Administrer sidebar',
+                'doku.php?do=minside&page=sidebar&act=admin',
+                '',
+                Menyitem::TYPE_NORMAL
+            );
+            $colDefaultSidebar->additem($objSpacer);
+            $colDefaultSidebar->additem($objAdmin);
+        }
+        
+        return self::GenSidebar($colDefaultSidebar, $adgang);
+    }
 	
 }
