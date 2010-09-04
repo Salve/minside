@@ -215,7 +215,6 @@ class Menyitem {
 
         
         if (!$this->isSaved()) {
-            msg('Writing new sidebar blokk to db...', 2);
             $order = $this->getLastOrder();
 			$safeorder = $msdb->quote($order);
             $sql = "INSERT INTO sidebar_blokk SET
@@ -225,7 +224,6 @@ class Menyitem {
                     blokkacl = $safeacl,
                     blokkorder = $safeorder;"; 
         } else {
-            msg('Updating db with sidebar blokk');
             $sql = "UPDATE sidebar_blokk SET
                     blokknavn = $safetekst,
                     blokkurl = $safehref,
