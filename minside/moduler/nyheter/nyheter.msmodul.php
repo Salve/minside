@@ -196,9 +196,15 @@ class msmodul_nyheter implements msmodul {
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
         if ($objNyhet->hasUnsavedChanges()) {
-            $objNyhet->update_db();
+            try{
+                $objNyhet->update_db();
+                $objNyhet = NyhetFactory::getNyhetById($objNyhet->getId());
+            } catch (Exception $e) {
+                msg('Klarte ikke å lagre nyhet!', -1);
+                return false;
+            }
         } else {
-            msg('Ingen endringer, oppdaterer ikke db.');
+            msg('Lagring av nyhet: nyhet ikke endret.');
         }
         
         return NyhetGen::genFullNyhetViewOnly($objNyhet);
