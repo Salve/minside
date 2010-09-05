@@ -127,6 +127,11 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Hvis vi kommer hit er dette opprettelse av en ny side
         // i :msnyheter:-navnerommet.
         
+        // Vi lar admins opprette sider, eneste måte å lage nye namespaces på
+        // (alternativet var å kode eget adminpanel for dette...)
+        global $INFO;
+        if ($INFO['isadmin']) return false;
+        
         die("Oppdaget førsøk på å opprette nyhet gjennom DokuWiki\n<br />Vennligst benytt MinSide til å opprette nyheter.");
     }
     
@@ -138,8 +143,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // viktig at vi ikke behandler dette, vil loope evig...
         if ($GLOBALS['ms_writing_to_dw'] === true) return false;
         
-        /* Opprettelse av nye sider er blokkert i handlePreWikiWrite
-         * vi trenger kun å sjekke at dette er skriving av ny utgave
+        /* Sjekk at dette er skriving av ny utgave
          * og ikke flytting av den gamle til attic.
          */
         

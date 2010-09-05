@@ -220,19 +220,6 @@ class NyhetGen {
         return $output;
     }
 	
-	public static function genOmradeAdmin($OmradeCol) {
-		
-		$output .= "Tilgjengelige områder: <br /><br />\n";
-		
-		foreach ($OmradeCol as $objOmrade) {
-			$output .= $objOmrade->getOmrade() . ' (' . 
-				$objOmrade->getAcl() . ")<br />\n";
-		}
-		
-		return $output;
-	
-	}
-	
 	public static function genIngenNyheter() {
 		return '<div class="mswarningbar">Ingen nyheter her!</div>';
 	}

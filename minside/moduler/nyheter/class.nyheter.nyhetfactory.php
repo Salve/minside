@@ -134,7 +134,11 @@ class NyhetFactory {
         return $objNyhetCol;
     }
     
-    protected static function createNyhetsobjektFromDbRow(array &$row) {
+    protected static function createNyhetsobjektFromDbRow(&$row) {
+        
+        if (empty($row) || !is_array($row)) {
+            throw new Exception('Ingen eller ugyldig data gitt til factory');
+        }
         
         $objNyhet = new MsNyhet(true, $row['nyhetid']);
         $objNyhet->under_construction = true;

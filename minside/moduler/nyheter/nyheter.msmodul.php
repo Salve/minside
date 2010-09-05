@@ -69,9 +69,6 @@ class msmodul_nyheter implements msmodul {
 				if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild(new Menyitem('Slettede nyheter','&page=nyheter&act=showdel'));
 				}
-				if ($lvl == MSAUTH_ADMIN) {
-					$toppmeny->addChild(new Menyitem('Områder','&page=nyheter&act=omradeadm'));
-				}
 			}
 			$meny->addItem($toppmeny);
 		}
@@ -249,7 +246,11 @@ class msmodul_nyheter implements msmodul {
         $wikipath = $data[1] . ':' . $data[2];
         $wikitext = $data[0][1];
         
-        $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
+        try {
+            $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
+        } catch (Exception $e) {
+            return false;
+        }
         $objNyhet->setWikiTekst($wikitext);
 
         return $objNyhet->update_db();
@@ -274,12 +275,5 @@ class msmodul_nyheter implements msmodul {
             msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
         
     }
-	
-	public function gen_omrade_admin() {
-		
-		$arOmrader = NyhetOmrade::getOmrader('msnyheter', 255);
-		return NyhetGen::genOmradeAdmin($arOmrader);
-		
-	}
 
 }
