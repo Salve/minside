@@ -4,7 +4,7 @@ if(!defined('MS_INC')) die();
 class NyhetGen {
 
 	const THUMB_BREDDE = 100;
-	const TIME_FORMAT = 'd.m.Y \k\l. H.m';
+	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
 
 	private function __construct() { }
 	
