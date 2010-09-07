@@ -68,6 +68,24 @@ class NyhetFactory {
         
     }
     
+    public static function getUpubliserteNyheter() {
+        global $msdb;
+		
+        // Henter kun upubliserte nyheter bruker kan redigere
+		$omrader = self::getSafeOmrader(MSAUTH_2);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE (pubtime > NOW() OR pubtime IS NULL)
+				AND nyheter_nyhet.omrade IN ($omrader)
+				AND deletetime IS NULL
+			ORDER BY nyhetid DESC;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+    
     public static function getUlesteNyheterForBrukerId($brukerid) {
         global $msdb;
         

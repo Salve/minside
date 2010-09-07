@@ -39,6 +39,7 @@ class msmodul_nyheter implements msmodul {
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('slett', 'gen_nyheter_full', MSAUTH_1);
@@ -63,11 +64,14 @@ class msmodul_nyheter implements msmodul {
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
 				$toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
-				if ($lvl >= MSAUTH_3) {
-					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
+				if ($lvl >= MSAUTH_2) {
+					$toppmeny->addChild(new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub'));
 				}
 				if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild(new Menyitem('Slettede nyheter','&page=nyheter&act=showdel'));
+				}
+                if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
 			}
 			$meny->addItem($toppmeny);
@@ -132,6 +136,20 @@ class msmodul_nyheter implements msmodul {
 		return $output;
 		
 	}
+    
+    public function gen_nyheter_upub() {
+        $objNyhetCol = NyhetFactory::getUpubliserteNyheter();
+        
+        if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhetEdit($objNyhet);
+        }
+        
+		return $output;        
+    }
 	
 	public function gen_nyheter_del() {
 		
