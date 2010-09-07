@@ -88,18 +88,36 @@ class MsNyhet {
 	public function setPublishTime($input) {
 		// Validerer ikke dersom objekt bygges av factory
 		if (!$this->under_construction) {
-			$input = trim($input);
-			// Matcher dato, optional tid. Sjekker skuddår
-			$pattern = "{^(((\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\d{4})(-)(0[469]|11)(-)([0][1-9]|[12][0-9]|30))|((\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468][048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(02)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02)(-)(29)))(\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))?$}";
-			if(!preg_match($pattern, $input)) {
-				// Vill skrives til db som NULL
-				$input = '';
-			} else {
-				// Må legge på 00:00:00 for å matche return fra db
-				$input = date('Y-m-d H:i:s', strtotime($input));
-			}
+            $input = strtotime(trim($input));
+            $aar = (int) date('Y', $input);
+            $mnd = (int) date('n', $input);
+            $dag = (int) date('j', $input);
+            $tim = (int) date('G', $input);
+            $min = (int) date('i', $input);
+            $sek = (int) date('s', $input);
+            
+            if (
+                $aar < 2010 ||
+                $aar > 2020 ||
+                $mnd < 1 ||
+                $mnd > 12 ||
+                $dag < 1 ||
+                $dag > 31 ||
+                $tim < 0 ||
+                $tim > 23 ||
+                $min < 0 ||
+                $min > 60 ||
+                $sek < 0 ||
+                $sek > 60
+            ) {
+                $invaliddate = true;
+                $input = '';
+            } else {
+                $input = date('Y-m-d H:i:s', $input);
+            }
 		}
-		return $this->set_var($this->_pubtime, $input);
+        $res = $this->set_var($this->_pubtime, $input);
+		return ($invaliddate) ? false : $res;
 	}
 	
 	public function getCreateTime() {

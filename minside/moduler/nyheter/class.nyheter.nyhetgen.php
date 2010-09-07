@@ -149,24 +149,29 @@ class NyhetGen {
 		$pubtime = $objNyhet->getPublishTime();
 		if (!empty($pubtime)) {
 			$pubtimestamp = strtotime($pubtime);
-			$dag = (int) date('j', $pubtimestamp);
-			$md = (int) date('n', $pubtimestamp);
-			$aar = (int) date('Y', $pubtimestamp);
 		} else {
-			$dag = $md = $aar = 0;
+			$pubtimestamp = time();
 		}
+        $minute = date('i', $pubtimestamp);
+        $hour = date('H', $pubtimestamp);
+		$dag = (int) date('j', $pubtimestamp);
+		$md = (int) date('n', $pubtimestamp);
+		$aar = (int) date('Y', $pubtimestamp);
 		
 		$objCalendar = new tc_calendar("nyhetpubdato", true);
 		$objCalendar->setPath('lib/plugins/minside/minside/');
 		$objCalendar->startMonday(true);
 		$objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
 		$objCalendar->setDate($dag, $md, $aar);
+		$objCalendar->dateAllow('2010-01-01', '2020-01-01', false);
 		
 		ob_start(); // må ta vare på output...
 		$objCalendar->writeScript();
 		$html_calendar = 'Publiseringsdato: ' . ob_get_clean();
 		
-				
+		$html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour">';
+		$html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute">';
+		
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
 		$output .= '<div class="toolbar">

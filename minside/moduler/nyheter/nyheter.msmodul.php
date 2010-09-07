@@ -192,7 +192,11 @@ class msmodul_nyheter implements msmodul {
         }
 		$objNyhet->setIsSticky(($_POST['nyhetsticky'] == 'sticky') ? true : false);
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
-		$objNyhet->setPublishTime($_POST['nyhetpubdato']);
+        
+        // Publish time
+		$res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
+        if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
+        
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
         if ($objNyhet->hasUnsavedChanges()) {
