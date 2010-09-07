@@ -9,18 +9,29 @@ class NyhetGen {
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
-		$arOptions = array('lest');
-		return self::genFullNyhet($nyhet, $arOptions);
+		return self::_genFullNyhet($nyhet);
 	}
 	
-	public static function genFullNyhetEdit(msnyhet &$nyhet) {
-		$arOptions = array(
-			'lest',
-			'edit',
-			'slett'
-		);
-		
-		return self::genFullNyhet($nyhet, $arOptions);
+	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array()) {
+        $acl = $nyhet->getAcl();
+        $arOptions = array();
+        
+        switch($acl) {
+            case MSAUTH_ADMIN:
+            case MSAUTH_5:
+            case MSAUTH_4:
+            case MSAUTH_3:
+            case MSAUTH_2:
+                $arOptions[] = 'edit';
+                $arOptions[] = 'slett';
+            case MSAUTH_1:
+                break;
+            case MSAUTH_NONE:
+                break;
+        }
+        
+        $arOptions = array_merge($arOptions, $extraoptions);
+		return self::_genFullNyhet($nyhet, $arOptions);
 	}
 	
 	public static function genFullNyhetDeleted(msnyhet &$nyhet) {
@@ -29,10 +40,10 @@ class NyhetGen {
 			'permslett'
 		);
 		
-		return self::genFullNyhet($nyhet, $arOptions);
+		return self::_genFullNyhet($nyhet, $arOptions);
 	}
 	
-	private static function genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
+	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
 		$type = $nyhet->getType();		
 		$id = $nyhet->getId();
 		if ($nyhet->hasImage()) {
@@ -84,7 +95,7 @@ class NyhetGen {
 		if (!empty($options)) {
 			$valg = implode('&nbsp;', $options);
 		} else {
-			$vaøg = '';
+			$valg = '';
 		}
         
 		$output = "

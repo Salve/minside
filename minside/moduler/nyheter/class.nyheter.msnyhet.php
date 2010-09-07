@@ -457,5 +457,17 @@ class MsNyhet {
         // return true dersom db ble endret
         return (bool) $res;
     }
-	
+    
+    public function getAcl() {
+        return self::_checkAcl(curNS($this->getWikiPath()));
+    }
+    
+    private static function _checkAcl($inNS) {
+        $objOmrade = NyhetOmrade::OmradeFactory('msnyheter', $inNS);
+        if ($objOmrade instanceof NyhetOmrade) {
+            return $objOmrade->getAcl();
+        } else {
+            return MSAUTH_NONE;
+        }
+	}
 }

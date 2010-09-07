@@ -2,10 +2,13 @@
 if(!defined('MS_INC')) die();
 
 class NyhetOmrade {
+
+    private static $_omrader = array();
 	
 	private $_parent_ns;
 	private $_omrade_full;
 	private $_omrade;
+    private $_acl;
 	
 	public function __construct($omrade) {
 		$this->_omrade_full = $omrade;
@@ -26,15 +29,45 @@ class NyhetOmrade {
 	}
 	
 	public function checkAcl($lvl) {
-		return (auth_quickaclcheck($this->_omrade_full.':*') >= $lvl);
+		return ($this->getAcl() >= $lvl);
 	}
 	
 	public function getAcl() {
-		return auth_quickaclcheck($this->_omrade_full.':*');
+        if (!isset($this->_acl)) {
+            $this->_acl = auth_quickaclcheck($this->_omrade_full.':*');
+        }
+		return $this->_acl;
 	}
 	
 	public static function getOmrader($parent_ns, $acl = 0) {
-	
+        if (!array_key_exists($parent_ns, self::$_omrader)) {
+            self::_loadOmrader($parent_ns);
+        }
+        
+        if ($acl > MSAUTH_NONE) {
+            $ResultatCol = new Collection();
+            foreach (self::$_omrader[$parent_ns] as $objOmrade) {
+                if ($objOmrade->checkAcl($acl)) {
+                    $ResultatCol->additem($objOmrade, $objOmrade->getOmrade());
+                }
+            }
+            return $ResultatCol;
+        } else {
+            return self::$_omrader[$parent_ns];
+        }
+    
+    }
+    
+    public static function OmradeFactory($parent_ns, $omrade) {
+        if (!array_key_exists($parent_ns, self::$_omrader)) {
+            self::_loadOmrader($parent_ns);
+        }
+        
+        return self::$_omrader[$parent_ns]->getItem($omrade);
+    }
+    
+	private static function _loadOmrader($parent_ns) {
+        
 		global $conf; // for å få adgang til $conf['savedir']
 		
 		$parent_ns = cleanID($parent_ns, true);
@@ -60,18 +93,16 @@ class NyhetOmrade {
 			'firsthead' => false
 		);
 		$filerfunnet = array();
-		
+
 		search($filerfunnet, $conf['savedir'].'/pages/', 'search_universal', $opts, $parent_ns);
 		
 		$OmradeCol = new Collection();
 		foreach ($filerfunnet as $fil) {
 			$objOmrade = new NyhetOmrade($fil['id']);
-			if ($objOmrade->checkAcl($acl)) {
-				$OmradeCol->additem($objOmrade, $objOmrade->getOmrade());
-			}
+			$OmradeCol->additem($objOmrade, $objOmrade->getOmrade());
 		}
 		
-		return $OmradeCol;
+		self::$_omrader[$parent_ns] = $OmradeCol;
 	}
 
 }

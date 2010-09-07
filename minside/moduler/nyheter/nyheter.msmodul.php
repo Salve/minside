@@ -92,18 +92,7 @@ class msmodul_nyheter implements msmodul {
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
-			switch($this->_adgangsNiva) {
-				case MSAUTH_1:
-					$output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
-					break;
-				case MSAUTH_2:
-				case MSAUTH_3:
-				case MSAUTH_4:
-				case MSAUTH_5:
-				case MSAUTH_ADMIN:
-					$output .= NyhetGen::genFullNyhetEdit($objNyhet);
-					break;
-			}
+            $output .= NyhetGen::genFullNyhet($objNyhet);
         }
         
 		return $output;
@@ -119,18 +108,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            switch($this->_adgangsNiva) {
-				case MSAUTH_1:
-					$output .= NyhetGen::genFullNyhetViewOnly($objNyhet);
-					break;
-				case MSAUTH_2:
-				case MSAUTH_3:
-				case MSAUTH_4:
-				case MSAUTH_5:
-				case MSAUTH_ADMIN:
-					$output .= NyhetGen::genFullNyhetEdit($objNyhet);
-					break;
-			}
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'));
         }
         
 		return $output;
@@ -145,7 +123,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhetEdit($objNyhet);
+            $output .= NyhetGen::genFullNyhet($objNyhet);
         }
         
 		return $output;        
