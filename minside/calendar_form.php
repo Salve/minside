@@ -145,7 +145,7 @@ else
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Calendar Date Picker</title>
-<link href="/wiki/lib/plugins/minside/minside/calendar.css" rel="stylesheet" type="text/css" />
+<link href="calendar.css" rel="stylesheet" type="text/css" />
 <script language="javascript">
 <!--
 function setValue(){
@@ -279,7 +279,7 @@ window.onload = function(){ adjustContainer(); setTimeout("adjustContainer()", 1
 <div id="calendar-page">
     <div id="calendar-header" align="center">
         <?php if($dp){ ?>
-        <div align="right" class="closeme"><a href="javascript:closeMe();"><img src="/wiki/lib/plugins/minside/minside/bilder/close.jpg" border="0" /></a></div>	
+        <div align="right" class="closeme"><a href="javascript:closeMe();"><img src="bilder/close.jpg" border="0" /></a></div>	
         <?php } ?>
         <form id="calendarform" name="calendarform" method="post" action="<?php echo($thispage);?>" style="margin: 0px;">
           <table width="99%" border="0" align="center" cellpadding="1" cellspacing="0">
@@ -330,7 +330,6 @@ window.onload = function(){ adjustContainer(); setTimeout("adjustContainer()", 1
         <table border="0" cellspacing="1" cellpadding="3" align="center" class="bg">
             <?php
             $day_headers = array_values($cobj->getDayHeaders());
-            
             echo("<tr>");
             //write calendar day header
             foreach($day_headers as $dh){

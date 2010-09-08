@@ -187,7 +187,7 @@ class NyhetGen {
         $output .= '<p><strong>Rediger nyhet</strong></p>';
 		$output .= '<div class="toolbar">
                 <div id="draft__status"></div>
-                <div id="tool__bar"><a href="/wiki/lib/exe/mediamanager.php?ns=msnyheter"
+                <div id="tool__bar"><a href="'.DOKU_BASE.'lib/exe/mediamanager.php?ns=msnyheter"
                     target="_blank">Valg av mediafil</a></div>
 
                 <script type="text/javascript" charset="utf-8"><!--//--><![CDATA[//><!--

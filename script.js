@@ -10,7 +10,7 @@ function openNyhetImgSelect() {
 
 function openNyhetImgForm(nyhetid) {
 	window.open(
-		DOKU_BASE+'lib/plugins/minside/minside/moduler/nyheter/nyhet_img_add.php?nyhetid=' + nyhetid,
+		DOKU_BASE+'lib/plugins/minside/minside/moduler/nyheter/nyhet_img_add.php?nyhetid=' + nyhetid + '&dokubase=' + encodeURIComponent(DOKU_BASE),
 		'img_add_nyheter',
 		'width=300,height=75,left=20,top=20,scrollbars=no,resizable=no');
 	return false;
