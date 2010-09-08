@@ -6,6 +6,7 @@ require_once('class.nyheter.msnyhet.php');
 require_once('class.nyheter.omrade.php');
 require_once('class.nyheter.nyhetfactory.php');
 require_once('class.nyheter.nyhetgen.php');
+require_once(DOKU_INC.'inc/search.php');
 
 class msmodul_nyheter implements msmodul {
 
@@ -92,10 +93,15 @@ class msmodul_nyheter implements msmodul {
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet);
+            $nyhet = NyhetGen::genFullNyhet($objNyhet);
+            if ($objNyhet->isSticky()) {
+                $sticky .= $nyhet;
+            } else {
+                $normal .= $nyhet;
+            }
         }
         
-		return $output;
+		return $sticky . $normal;
 		
 	}
     
