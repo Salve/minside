@@ -67,6 +67,7 @@ class NyhetGen {
 			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
 			: '';
+        $omrade = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
             
         $pubdiff = time() - strtotime($nyhet->getPublishTime());
         $pubdager = floor($pubdiff / 60 / 60 / 24);
@@ -113,7 +114,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$create$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade$create$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
