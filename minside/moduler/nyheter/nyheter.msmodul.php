@@ -49,6 +49,8 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
+		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
@@ -117,7 +119,9 @@ class msmodul_nyheter implements msmodul {
             $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'));
         }
         
-		return $output;
+        $merkallelest = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>';
+        
+		return $merkallelest . $output;
 		
 	}
     
@@ -296,6 +300,20 @@ class msmodul_nyheter implements msmodul {
         ($objNyhet->merkLest($this->_userID))?
             msg("Merket nyhetid $inputid som lest", 1):
             msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
+        
+    }
+    
+    public function merk_alle_lest() {
+        try{
+            $NyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        } catch (Exception $e) {
+            msg('Klarte ikke å hente uleste nyheter.', -1);
+            return false;
+        }
+        
+        (MsNyhet::merk_flere_lest($NyhetCol)) ?
+            msg('Merket alle nyheter lest', 1):
+            msg('Klarte ikke å merke alle nyheter lest', -1);
         
     }
 

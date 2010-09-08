@@ -519,4 +519,18 @@ class MsNyhet {
             return MSAUTH_NONE;
         }
 	}
+    
+    public static function merk_flere_lest(NyhetCollection $col) {
+        global $msdb;
+        
+        if ($col->length() == 0) return false;
+        
+        $sql = "INSERT INTO nyheter_lest (nyhetid, brukerid, readtime) VALUES ";
+        foreach($col as $objNyhet) {
+            $inserts[] = sprintf("('%u', '%u', NOW())", $objNyhet->getId(), MinSide::getUserID());
+        }
+        $sql .= implode(",\n", $inserts);
+        
+        return (bool) $msdb->exec($sql);
+    }
 }
