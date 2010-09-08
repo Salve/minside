@@ -247,7 +247,18 @@ class msmodul_nyheter implements msmodul {
 	}
     
 	public function permslett_nyhet() {
-		return '<div class="mswarningbar">Permanent sletting ikke implementert enda :(</div>';
+		$nyhetid = $_REQUEST['nyhetid'];
+		try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			msg('Klarte ikke å perm-slette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+			return false;
+		}
+		
+		($objNyhet->permslett())
+			? msg('Slettet nyhet: "' . $objNyhet->getTitle() . '" permanent.', 1)
+			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
+		
 	}
     
     public function update_nyhet_from_wp() {
