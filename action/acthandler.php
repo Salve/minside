@@ -83,11 +83,10 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 			$ms_starttime = microtime(true);
 
 			require_once(DOKU_PLUGIN.'minside/minside/minside.php');
-			
 			$objMinSide = MinSide::getInstance();
-            
+
 			print $objMinSide->gen_minside();
-			
+
 			$ms_endtime = microtime(true);
 			$ms_gentime = $ms_endtime - $ms_starttime;
 			$db_gentime = $objMinSide->getDbGentime();
