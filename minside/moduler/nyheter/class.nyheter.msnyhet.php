@@ -344,6 +344,55 @@ class MsNyhet {
 		
 		return (bool) $msdb->exec($sql);
 	}
+    
+    public function permslett() {
+        if (!$this->isDeleted()) {
+            return false;
+        }
+        
+        $id = $this->getWikiPath();
+		$summary = 'Permanent nyhetsletting utført gjennom MinSide.';
+		$minor = false;
+        
+        if (empty($id)) throw new Exception('Logic error: Kan ikke perm-slette nyhet som ikke har definert path i dokuwiki.');
+		
+        $file = wikiFN($id); // filnavn
+        
+        $GLOBALS['ms_writing_to_dw'] = true;
+		saveWikiText($id, '', $summary, $minor);
+        $GLOBALS['ms_writing_to_dw'] = false;
+        
+        // sjekk at wikiside er borte
+        if (@file_exists($file)) {
+            return false;
+        }
+        
+        global $msdb;
+        $safenyhetid = $msdb->quote($this->getId());
+        
+        $msdb->startTrans();
+        $sql[] = "DELETE
+                FROM nyheter_lest
+                WHERE nyhetid=$safenyhetid
+                LIMIT 1";
+        $sql[] = "DELETE
+                FROM nyheter_nyhet
+                WHERE nyhetid=$safenyhetid
+                LIMIT 1";
+                
+        $res = true;
+        foreach ($sql as $stmt) {
+            $res = ($res && ($msdb->exec($stmt) !== false));
+        }
+        if ($res) {
+            $msdb->commit();
+            return true;
+        } else {
+            $msdb->rollBack();
+            return false;
+        }
+    
+    }
 	
 	public function restore() {
 		if (!$this->isDeleted()) {
@@ -470,4 +519,18 @@ class MsNyhet {
             return MSAUTH_NONE;
         }
 	}
+    
+    public static function merk_flere_lest(NyhetCollection $col) {
+        global $msdb;
+        
+        if ($col->length() == 0) return false;
+        
+        $sql = "INSERT INTO nyheter_lest (nyhetid, brukerid, readtime) VALUES ";
+        foreach($col as $objNyhet) {
+            $inserts[] = sprintf("('%u', '%u', NOW())", $objNyhet->getId(), MinSide::getUserID());
+        }
+        $sql .= implode(",\n", $inserts);
+        
+        return (bool) $msdb->exec($sql);
+    }
 }

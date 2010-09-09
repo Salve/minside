@@ -6,6 +6,7 @@ require_once('class.nyheter.msnyhet.php');
 require_once('class.nyheter.omrade.php');
 require_once('class.nyheter.nyhetfactory.php');
 require_once('class.nyheter.nyhetgen.php');
+require_once(DOKU_INC.'inc/search.php');
 
 class msmodul_nyheter implements msmodul {
 
@@ -48,6 +49,8 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
 		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
+		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
@@ -92,10 +95,15 @@ class msmodul_nyheter implements msmodul {
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet);
+            $nyhet = NyhetGen::genFullNyhet($objNyhet);
+            if ($objNyhet->isSticky()) {
+                $sticky .= $nyhet;
+            } else {
+                $normal .= $nyhet;
+            }
         }
         
-		return $output;
+		return $sticky . $normal;
 		
 	}
     
@@ -111,7 +119,9 @@ class msmodul_nyheter implements msmodul {
             $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'));
         }
         
-		return $output;
+        $merkallelest = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>';
+        
+		return $merkallelest . $output;
 		
 	}
     
@@ -241,7 +251,18 @@ class msmodul_nyheter implements msmodul {
 	}
     
 	public function permslett_nyhet() {
-		return '<div class="mswarningbar">Permanent sletting ikke implementert enda :(</div>';
+		$nyhetid = $_REQUEST['nyhetid'];
+		try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			msg('Klarte ikke å perm-slette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+			return false;
+		}
+		
+		($objNyhet->permslett())
+			? msg('Slettet nyhet: "' . $objNyhet->getTitle() . '" permanent.', 1)
+			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
+		
 	}
     
     public function update_nyhet_from_wp() {
@@ -279,6 +300,20 @@ class msmodul_nyheter implements msmodul {
         ($objNyhet->merkLest($this->_userID))?
             msg("Merket nyhetid $inputid som lest", 1):
             msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
+        
+    }
+    
+    public function merk_alle_lest() {
+        try{
+            $NyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        } catch (Exception $e) {
+            msg('Klarte ikke å hente uleste nyheter.', -1);
+            return false;
+        }
+        
+        (MsNyhet::merk_flere_lest($NyhetCol)) ?
+            msg('Merket alle nyheter lest', 1):
+            msg('Klarte ikke å merke alle nyheter lest', -1);
         
     }
 

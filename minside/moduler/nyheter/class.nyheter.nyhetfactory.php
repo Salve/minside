@@ -58,10 +58,12 @@ class NyhetFactory {
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
-			" WHERE pubtime < NOW()
+			" WHERE (DATE_ADD(pubtime, INTERVAL 7 DAY) > NOW() OR issticky = 1)
+                AND pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY nyhetid DESC;";
+			ORDER BY nyhetid DESC
+            LIMIT 100;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
@@ -79,7 +81,8 @@ class NyhetFactory {
 			" WHERE (pubtime > NOW() OR pubtime IS NULL)
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY nyhetid DESC;";
+			ORDER BY nyhetid DESC
+            LIMIT 500;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
@@ -104,6 +107,7 @@ class NyhetFactory {
 					AND pubtime < NOW()
 					AND deletetime IS NULL
                 ORDER BY nyheter_nyhet.nyhetid DESC
+                LIMIT 10
             ;";
             
         $res = $msdb->assoc($sql);

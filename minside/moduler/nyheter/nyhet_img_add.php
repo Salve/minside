@@ -7,15 +7,17 @@
   <title>
     MinSide::Nyheter -> Legg til bilde
   </title>
-
+<?php
+    define('DOKU_BASE', $_REQUEST['dokubase']);
+?>
   <meta name="generator" content="MinSide" />
 <meta name="robots" content="noindex,nofollow" />
 <script type="text/javascript" charset="utf-8" ><!--//--><![CDATA[//><!--
 var NS='msbilder';var SIG='Signatur ikke tilgjengelig';var JSINFO = {"id":"msbilder","namespace":"msbilder"};
 //--><!]]></script>
-<script type="text/javascript" charset="utf-8" src="/wiki/lib/exe/js.php" ></script>
+<script type="text/javascript" charset="utf-8" src="<?php print DOKU_BASE ?>lib/exe/js.php" ></script>
 
-  <link rel="shortcut icon" href="/wiki/lib/tpl/simple_sidebar/images/favicon.ico" />
+  <link rel="shortcut icon" href="<?php print DOKU_BASE ?>lib/tpl/simple_sidebar/images/favicon.ico" />
 
   <style type="text/css">
 	div.nyhetimgadd textarea#wiki__text {
