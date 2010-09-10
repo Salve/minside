@@ -85,6 +85,10 @@ class MsNyhet {
 	public function getPublishTime() {
 		return $this->_pubtime;
 	}
+    public function isPublished() {
+        $pubtime = strtotime($this->_pubtime);
+        return ($pubtime < time());
+    }
 	public function setPublishTime($input) {
 		// Validerer ikke dersom objekt bygges av factory
 		if (!$this->under_construction) {

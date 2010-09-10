@@ -74,7 +74,7 @@ class NyhetFactory {
         global $msdb;
 		
         // Henter kun upubliserte nyheter bruker kan redigere
-		$omrader = self::getSafeOmrader(MSAUTH_2);
+		$omrader = self::getSafeOmrader(MSAUTH_3);
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
@@ -102,11 +102,14 @@ class NyhetFactory {
                 ON nyheter_nyhet.nyhetid = nyheter_lest.nyhetid 
                     AND nyheter_lest.brukerid = $safebrukerid " . 
 				self::SQL_FULLNAME_JOINS .
-                " WHERE nyheter_lest.nyhetid IS NULL
+                " LEFT JOIN internusers AS bruker
+                    ON bruker.id = $safebrukerid
+                WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
+                    AND pubtime > bruker.createtime
 					AND deletetime IS NULL
-                ORDER BY nyheter_nyhet.nyhetid DESC
+                ORDER BY nyheter_nyhet.nyhetid ASC
                 LIMIT 10
             ;";
             

@@ -25,6 +25,7 @@ class NyhetGen {
                 $arOptions[] = 'edit';
                 $arOptions[] = 'slett';
             case MSAUTH_1:
+                $arOptions[] = 'link';
                 break;
             case MSAUTH_NONE:
                 break;
@@ -44,22 +45,28 @@ class NyhetGen {
 	}
 	
 	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
-		$type = $nyhet->getType();		
+		// Data
+        $type = $nyhet->getType();		
 		$id = $nyhet->getId();
-		if ($nyhet->hasImage()) {
-			$img = '<div class="nyhetimgleft">' .$nyhet->getImageTag(self::THUMB_BREDDE) .
-				'</div>';
+        $title = $nyhet->getTitle();
+		$body = $nyhet->getHtmlBody();
+        $omrade = $nyhet->getOmrade();
+        $pubdiff = time() - strtotime($nyhet->getPublishTime());
+        $pubdager = floor($pubdiff / 60 / 60 / 24);
+        $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
+        if ($nyhet->hasImage()) {
+			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
 		} else {
 			$img = '';
 		}
-		$title = $nyhet->getTitle();
-		$body = $nyhet->getHtmlBody();
-		
-		$create = ($nyhet->isSaved())
+        
+        // HTML
+        $omrade_html = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
+        $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
 			: '';
-		$lastmod = ($nyhet->isModified())
+        $lastmod = ($nyhet->isModified())
 			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
 				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
 			: '';
@@ -67,24 +74,26 @@ class NyhetGen {
 			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
 			: '';
-        $omrade = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
-            
-        $pubdiff = time() - strtotime($nyhet->getPublishTime());
-        $pubdager = floor($pubdiff / 60 / 60 / 24);
-        $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
-		$publish = (strtotime($nyhet->getPublishTime()) < time()) 
-			? '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>'
-			: '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
-        
-		$sticky = ($nyhet->isSticky()) 
+        $sticky = ($nyhet->isSticky()) 
 			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
 				MS_IMG_PATH . 'pin_icon.png" />' 
 			: '' ;
+        if (!$nyhet->getPublishTime()) {
+            $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
+        } elseif (strtotime($nyhet->getPublishTime()) < time()) {
+            $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
+				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>';
+        } else {
+            $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
+        }
 		
+        // Options/icon
+		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
+            '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
 		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" />';
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -107,18 +116,19 @@ class NyhetGen {
 			$valg = '';
 		}
         
+        // Wannabetemplate :D
 		$output = "
 			<div class=\"nyhetcontainer\">
-			<div class=\"nyhet\">
+			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade$create$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
-					$img
+					<div class=\"nyhetimgleft\">$img</div>
 					<div class=\"nyhetbody\">$body</div>
 					<div class=\"msclearer\"></div>
 				</div>
@@ -165,33 +175,38 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'image.png" />';
 		
 		// Publiseringsdato
-		
-		$pubtime = $objNyhet->getPublishTime();
-		if (!empty($pubtime)) {
-			$pubtimestamp = strtotime($pubtime);
-		} else {
-			$pubtimestamp = time();
-		}
-        $minute = date('i', $pubtimestamp);
-        $hour = date('H', $pubtimestamp);
-		$dag = (int) date('j', $pubtimestamp);
-		$md = (int) date('n', $pubtimestamp);
-		$aar = (int) date('Y', $pubtimestamp);
-		
-		$objCalendar = new tc_calendar("nyhetpubdato", true);
-		$objCalendar->setPath('lib/plugins/minside/minside/');
-		$objCalendar->startMonday(true);
-		$objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
-		$objCalendar->setDate($dag, $md, $aar);
-		$objCalendar->dateAllow('2010-01-01', '2020-01-01', false);
-		
-		ob_start(); // må ta vare på output...
-		$objCalendar->writeScript();
-		$html_calendar = 'Publiseringsdato: ' . ob_get_clean();
-		
-		$html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour">';
-		$html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute">';
-		
+        // Vises kun dersom bruker har create rigths på nyhetområdet
+        if(!$objNyhet->isSaved() || $objNyhet->getAcl() >= MSAUTH_3) {
+            $pubtime = $objNyhet->getPublishTime();
+            if (!empty($pubtime)) {
+                $pubtimestamp = strtotime($pubtime);
+            } else {
+                $pubtimestamp = time();
+            }
+            $minute = date('i', $pubtimestamp);
+            $hour = date('H', $pubtimestamp);
+            $dag = (int) date('j', $pubtimestamp);
+            $md = (int) date('n', $pubtimestamp);
+            $aar = (int) date('Y', $pubtimestamp);
+            
+            $objCalendar = new tc_calendar("nyhetpubdato", true);
+            $objCalendar->setPath('lib/plugins/minside/minside/');
+            $objCalendar->startMonday(true);
+            $objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+            $objCalendar->setDate($dag, $md, $aar);
+            $objCalendar->dateAllow('2010-01-01', '2020-01-01', false);
+            
+            ob_start(); // må ta vare på output...
+            $objCalendar->writeScript();
+            $html_calendar = 'Publiseringsdato: ' . ob_get_clean();
+            
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute">';
+        } else {
+            // Bruker har ikke create rights på området
+            $html_calendar = '';
+        }
+        
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
 		$output .= '<div class="toolbar">
@@ -224,7 +239,7 @@ class NyhetGen {
 		$output .= $html_omrade . "<br />\n";
 		$output .= $html_bilde . "<br />\n";
 		$output .= $html_sticky . "<br />\n";
-		$output .= $html_calendar . "<br />\n";
+		$output .= ($html_calendar) ? "$html_calendar<br />\n" : '';
             $output .= '<div id="wiki__editbar" >
             <div id="size__ctl" >
             </div>
@@ -245,8 +260,9 @@ class NyhetGen {
         return $output;
     }
 	
-	public static function genIngenNyheter() {
-		return '<div class="mswarningbar">Ingen nyheter her!</div>';
+	public static function genIngenNyheter($ekstratekst='') {
+        if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
+		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
 	}
 	
 	protected static function getMailLink($name, $epost) {

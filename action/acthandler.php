@@ -38,6 +38,11 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
 		
+        // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
+        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
+        
+        // Hooker indexer adds, for å sørge for at upubliserte nyheter ikke indexeres
+        $controller->register_hook('INDEXER_PAGE_ADD', 'BEFORE', $this, 'handleIndexerPageAdd');
     }
      
     /**
@@ -165,6 +170,53 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             return false;
         }
       
+    }
+    
+    function handleTplContentDisplay(&$event, $param) {
+        global $INFO;
+        global $ACT;
+        if(substr($INFO['id'], 0, 10) != 'msnyheter:') return false;
+        if($ACT != 'show') return false;
+        if ($INFO['rev'] != false) return false;
+        
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $event->data = $objMinSide->genModul('nyheter', 'extview', $INFO['id']);
+            return true;
+        } catch (Exception $e) {
+            msg('Klarte å vise denne nyheten gjennom MinSide: ' . $e->getMessage(), -1);
+            return false;
+        }
+        
+    }
+    
+    function handleIndexerPageAdd(&$event, $param) {
+        if(substr($event->data[0], 0, 10) != 'msnyheter:') return;
+        
+        $debug = false;
+        
+        if($debug) {
+            $fh = fopen('indexerlogg.txt', 'a') or die();
+            $data = 'Indexing: ' . $event->data[0] . "\r\n";
+            fwrite($fh, $data);
+        }
+
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            if(!$objMinSide->genModul('nyheter', 'checkpublished', $event->data[0])) {
+                $event->preventDefault();
+                if($debug) fwrite($fh, "    BLOCKED! Nyhet er ikke publisert.\r\n");
+            } else {
+                if($debug) fwrite($fh, "    ALLOWED! Nyhet er publisert.\r\n");
+            }
+        } catch (Exception $e) {
+            $event->preventDefault();
+            if($debug) fwrite($fh, "    ERROR! Blokkerer indexing by default: " . $e->getMessage() . "\r\n");
+        }
+        if($debug) fclose($fh);
     }
     
 }

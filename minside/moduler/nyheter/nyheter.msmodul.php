@@ -42,6 +42,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
+        $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('slett', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
@@ -57,6 +58,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
+		$dispatcher->addActHandler('checkpublished', 'check_published', MSAUTH_NONE);
 		
 	}
 	
@@ -125,11 +127,33 @@ class msmodul_nyheter implements msmodul {
 		
 	}
     
+    public function gen_ext_view() {
+        $inputpath = $this->_msmodulvars;
+        
+        try{
+            $objNyhet = NyhetFactory::getNyhetByWikiPath($inputpath);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste redigeringsverktøy for nyhet med bane: ' . htmlspecialchars($inputpath), -1);
+            return false;
+        }
+        
+        if ($objNyhet->isDeleted()) {
+            msg('Kan ikke vise nyhet: Nyhet er slettet.', -1);
+            return false;
+        }
+        if (!$objNyhet->isPublished()) {
+            msg('Kan ikke vise nyhet: Nyhet er ikke publisert.', -1);
+            return false;
+        }
+        
+        return '<div class="minside"><p>' . NyhetGen::genFullNyhet($objNyhet) . '</p></div>';
+    }
+    
     public function gen_nyheter_upub() {
         $objNyhetCol = NyhetFactory::getUpubliserteNyheter();
         
         if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Upubliserte nyheter vises kun for områder hvor du har rett til å opprette nye nyheter.');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
@@ -200,8 +224,11 @@ class msmodul_nyheter implements msmodul {
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
         
         // Publish time
-		$res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
-        if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
+        $acl = $objNyhet->getAcl();
+        if ($acl >= MSAUTH_3) {
+            $res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
+            if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
+        }
         
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
@@ -315,6 +342,18 @@ class msmodul_nyheter implements msmodul {
             msg('Merket alle nyheter lest', 1):
             msg('Klarte ikke å merke alle nyheter lest', -1);
         
+    }
+    
+    public function check_published() {
+        $wikipath = $this->_msmodulvars;
+        
+        try {
+            $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
+        } catch (Exception $e) {
+            throw Exception('Fant ikke nyhet i database');
+        }
+        
+        return (bool) $objNyhet->isPublished();
     }
 
 }
