@@ -40,6 +40,9 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 		
         // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
+        
+        // Hooker indexer adds, for å sørge for at upubliserte nyheter ikke indexeres
+        $controller->register_hook('INDEXER_PAGE_ADD', 'BEFORE', $this, 'handleIndexerPageAdd');
     }
      
     /**
@@ -176,7 +179,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         if(substr($INFO['id'], 0, 10) != 'msnyheter:') return false;
         if($ACT != 'show') return false;
         if ($INFO['rev'] != false) return false;
-            
+        
         
         require_once(DOKU_PLUGIN.'minside/minside/minside.php');
         try {
@@ -188,6 +191,33 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             return false;
         }
         
+    }
+    
+    function handleIndexerPageAdd(&$event, $param) {
+        if(substr($event->data[0], 0, 10) != 'msnyheter:') return;
+        
+        $debug = false;
+        
+        if($debug) {
+            $fh = fopen('indexerlogg.txt', 'a') or die();
+            $data = 'Indexing: ' . $event->data[0] . "\r\n";
+            fwrite($fh, $data);
+        }
+
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            if(!$objMinSide->genModul('nyheter', 'checkpublished', $event->data[0])) {
+                $event->preventDefault();
+                if($debug) fwrite($fh, "    BLOCKED! Nyhet er ikke publisert.\r\n");
+            } else {
+                if($debug) fwrite($fh, "    ALLOWED! Nyhet er publisert.\r\n");
+            }
+        } catch (Exception $e) {
+            $event->preventDefault();
+            if($debug) fwrite($fh, "    ERROR! Blokkerer indexing by default: " . $e->getMessage() . "\r\n");
+        }
+        if($debug) fclose($fh);
     }
     
 }

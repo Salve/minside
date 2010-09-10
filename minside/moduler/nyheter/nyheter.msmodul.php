@@ -58,6 +58,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
+		$dispatcher->addActHandler('checkpublished', 'check_published', MSAUTH_NONE);
 		
 	}
 	
@@ -338,6 +339,18 @@ class msmodul_nyheter implements msmodul {
             msg('Merket alle nyheter lest', 1):
             msg('Klarte ikke å merke alle nyheter lest', -1);
         
+    }
+    
+    public function check_published() {
+        $wikipath = $this->_msmodulvars;
+        
+        try {
+            $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
+        } catch (Exception $e) {
+            throw Exception('Fant ikke nyhet i database');
+        }
+        
+        return (bool) $objNyhet->isPublished();
     }
 
 }
