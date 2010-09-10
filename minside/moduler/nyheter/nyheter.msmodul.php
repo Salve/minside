@@ -224,8 +224,11 @@ class msmodul_nyheter implements msmodul {
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
         
         // Publish time
-		$res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
-        if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
+        $acl = $objNyhet->getAcl();
+        if ($acl >= MSAUTH_3) {
+            $res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
+            if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
+        }
         
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
