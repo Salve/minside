@@ -38,6 +38,8 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
 		
+        // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
+        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
     }
      
     /**
@@ -166,6 +168,26 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             return false;
         }
       
+    }
+    
+    function handleTplContentDisplay(&$event, $param) {
+        global $INFO;
+        global $ACT;
+        if(substr($INFO['id'], 0, 10) != 'msnyheter:') return false;
+        if($ACT != 'show') return false;
+        if ($INFO['rev'] != false) return false;
+            
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $event->data = $objMinSide->genModul('nyheter', 'extview', $INFO['id']);
+            return true;
+        } catch (Exception $e) {
+            msg('Klarte å vise denne nyheten gjennom MinSide: ' . $e->getMessage(), -1);
+            return false;
+        }
+        
     }
     
 }

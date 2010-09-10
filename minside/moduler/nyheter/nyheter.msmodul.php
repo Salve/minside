@@ -42,6 +42,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
+        $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('slett', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
@@ -124,6 +125,28 @@ class msmodul_nyheter implements msmodul {
 		return $merkallelest . $output;
 		
 	}
+    
+    public function gen_ext_view() {
+        $inputpath = $this->_msmodulvars;
+        
+        try{
+            $objNyhet = NyhetFactory::getNyhetByWikiPath($inputpath);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste redigeringsverktøy for nyhet med bane: ' . htmlspecialchars($inputpath), -1);
+            return false;
+        }
+        
+        if ($objNyhet->isDeleted()) {
+            msg('Kan ikke vise nyhet: Nyhet er slettet.', -1);
+            return false;
+        }
+        if (!$objNyhet->isPublished()) {
+            msg('Kan ikke vise nyhet: Nyhet er ikke publisert.', -1);
+            return false;
+        }
+        
+        return '<div class="minside"><p>' . NyhetGen::genFullNyhet($objNyhet) . '</p></div>';
+    }
     
     public function gen_nyheter_upub() {
         $objNyhetCol = NyhetFactory::getUpubliserteNyheter();
