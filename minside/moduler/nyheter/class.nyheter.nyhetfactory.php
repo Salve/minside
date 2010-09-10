@@ -106,7 +106,7 @@ class NyhetFactory {
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
 					AND deletetime IS NULL
-                ORDER BY nyheter_nyhet.nyhetid DESC
+                ORDER BY nyheter_nyhet.nyhetid ASC
                 LIMIT 10
             ;";
             
