@@ -102,9 +102,12 @@ class NyhetFactory {
                 ON nyheter_nyhet.nyhetid = nyheter_lest.nyhetid 
                     AND nyheter_lest.brukerid = $safebrukerid " . 
 				self::SQL_FULLNAME_JOINS .
-                " WHERE nyheter_lest.nyhetid IS NULL
+                " LEFT JOIN internusers AS bruker
+                    ON bruker.id = $safebrukerid
+                WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
+                    AND pubtime > bruker.createtime
 					AND deletetime IS NULL
                 ORDER BY nyheter_nyhet.nyhetid ASC
                 LIMIT 10
