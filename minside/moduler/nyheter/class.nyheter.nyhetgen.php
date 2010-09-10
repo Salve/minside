@@ -250,8 +250,9 @@ class NyhetGen {
         return $output;
     }
 	
-	public static function genIngenNyheter() {
-		return '<div class="mswarningbar">Ingen nyheter her!</div>';
+	public static function genIngenNyheter($ekstratekst='') {
+        if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
+		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
 	}
 	
 	protected static function getMailLink($name, $epost) {

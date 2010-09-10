@@ -74,7 +74,7 @@ class NyhetFactory {
         global $msdb;
 		
         // Henter kun upubliserte nyheter bruker kan redigere
-		$omrader = self::getSafeOmrader(MSAUTH_2);
+		$omrader = self::getSafeOmrader(MSAUTH_3);
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .

@@ -152,7 +152,7 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getUpubliserteNyheter();
         
         if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Upubliserte nyheter vises kun for områder hvor du har rett til å opprette nye nyheter.');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
