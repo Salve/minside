@@ -73,14 +73,18 @@ class NyhetGen {
 			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
 			: '';
-		$publish = (strtotime($nyhet->getPublishTime()) < time()) 
-			? '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>'
-			: '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         $sticky = ($nyhet->isSticky()) 
 			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
 				MS_IMG_PATH . 'pin_icon.png" />' 
 			: '' ;
+        if (!$nyhet->getPublishTime()) {
+            $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
+        } elseif (strtotime($nyhet->getPublishTime()) < time()) {
+            $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
+				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>';
+        } else {
+            $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
+        }
 		
         // Options/icon
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
