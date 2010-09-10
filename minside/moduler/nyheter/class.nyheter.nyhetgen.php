@@ -50,6 +50,7 @@ class NyhetGen {
 		$id = $nyhet->getId();
         $title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
+        $omrade = $nyhet->getOmrade();
         $pubdiff = time() - strtotime($nyhet->getPublishTime());
         $pubdager = floor($pubdiff / 60 / 60 / 24);
         $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
@@ -60,7 +61,7 @@ class NyhetGen {
 		}
         
         // HTML
-        $omrade = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
+        $omrade_html = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -89,10 +90,10 @@ class NyhetGen {
         // Options/icon
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'link.png" />';
+            'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
 		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" />';
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -118,12 +119,12 @@ class NyhetGen {
         // Wannabetemplate :D
 		$output = "
 			<div class=\"nyhetcontainer\">
-			<div class=\"nyhet\">
+			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade$create$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
