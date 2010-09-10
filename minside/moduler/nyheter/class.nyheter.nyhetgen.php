@@ -25,6 +25,7 @@ class NyhetGen {
                 $arOptions[] = 'edit';
                 $arOptions[] = 'slett';
             case MSAUTH_1:
+                $arOptions[] = 'link';
                 break;
             case MSAUTH_NONE:
                 break;
@@ -82,6 +83,9 @@ class NyhetGen {
 				MS_IMG_PATH . 'pin_icon.png" />' 
 			: '' ;
 		
+		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
+            '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'link.png" />';
 		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" />';
