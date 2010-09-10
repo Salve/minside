@@ -45,22 +45,27 @@ class NyhetGen {
 	}
 	
 	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
-		$type = $nyhet->getType();		
+		// Data
+        $type = $nyhet->getType();		
 		$id = $nyhet->getId();
-		if ($nyhet->hasImage()) {
-			$img = '<div class="nyhetimgleft">' .$nyhet->getImageTag(self::THUMB_BREDDE) .
-				'</div>';
+        $title = $nyhet->getTitle();
+		$body = $nyhet->getHtmlBody();
+        $pubdiff = time() - strtotime($nyhet->getPublishTime());
+        $pubdager = floor($pubdiff / 60 / 60 / 24);
+        $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
+        if ($nyhet->hasImage()) {
+			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
 		} else {
 			$img = '';
 		}
-		$title = $nyhet->getTitle();
-		$body = $nyhet->getHtmlBody();
-		
-		$create = ($nyhet->isSaved())
+        
+        // HTML
+        $omrade = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
+        $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
 			: '';
-		$lastmod = ($nyhet->isModified())
+        $lastmod = ($nyhet->isModified())
 			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
 				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
 			: '';
@@ -68,21 +73,16 @@ class NyhetGen {
 			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
 			: '';
-        $omrade = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
-            
-        $pubdiff = time() - strtotime($nyhet->getPublishTime());
-        $pubdager = floor($pubdiff / 60 / 60 / 24);
-        $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
 		$publish = (strtotime($nyhet->getPublishTime()) < time()) 
 			? '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
 				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>'
 			: '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
-        
-		$sticky = ($nyhet->isSticky()) 
+        $sticky = ($nyhet->isSticky()) 
 			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
 				MS_IMG_PATH . 'pin_icon.png" />' 
 			: '' ;
 		
+        // Options/icon
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" />';
@@ -111,6 +111,7 @@ class NyhetGen {
 			$valg = '';
 		}
         
+        // Wannabetemplate :D
 		$output = "
 			<div class=\"nyhetcontainer\">
 			<div class=\"nyhet\">
@@ -122,7 +123,7 @@ class NyhetGen {
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
-					$img
+					<div class=\"nyhetimgleft\">$img</div>
 					<div class=\"nyhetbody\">$body</div>
 					<div class=\"msclearer\"></div>
 				</div>
