@@ -202,6 +202,10 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function save_nyhet_changes() {
+        if($_REQUEST['editabort']) {
+            msg('Endringer ikke lagret.');
+            return $this->gen_nyheter_full();
+        };
         $nyhetid = $_REQUEST['nyhetid'];
         if ($nyhetid) {
             try{
