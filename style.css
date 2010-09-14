@@ -222,9 +222,9 @@ div.resultater .top {
 
 div.mstoc .meny {
 	width: 100%;
-	border: 1px #8cacbb;
+	/*border: 1px #8cacbb;
 	border-style: solid;
-	/*float:left;*/
+    float:left;*/
 	background-color: white;
 	overflow: hidden;
 }
@@ -237,12 +237,13 @@ div.mstoc .meny {
 }
 
 div.mstocheader {
-  border: 1px solid #8CACBB;
+  /*border: 1px solid #8CACBB;*/
   background-color: #DEE7EC;
   text-align: left;
   font-weight: bold;
-  padding: 3px;
+  /*padding: 3px;*/
   margin-bottom: 2px;
+  width:100%;
 }
 
 div.minside th {
@@ -493,9 +494,9 @@ div.notater {
 /* Nyheter */
 
 div.minside div.nyhet {
-    border: 1px dashed #000000;
+
     overflow: hidden;
-    width: 80%;
+    width: 100%;
     margin-left: 20px;
     margin-bottom: 1em;
     padding: 5px;
@@ -503,7 +504,18 @@ div.minside div.nyhet {
 
 div.minside div.nyhettopbar {
     background-color: #DEE7EF;
+width: 100%;
 }
+
+div.minside div.feilbed {
+    background-color: #76B9F5;
+}
+
+div.minside div.ks {
+    background-color: #C9D4DF;
+}
+
+
 
 div.minside div.nyhettitle {
     float: left;
@@ -516,6 +528,7 @@ div.minside div.nyhettitle {
 div.minside div.nyhetinfo {
     float: left;
     font-size: 80%;
+    width:98.5%;
     color: #426973;
 	clear: left;
     padding: 0 0 0.5em 0.5em;
@@ -536,7 +549,10 @@ div.minside div.nyhetoptions {
 }
 
 div.minside div.nyhetbody {
-    margin-top: 0.5em;
+    padding-top: 0.5em;
+    min-height: 106px;
+    border: 1px #C9D4DF;
+    border-style: none none solid;
 }
 
 div.dokuwiki div.nyhetbody div.tags {
@@ -548,6 +564,10 @@ div.dokuwiki div.nyhetbody div.tags {
 
 div.minside div.nyhetimgleft {
 	float: left;
+}
+
+div.minside div.nyhetomrade {
+    float:right;
 }
 
 /* Sidebar */

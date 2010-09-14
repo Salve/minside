@@ -1,4 +1,5 @@
 <?php
+
 if(!defined('DOKU_INC')) die(); // Dette scriptet kan kun kjøres via dokuwiki
 define('MS_INC', true); // Alle underscript sjekker om denne er definert
 define('MS_LINK', "?do=minside");
@@ -36,11 +37,9 @@ private $_msmod; // array som holder alle lastede moduler som objekter
 private $toc; // inneholder xhtml for ms-toc når den er generert
 
     public static function getInstance() {
-    
         if(!isset(self::$_objMinside)) {
             self::$_objMinside = new self($_SERVER['REMOTE_USER']);
         }
-        
         return self::$_objMinside;
     }
     
