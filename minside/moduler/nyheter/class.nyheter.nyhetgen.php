@@ -119,9 +119,9 @@ class NyhetGen {
         // Wannabetemplate :D
 		$output = "
 			<div class=\"nyhetcontainer\">
-			<div class=\"nyhet\">
+			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
-				<div class=\"nyhettopbar $omrade\">
+				<div class=\"nyhettopbar\">
 					<div class=\"nyhettitle \">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
 					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
