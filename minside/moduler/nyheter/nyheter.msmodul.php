@@ -236,19 +236,27 @@ class msmodul_nyheter implements msmodul {
         
         $objNyhet->setWikiTekst($_POST['wikitext']);
         
-        if ($objNyhet->hasUnsavedChanges()) {
-            try{
-                $objNyhet->update_db();
-                $objNyhet = NyhetFactory::getNyhetById($objNyhet->getId());
-            } catch (Exception $e) {
-                msg('Klarte ikke å lagre nyhet!', -1);
-                return false;
+        if (!$_REQUEST['editpreview']) {
+            // Ikke preview eller abort - lagre
+            if ($objNyhet->hasUnsavedChanges()) {
+                try{
+                    $objNyhet->update_db();
+                    $objNyhet = NyhetFactory::getNyhetById($objNyhet->getId());
+                } catch (Exception $e) {
+                    msg('Klarte ikke å lagre nyhet!', -1);
+                    return false;
+                }
+            } else {
+                msg('Lagring av nyhet: nyhet ikke endret.');
             }
+            
+            return NyhetGen::genFullNyhetViewOnly($objNyhet);
         } else {
-            msg('Lagring av nyhet: nyhet ikke endret.');
+            // Preview
+            return NyhetGen::genEdit($objNyhet, true);
         }
         
-        return NyhetGen::genFullNyhetViewOnly($objNyhet);
+        
     }
 	
 	public function slett_nyhet() {

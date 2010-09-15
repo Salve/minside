@@ -140,8 +140,7 @@ class NyhetGen {
 		
 	}
 
-    public static function genEdit(msnyhet &$objNyhet) {
-		
+    public static function genEdit(msnyhet &$objNyhet, $preview=false) {
 		// Område
 		if ($objNyhet->isSaved()) {
 			$html_omrade = 'Område:
@@ -256,6 +255,8 @@ class NyhetGen {
             </form>
         ';
         $output .= '</div>'; // editnyhet
+        
+        if ($preview) $output .= self::genFullNyhetViewOnly($objNyhet);
 		
         return $output;
     }
