@@ -3,48 +3,130 @@ if(!defined('MS_INC')) die();
 
 class NyhetGen {
 
+	const THUMB_BREDDE = 100;
+	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
+
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
-		return self::genFullNyhet($nyhet);
+		return self::_genFullNyhet($nyhet);
 	}
 	
-	public static function genFullNyhetEdit(msnyhet &$nyhet) {
+	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array()) {
+        $acl = $nyhet->getAcl();
+        $arOptions = array();
+        
+        switch($acl) {
+            case MSAUTH_ADMIN:
+            case MSAUTH_5:
+            case MSAUTH_4:
+            case MSAUTH_3:
+            case MSAUTH_2:
+                $arOptions[] = 'edit';
+                $arOptions[] = 'slett';
+            case MSAUTH_1:
+                $arOptions[] = 'link';
+                break;
+            case MSAUTH_NONE:
+                break;
+        }
+        
+        $arOptions = array_merge($arOptions, $extraoptions);
+		return self::_genFullNyhet($nyhet, $arOptions);
+	}
+	
+	public static function genFullNyhetDeleted(msnyhet &$nyhet) {
 		$arOptions = array(
-
+			'restore',
+			'permslett'
 		);
 		
-		return self::genFullNyhet($nyhet, $arOptions);
+		return self::_genFullNyhet($nyhet, $arOptions);
 	}
 	
-	private static function genFullNyhet(msnyhet &$nyhet, array $options = array()) {
-		$type = $nyhet->getType();		
+	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
+		// Data
+        $type = $nyhet->getType();		
 		$id = $nyhet->getId();
-		if ($nyhet->hasImage()) {
-			$imgpath = $nyhet->getImagePath();
-		} else {
-			$imgpath = false;
-		}
-		$title = $nyhet->getTitle();
+        $title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
+        $omrade = $nyhet->getOmrade();
+        $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
+        $pubdiff = time() - strtotime($nyhet->getPublishTime());
+        $pubdager = floor($pubdiff / 60 / 60 / 24);
+        $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
+        if ($nyhet->hasImage()) {
+			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
+		} else {
+			$img = '';
+		}
+        
+        // HTML
+        $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $create = ($nyhet->isSaved())
+			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
+				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
+			: '';
+        $lastmod = ($nyhet->isModified())
+			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
+				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
+			: '';
+		$delete = ($nyhet->isDeleted()) 
+			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
+				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
+			: '';
+        $sticky = ($nyhet->isSticky()) 
+			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
+				MS_IMG_PATH . 'pin_icon.png" />' 
+			: '' ;
+        if (!$nyhet->getPublishTime()) {
+            $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
+        } elseif (strtotime($nyhet->getPublishTime()) < time()) {
+            $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
+				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>';
+        } else {
+            $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
+        }
 		
-		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
+        // Options/icon
+		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
+            '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
+		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" />';
-		$opt[] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt[] = '<img alt="slett" title="Slett nyhet" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'trash.png" />';
-		$options = implode('&nbsp;', $opt);
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . "&act=slett&nyhetid=$id\">" .
+            '<img alt="slett" title="Slett nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
+		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
+            '<img alt="permslett" title="Slett nyhet permanent" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
+		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&act=restore&nyhetid=$id\">" .
+            '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+		
+		foreach ($inoptions as $k => $v) {
+			$options[] = $opt[$v];
+		}
+		if (!empty($options)) {
+			$valg = implode('&nbsp;', $options);
+		} else {
+			$valg = '';
+		}
         
+        // Wannabetemplate :D
 		$output = "
 			<div class=\"nyhetcontainer\">
-			<div class=\"nyhet\">
+			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
-				<div class=\"nyhettopbar\">
-					<div class=\"nyhettitle\">$title</div>
-					<div class=\"nyhetoptions\">$options</div>
+				<div class=\"nyhettopbar\"$omrade_farge>
+					<div class=\"nyhettitle\">$sticky$title</div>
+					<div class=\"nyhetoptions\">$valg</div>
+					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -59,39 +141,108 @@ class NyhetGen {
 		return $output;
 		
 	}
-    
-    public static function genEdit(msnyhet &$objNyhet) {
+
+    public static function genEdit(msnyhet &$objNyhet, $preview=false) {
+		// Område
+		if ($objNyhet->isSaved()) {
+			$html_omrade = 'Område:
+				<input class="edit" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
+		} else {
+			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
+			$html_omrade = 'Område: <select name="nyhetomrade">';
+			if ($colOmrader->length() === 0) {
+				$html_omrade .= 'Du har ikke tilgang til noen områder!';
+			} else {
+				foreach ($colOmrader as $objOmrade) {
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . 
+                    (($objOmrade->isDefault()) ? ' selected="selected"' : '') .
+                    '">'. $objOmrade->getOmrade() . '</value>';
+				}
+			}
+			$html_omrade .= '</select>';
+			
+		}
+		
+		// Sticky
+		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
+		$html_sticky = 'Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
+			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
+			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky"'.$checked.' />';
+		
+		// Bilde
+		$html_bilde = 'Bilde: <input class="edit" type="text" name="nyhetbilde" id="nyhet__imgpath"' .
+			'value="' . $objNyhet->getImagePath() . '" /> ' .
+			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
+			'title="Legg til bilde" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'image.png" />';
+		
+		// Publiseringsdato
+        // Vises kun dersom bruker har create rigths på nyhetområdet
+        if(!$objNyhet->isSaved() || $objNyhet->getAcl() >= MSAUTH_3) {
+            $pubtime = $objNyhet->getPublishTime();
+            if (!empty($pubtime)) {
+                $pubtimestamp = strtotime($pubtime);
+            } else {
+                $pubtimestamp = time();
+            }
+            $minute = date('i', $pubtimestamp);
+            $hour = date('H', $pubtimestamp);
+            $dag = (int) date('j', $pubtimestamp);
+            $md = (int) date('n', $pubtimestamp);
+            $aar = (int) date('Y', $pubtimestamp);
+            
+            $objCalendar = new tc_calendar("nyhetpubdato", true);
+            $objCalendar->setPath('lib/plugins/minside/minside/');
+            $objCalendar->startMonday(true);
+            $objCalendar->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+            $objCalendar->setDate($dag, $md, $aar);
+            $objCalendar->dateAllow('2010-01-01', '2020-01-01', false);
+            
+            ob_start(); // må ta vare på output...
+            $objCalendar->writeScript();
+            $html_calendar = 'Publiseringsdato: ' . ob_get_clean();
+            
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute">';
+        } else {
+            // Bruker har ikke create rights på området
+            $html_calendar = '';
+        }
         
         $output .= '<div class="editnyhet">';
         $output .= '<p><strong>Rediger nyhet</strong></p>';
-        $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
-        $output .= '<input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />';
-        $output .= 'Overskrift: ';
-        $output .= '<input type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />';
-
-        
-        
-        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
-        
-        $output .= '
-            <div style="width:99%;">
-            <div class="toolbar">
+		$output .= '<div class="toolbar">
                 <div id="draft__status"></div>
-                <div id="tool__bar"><a href="/wiki/lib/exe/mediamanager.php?ns=msnyheter"
+                <div id="tool__bar"><a href="'.DOKU_BASE.'lib/exe/mediamanager.php?ns=msnyheter"
                     target="_blank">Valg av mediafil</a></div>
 
                 <script type="text/javascript" charset="utf-8"><!--//--><![CDATA[//><!--
                     textChanged = false;
                     //--><!]]></script>
-             </div>
-             
+             </div>';
+        $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
+        
+		$output .= '<input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />';
+        
+        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
+        
+        $output .= '
+			
+            <div style="width:99%;">
+                         
             
-            <input type="hidden" name="id" value="msnyheter:ks:00001_en_liten_testnyhet" />
+            <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
             <input type="hidden" name="rev" value="" />
             <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" >'
             . $rawwiki .
-            '</textarea>
-            <div id="wiki__editbar" >
+            '</textarea>';
+			$output .= 'Overskrift: ';
+		$output .= '<input class="edit" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
+		$output .= $html_omrade . "<br />\n";
+		$output .= $html_bilde . "<br />\n";
+		$output .= $html_sticky . "<br />\n";
+		$output .= ($html_calendar) ? "$html_calendar<br />\n" : '';
+            $output .= '<div id="wiki__editbar" >
             <div id="size__ctl" >
             </div>
             <div class="editButtons" >
@@ -107,7 +258,57 @@ class NyhetGen {
             </form>
         ';
         $output .= '</div>'; // editnyhet
+        
+        if ($preview) $output .= self::genFullNyhetViewOnly($objNyhet);
+		
         return $output;
     }
+	
+	public static function genIngenNyheter($ekstratekst='') {
+        if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
+		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
+	}
+    
+    public static function genOmradeAdmin($colOmrader) {
+        $output .= "<h2>Områdeadministrasjon</h2>\n";
+        
+        $output .= '
+            <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
+            <table>
+                <tr>
+                    <th>Område </th>
+                    <th>Default </th>
+                    <th>Visningsnavn </th>
+                    <th>Farge </th>
+                </tr>
+        ';
+        foreach($colOmrader as $objOmrade) {
+            $omrade = $objOmrade->getOmrade();
+            $visningsnavn = $objOmrade->getVisningsnavn();
+            $farge = $objOmrade->getFarge();
+            $checked = ($objOmrade->isDefault()) ? ' checked="checked"' : '';
+            $output .= "
+                <tr>
+                    <td>$omrade</td>
+                    <td><input type=\"radio\" name=\"defaultomrade\" value=\"$omrade\"$checked /></td>
+                    <td><input type=\"text\" name=\"visnavn[$omrade]\" value=\"$visningsnavn\" /></td>
+                    <td><input type=\"text\" name=\"farge[$omrade]\" value=\"$farge\" /></td>
+                </tr>
+            ";
+        }
+        $output .= '</table><input type="submit" value="Lagre" /></form>';
+        
+        return $output;
+    }
+	
+	protected static function getMailLink($name, $epost) {
+		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';
+		return sprintf($format, $name, $epost);
+	}
+	
+	protected static function dispTime($sqltime) {
+		$timestamp = strtotime($sqltime);
+		return date(self::TIME_FORMAT, $timestamp);
+	}
 	
 }

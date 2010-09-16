@@ -2,19 +2,30 @@
 if(!defined('MS_INC')) die();
 
 class MsNyhet {
+	
+	const VIKTIGHET_1 = '7 dager';
+	const VIKTIGHET_2 = '5 dager';
+	const VIKTIGHET_3 = '3 dager';
 
     public $under_construction = false;
 	
 	protected $_id;	
-	protected $_tilgang;
+	protected $_omrade;
 	protected $_type;
-	protected $_viktighet;
+	protected $_issticky;
 	protected $_createtime;
+	protected $_createbynavn;
+	protected $_createbyepost;
 	protected $_lastmodtime;
+	protected $_lastmodbynavn;
+	protected $_lastmodbyepost;
 	protected $_deletetime;
+	protected $_deletebynavn;
+	protected $_deletebyepost;
 	protected $_issaved;
 	protected $_hasunsavedchanges;
 	protected $_wikipath;
+	protected $_pubtime;
 	
 	protected $_imgpath;
 	protected $_title;
@@ -57,61 +68,176 @@ class MsNyhet {
 		return $this->set_var($this->_type, $input);
 	}
 	
-	public function getTilgang() {
-		return $this->_tilgang;
+	public function getOmrade() {
+		return $this->_omrade;
 	}
-	public function setTilgang($input) {
-        return $this->set_var($this->_tilgang, $input);
+	public function setOmrade($input) {
+		if (!$this->under_construction) {
+			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
+			if (!$colOmrader->exists($input)) {
+				throw new Exception('Ugyldig område angitt!');
+			}
+		}
+		
+        return $this->set_var($this->_omrade, $input);
 	}
 	
-	public function getViktighet() {
-		return $this->_viktighet;
+	public function getPublishTime() {
+		return $this->_pubtime;
 	}
-	public function setViktighet($input) {
-		return $this->set_var($this->_viktighet, $input);
+    public function isPublished() {
+        $pubtime = strtotime($this->_pubtime);
+        return ($pubtime < time());
+    }
+	public function setPublishTime($input) {
+		// Validerer ikke dersom objekt bygges av factory
+		if (!$this->under_construction) {
+            $input = strtotime(trim($input));
+            $aar = (int) date('Y', $input);
+            $mnd = (int) date('n', $input);
+            $dag = (int) date('j', $input);
+            $tim = (int) date('G', $input);
+            $min = (int) date('i', $input);
+            $sek = (int) date('s', $input);
+            
+            if (
+                $aar < 2010 ||
+                $aar > 2020 ||
+                $mnd < 1 ||
+                $mnd > 12 ||
+                $dag < 1 ||
+                $dag > 31 ||
+                $tim < 0 ||
+                $tim > 23 ||
+                $min < 0 ||
+                $min > 60 ||
+                $sek < 0 ||
+                $sek > 60
+            ) {
+                $invaliddate = true;
+                $input = '';
+            } else {
+                $input = date('Y-m-d H:i:s', $input);
+            }
+		}
+        $res = $this->set_var($this->_pubtime, $input);
+		return ($invaliddate) ? false : $res;
 	}
 	
 	public function getCreateTime() {
 		return $this->_createtime;
 	}
 	public function setCreateTime($input) {
-        return $this->set_var($this->_createtime, $input);
+        $this->_createtime = $input;
+	}
+	public function getCreateByNavn() {
+		return $this->_createbynavn;
+	}
+	public function setCreateByNavn($input) {
+        $this->_createbynavn = $input;
+	}
+	public function getCreateByEpost() {
+		return $this->_createbyepost;
+	}
+	public function setCreateByEpost($input) {
+        $this->_createbyepost = $input;
+	}
+	
+	public function isSticky() {
+		return (bool) $this->_issticky;
+	}
+	public function setIsSticky($input) {
+		return $this->set_var($this->_issticky, $input);
 	}
 
+	public function isModified() {
+		return !empty($this->_lastmodtime);
+	}
 	public function getLastModTime() {
 		return $this->_lastmodtime;
 	}
 	public function setLastModTime($input) {
-        return $this->set_var($this->_lastmodtime, $input);
+        $this->_lastmodtime = $input;
+	}
+	public function getLastModByNavn() {
+		return $this->_lastmodbynavn;
+	}
+	public function setLastModByNavn($input) {
+        $this->_lastmodbynavn = $input;
+	}
+	public function getLastModByEpost() {
+		return $this->_lastmodbyepost;
+	}
+	public function setLastModByEpost($input) {
+        $this->_lastmodbyepost = $input;
 	}
 
 	public function hasUnsavedChanges() {
 		return (bool) $this->_hasunsavedchanges;
 	}
 	
-	public function isModified() {
-		return isset($this->_lastmodtime);
-	}
-	
 	public function getDeleteTime() {
 		return $this->_deletetime;
 	}
 	public function setDeleteTime($input) {
-        return $this->set_var($this->_deletetime, $input);
+        $this->_deletetime = $input;
+	}
+	public function getDeleteByNavn() {
+		return $this->_deletebynavn;
+	}
+	public function setDeleteByNavn($input) {
+        $this->_deletebynavn = $input;
+	}
+	public function getDeleteByEpost() {
+		return $this->_deletebyepost;
+	}
+	public function setDeleteByEpost($input) {
+        $this->_deletebyepost = $input;
 	}
 
+
 	public function isDeleted() {
-		return isset($this->_deletetime);
+		return !empty($this->_deletetime);
 	}
 	
 	public function hasImage() {
-		return isset($this->_imgpath);
+		return !empty($this->_imgpath);
 	}
 	public function getImagePath() {
 		return $this->_imgpath;
 	}
-	public function setImagePath($input) {
+	public function setImagePath($input, $strip = false) {
+		// strip settes når input er fra mediamanager, for å strippe wiki-syntax
+		if ($strip) {
+			$regexp = '/^\{\{\:(.*)\|\}\}$/';
+			$input = trim($input);
+			if (preg_match($regexp, $input, $matches) === 1) {
+				$input = cleanID($matches[0], false);
+				if (strlen($input) < 6) return false;
+			} else {
+				return false;
+			}
+		}
+		
+		if (!$this->under_construction && !empty($input)) {
+			$filename = mediaFN($input);
+			if (!@file_exists($filename)) {
+				msg('Bilde ble ikke lagret, filen finnes ikke!', -1);
+				$input = '';
+			}
+		}
+	
         return $this->set_var($this->_imgpath, $input);
+	}
+	public function getImageTag($width) {
+		if (!$this->hasImage()) return false;
+		
+		$width = (int) $width;
+		if ($width < 10 || $width > 2000) throw new Exception('Thumbnailbredde out of bounds. Sjekk config.');
+		
+		$tagformat = '<img src="%1$slib/exe/fetch.php?w=%2$u&amp;media=%3$s" class="media" alt="" width="%2$u" />';
+		return sprintf($tagformat, DOKU_BASE, $width, $this->getImagePath());
+		
 	}
 	
 	public function getWikiPath() {
@@ -119,7 +245,7 @@ class MsNyhet {
 	}
 	public function setWikiPath($input) {
         if ($input == 'auto') {
-            $input = 'msnyheter:ks:' . date('Ymd ') . $this->getTitle();
+            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $this->getTitle();
             $input = cleanID($input, true);
         }
         return $this->set_var($this->_wikipath, $input);
@@ -144,10 +270,6 @@ class MsNyhet {
 	}
 
 	public function getWikiTekst() {
-        // if (empty($this->_wikitekst) && $this->isSaved()) {
-            // $rawwiki = rawWiki($this->getWikiPath());
-            // $this->setWikiTekst($rawwiki);
-        // }
 		return $this->_wikitekst;
 	}
 	public function setWikiTekst($input) {
@@ -209,6 +331,90 @@ class MsNyhet {
         return (bool) $res;
     }
 	
+	public function slett() {
+		if ($this->isDeleted()) {
+			return false;
+		}
+			
+		global $msdb;
+		
+		$safenyhetid = $msdb->quote($this->getId());
+		$safebrukerid = $msdb->quote(MinSide::getUserID());
+		
+		$sql = "UPDATE nyheter_nyhet
+				SET deletetime = NOW(),
+				deleteby = $safebrukerid
+				WHERE nyhetid = $safenyhetid;";
+		
+		return (bool) $msdb->exec($sql);
+	}
+    
+    public function permslett() {
+        if (!$this->isDeleted()) {
+            return false;
+        }
+        
+        $id = $this->getWikiPath();
+		$summary = 'Permanent nyhetsletting utført gjennom MinSide.';
+		$minor = false;
+        
+        if (empty($id)) throw new Exception('Logic error: Kan ikke perm-slette nyhet som ikke har definert path i dokuwiki.');
+		
+        $file = wikiFN($id); // filnavn
+        
+        $GLOBALS['ms_writing_to_dw'] = true;
+		saveWikiText($id, '', $summary, $minor);
+        $GLOBALS['ms_writing_to_dw'] = false;
+        
+        // sjekk at wikiside er borte
+        if (@file_exists($file)) {
+            return false;
+        }
+        
+        global $msdb;
+        $safenyhetid = $msdb->quote($this->getId());
+        
+        $msdb->startTrans();
+        $sql[] = "DELETE
+                FROM nyheter_lest
+                WHERE nyhetid=$safenyhetid
+                LIMIT 1";
+        $sql[] = "DELETE
+                FROM nyheter_nyhet
+                WHERE nyhetid=$safenyhetid
+                LIMIT 1";
+                
+        $res = true;
+        foreach ($sql as $stmt) {
+            $res = ($res && ($msdb->exec($stmt) !== false));
+        }
+        if ($res) {
+            $msdb->commit();
+            return true;
+        } else {
+            $msdb->rollBack();
+            return false;
+        }
+    
+    }
+	
+	public function restore() {
+		if (!$this->isDeleted()) {
+			return false;
+		}
+			
+		global $msdb;
+		
+		$safenyhetid = $msdb->quote($this->getId());
+		
+		$sql = "UPDATE nyheter_nyhet
+				SET deletetime = NULL,
+				deleteby = NULL
+				WHERE nyhetid = $safenyhetid;";
+		
+		return (bool) $msdb->exec($sql);
+	}
+	
 	protected function write_wikitext() {
 		// function saveWikiText($id,$text,$summary,$minor=false)
 		// definert i /inc/common.php på linje 927
@@ -256,34 +462,38 @@ class MsNyhet {
         global $msdb;
         
         $safeid = $msdb->quote($this->getId());
-        $safetilgang = $msdb->quote($this->getTilgang());
+        $safeomrade = $msdb->quote($this->getOmrade());
+        $safesticky = ($this->isSticky()) ? '1' : '0';
         $safetype = $msdb->quote($this->getType());
-        $safeviktighet = $msdb->quote($this->getViktighet());
         $safewikipath = $msdb->quote($this->getWikiPath());
         $safeimgpath = $msdb->quote($this->getImagePath());
         $safetitle = $msdb->quote($this->getTitle());
         $safehtmlbody = $msdb->quote($this->getHtmlBody());
-        $safewikihash = $msdb->quote($this->getWikiHash());        
+        $safewikihash = $msdb->quote($this->getWikiHash());
+		$safepubtime = ($this->getPublishTime()) ? $msdb->quote($this->getPublishTime()) : 'NULL';
  
         
-        $midsql = "tilgangsgrupper = $safetilgang,
+        $midsql = "omrade = $safeomrade,
                 nyhetstype = $safetype,
-                viktighet = $safeviktighet,
                 wikipath = $safewikipath,
                 wikihash = $safewikihash,
+				issticky = $safesticky,
                 nyhettitle = $safetitle,
                 imgpath = $safeimgpath,
-                nyhetbodycache = $safehtmlbody
+                nyhetbodycache = $safehtmlbody,
+				pubtime = $safepubtime
                 ";
                 
         if (!$this->isSaved()) {
             $presql = "INSERT INTO nyheter_nyhet SET\n";
             $presql .= "nyhetid = DEFAULT,\n";
             $presql .= "createtime = NOW(),\n";
+            $presql .= "createby = " . MinSide::getUserID() . ",\n";
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
             $presql .= "modtime = NOW(),\n";
+			$presql .= "modby = " . MinSide::getUserID() . ",\n";
             $postsql = "WHERE nyhetid = $safeid LIMIT 1;";
         }
         
@@ -300,5 +510,31 @@ class MsNyhet {
         // return true dersom db ble endret
         return (bool) $res;
     }
-	
+    
+    public function getAcl() {
+        return self::_checkAcl(curNS($this->getWikiPath()));
+    }
+    
+    private static function _checkAcl($inNS) {
+        $objOmrade = NyhetOmrade::OmradeFactory('msnyheter', $inNS);
+        if ($objOmrade instanceof NyhetOmrade) {
+            return $objOmrade->getAcl();
+        } else {
+            return MSAUTH_NONE;
+        }
+	}
+    
+    public static function merk_flere_lest(NyhetCollection $col) {
+        global $msdb;
+        
+        if ($col->length() == 0) return false;
+        
+        $sql = "INSERT INTO nyheter_lest (nyhetid, brukerid, readtime) VALUES ";
+        foreach($col as $objNyhet) {
+            $inserts[] = sprintf("('%u', '%u', NOW())", $objNyhet->getId(), MinSide::getUserID());
+        }
+        $sql .= implode(",\n", $inserts);
+        
+        return (bool) $msdb->exec($sql);
+    }
 }

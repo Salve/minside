@@ -222,9 +222,9 @@ div.resultater .top {
 
 div.mstoc .meny {
 	width: 100%;
-	border: 1px #8cacbb;
+	/*border: 1px #8cacbb;
 	border-style: solid;
-	/*float:left;*/
+    float:left;*/
 	background-color: white;
 	overflow: hidden;
 }
@@ -237,12 +237,13 @@ div.mstoc .meny {
 }
 
 div.mstocheader {
-  border: 1px solid #8CACBB;
+  /*border: 1px solid #8CACBB;*/
   background-color: #DEE7EC;
   text-align: left;
   font-weight: bold;
-  padding: 3px;
+  /*padding: 3px;*/
   margin-bottom: 2px;
+  width:100%;
 }
 
 div.minside th {
@@ -500,16 +501,19 @@ div.notater {
 /* Nyheter */
 
 div.minside div.nyhet {
-    border: 1px dashed #000000;
+
     overflow: hidden;
-    width: 80%;
+    width: 100%;
     margin-left: 20px;
-    margin-bottom: 1em;
+    margin-bottom: 3em;
     padding: 5px;
+    border: 1px #C9D4DF;
+    border-style: none none solid;
 }
 
 div.minside div.nyhettopbar {
     background-color: #DEE7EF;
+width: 100%;
 }
 
 div.minside div.nyhettitle {
@@ -520,6 +524,23 @@ div.minside div.nyhettitle {
     padding: 0.5em 0 0.5em 0.5em;
 }
 
+div.minside div.nyhetinfo {
+    float: left;
+    font-size: 80%;
+    width:98.5%;
+    color: #426973;
+	clear: left;
+    padding: 0 0 0.5em 0.5em;
+}
+
+div.minside div.nyhetinfo div.nyhetdel {
+	color: #FF0000;
+}
+
+div.minside div.nyhetinfo div.nyhetdel a{
+	color: #FF0000;
+}
+
 div.minside div.nyhetoptions {
     float: right;
     margin-top: 0.25em;
@@ -527,5 +548,45 @@ div.minside div.nyhetoptions {
 }
 
 div.minside div.nyhetbody {
-    margin-top: 0.5em;
+    padding-top: 0.5em;
+}
+
+div.dokuwiki div.nyhetbody div.tags {
+	border: none;
+	clear:both;
+	font-size:95%;
+	text-align:left;
+}
+
+div.minside div.nyhetimgleft {
+	float: left;
+}
+
+div.minside div.nyhetomrade {
+    float:right;
+}
+
+/* Sidebar */
+
+table.sidebaradm td {
+	padding-right: 5px;
+}
+
+div.sidebaradmin_right input.msbutton {
+	width: 150px;
+}
+
+div.sidebaradmin_right div.label {
+	width: 3em;
+	float: left;
+	line-height: 20px;
+}
+
+div.sidebaradmin_right input.edit {
+	width: 105px;
+}
+
+div#main_page > div.left_sidebar {
+	width: 140px;
+	overflow: hidden;
 }

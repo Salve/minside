@@ -1,4 +1,5 @@
 <?php
+
 if(!defined('DOKU_INC')) die(); // Dette scriptet kan kun kjøres via dokuwiki
 define('MS_INC', true); // Alle underscript sjekker om denne er definert
 define('MS_LINK', "?do=minside");
@@ -21,6 +22,7 @@ require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
+require_once('class.calendar.php');
 
 class AdgangsException extends Exception { }
 
@@ -28,17 +30,16 @@ class MinSide { // denne classen instansieres og gen_minside() kjøres for å ge
 
 private static $_objMinside;
 
+private static $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
+private static $username; // brukernavn som oppgis når script kalles, tilgjengelig når instansiert
+
 private $_msmod; // array som holder alle lastede moduler som objekter
-private $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
-private $username; // brukernavn som oppgis når script kalles, alltid tilgjengelig
 private $toc; // inneholder xhtml for ms-toc når den er generert
 
     public static function getInstance() {
-    
         if(!isset(self::$_objMinside)) {
             self::$_objMinside = new self($_SERVER['REMOTE_USER']);
         }
-        
         return self::$_objMinside;
     }
     
@@ -51,13 +52,13 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		} catch(Exception $e) {
 			die($e->getMessage());
 		}
-		$this->username = $username; 
+		self::$username = $username; 
 		
 	}
 	
 	public function gen_minside() { // returnerer all nødvendig xhtml for å vise minside som en streng
 		if (!($this->sjekkAdgang('vismeny') > MSAUTH_NONE)) {
-			return '<h1>Ingen adgang</h1><p>Brukeren ' . $this->username . ' har ikke tilgang til å vise Min Side. ' . 
+			return '<h1>Ingen adgang</h1><p>Brukeren ' . self::$username . ' har ikke tilgang til å vise Min Side. ' . 
 				'Kontakt en teamleder dersom du har spørsmål til dette.</p>';
 		}
 		$this->updateUserInfo();
@@ -109,31 +110,31 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 	}
 	
-	public function getUserID($recursion = false) { // returnerer nåværende brukers interne userid, forsøker å opprette ny bruker om den ikke finnes
+	public static function getUserID($recursion = false) { // returnerer nåværende brukers interne userid, forsøker å opprette ny bruker om den ikke finnes
 		
-		if ($this->username == '') { die('Username not set on minside create'); } // skal i utgangspunktet aldri skje
+		if (self::$username == '') { die('Username not set on minside create'); } // skal i utgangspunktet aldri skje
 			
-		if (isset($this->UserID)) {
-			return $this->UserID;			// dersom denne funksjonen allerede er kjørt er det bare å svare samme som sist gang
+		if (isset(self::$UserID)) {
+			return self::$UserID;			// dersom denne funksjonen allerede er kjørt er det bare å svare samme som sist gang
 		} else {
-			$lookupid = $this->_lookupUserID($this->username); // _lookupUserID sjekker db for username
+			$lookupid = self::lookupUserID(self::$username); // lookupUserID sjekker db for username
 			if ($lookupid === false) { // finner ikke username i db
 				if ($recursion === true) {die('Klarer ikke å opprette brukerid');} // dersom denne funksjonen er kallt av seg selv gir vi opp nå. user er i så fall forsøkt opprettet, men finnes enda ikke i db.
-				$this->_createUser($this->username); // forsøker å opprette bruker
-				return $this->getUserID(true); // kaller seg selv for å sjekke om bruker nå finnes i db
+				self::_createUser(self::$username); // forsøker å opprette bruker
+				return self::getUserID(true); // kaller seg selv for å sjekke om bruker nå finnes i db
 			} else { 					// fant username i db
-				$this->UserID = $lookupid; // lagre resultat for neste gang funksjonen kalles
+				self::$UserID = $lookupid; // lagre resultat for neste gang funksjonen kalles
 				return $lookupid;		
 			}
 		}
 
 	}
 	
-	private function _lookupUserID($username) {  // sjekker db for gitt username, returnerer userid eller false
+	public static function lookupUserID($username) {  // sjekker db for gitt username, returnerer userid eller false
 		global $msdb;
 		if ($username == '') { die('Kan ikke sjekke id til tomt brukernavn'); }
 		
-		$result = $msdb->assoc('SELECT id FROM internusers WHERE wikiname = ' . $msdb->quote($this->username) . ' LIMIT 1;');
+		$result = $msdb->assoc('SELECT id FROM internusers WHERE wikiname = ' . $msdb->quote($username) . ' LIMIT 1;');
 		
 		if ($result[0]['id'] != 0) {
 			return $result[0]['id']; // fant userid
@@ -142,7 +143,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		}		
 	}
 	
-	private function _createUser($username){ // forsøker å opprette ny userid for gitt username
+	private static function _createUser($username){ // forsøker å opprette ny userid for gitt username
 		global $msdb;
 		if ($username == '') { die('Kan ikke opprette bruker med tomt brukernavn'); }
 	
@@ -156,8 +157,8 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 	}
 	
-	public function getMeny() { // returnerer streng med nødvendig xhtml for å vise menyen
-        if (isset($this->toc)) {
+	public function getMeny($getObj = false) { // returnerer streng med nødvendig xhtml for å vise menyen
+        if (isset($this->toc) && !$getObj) {
             return $this->toc; // cached streng med toc
         }
         
@@ -166,6 +167,8 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		foreach ($this->_msmod as $msmod) {
 			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
+		
+		if ($getObj) return $meny;
 	
 		$output .= '<div class="mstoc">'."\n";
 		$output .= '<div class="mstocheader">Min Side - Meny</div>'."\n";

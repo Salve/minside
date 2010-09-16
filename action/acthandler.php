@@ -37,6 +37,12 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // For nyheter - gjør nødvendige oppdateringer før/etter endringer
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'BEFORE', $this, 'handlePreWikiWrite');
         $controller->register_hook('IO_WIKIPAGE_WRITE', 'AFTER', $this, 'handlePostWikiWrite');
+		
+        // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
+        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
+        
+        // Hooker indexer adds, for å sørge for at upubliserte nyheter ikke indexeres
+        $controller->register_hook('INDEXER_PAGE_ADD', 'BEFORE', $this, 'handleIndexerPageAdd');
     }
      
     /**
@@ -67,6 +73,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Hvis vi kommer hit er action 'minside' og brukeren er logget inn. Vi stopper videre behandling og aksepterer denne.
         $event->preventDefault();
         $event->stopPropagation();
+		
     }
      
     /**
@@ -81,11 +88,10 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 			$ms_starttime = microtime(true);
 
 			require_once(DOKU_PLUGIN.'minside/minside/minside.php');
-			
 			$objMinSide = MinSide::getInstance();
-            
+
 			print $objMinSide->gen_minside();
-			
+
 			$ms_endtime = microtime(true);
 			$ms_gentime = $ms_endtime - $ms_starttime;
 			$db_gentime = $objMinSide->getDbGentime();
@@ -125,6 +131,11 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Hvis vi kommer hit er dette opprettelse av en ny side
         // i :msnyheter:-navnerommet.
         
+        // Vi lar admins opprette sider, eneste måte å lage nye namespaces på
+        // (alternativet var å kode eget adminpanel for dette...)
+        global $INFO;
+        if ($INFO['isadmin']) return false;
+        
         die("Oppdaget førsøk på å opprette nyhet gjennom DokuWiki\n<br />Vennligst benytt MinSide til å opprette nyheter.");
     }
     
@@ -136,8 +147,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // viktig at vi ikke behandler dette, vil loope evig...
         if ($GLOBALS['ms_writing_to_dw'] === true) return false;
         
-        /* Opprettelse av nye sider er blokkert i handlePreWikiWrite
-         * vi trenger kun å sjekke at dette er skriving av ny utgave
+        /* Sjekk at dette er skriving av ny utgave
          * og ikke flytting av den gamle til attic.
          */
         
@@ -160,6 +170,53 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             return false;
         }
       
+    }
+    
+    function handleTplContentDisplay(&$event, $param) {
+        global $INFO;
+        global $ACT;
+        if(substr($INFO['id'], 0, 10) != 'msnyheter:') return false;
+        if($ACT != 'show') return false;
+        if ($INFO['rev'] != false) return false;
+        
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $event->data = $objMinSide->genModul('nyheter', 'extview', $INFO['id']);
+            return true;
+        } catch (Exception $e) {
+            msg('Klarte å vise denne nyheten gjennom MinSide: ' . $e->getMessage(), -1);
+            return false;
+        }
+        
+    }
+    
+    function handleIndexerPageAdd(&$event, $param) {
+        if(substr($event->data[0], 0, 10) != 'msnyheter:') return;
+        
+        $debug = false;
+        
+        if($debug) {
+            $fh = fopen('indexerlogg.txt', 'a') or die();
+            $data = 'Indexing: ' . $event->data[0] . "\r\n";
+            fwrite($fh, $data);
+        }
+
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            if(!$objMinSide->genModul('nyheter', 'checkpublished', $event->data[0])) {
+                $event->preventDefault();
+                if($debug) fwrite($fh, "    BLOCKED! Nyhet er ikke publisert.\r\n");
+            } else {
+                if($debug) fwrite($fh, "    ALLOWED! Nyhet er publisert.\r\n");
+            }
+        } catch (Exception $e) {
+            $event->preventDefault();
+            if($debug) fwrite($fh, "    ERROR! Blokkerer indexing by default: " . $e->getMessage() . "\r\n");
+        }
+        if($debug) fclose($fh);
     }
     
 }
