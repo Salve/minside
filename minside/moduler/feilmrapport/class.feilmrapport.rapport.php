@@ -391,12 +391,27 @@ class Rapport {
 		
 		if (!$this->_isSaved) return false;
 		
-		$sql = "SELECT wikifullname, wikiepost FROM internusers WHERE INSTR(`wikigroups`, 'feilm') OR INSTR(`wikigroups`, 'teaml');";
+		$sql = "
+            SELECT 
+                wikifullname, 
+                wikiepost 
+            FROM 
+                internusers 
+            WHERE 
+                    INSTR(`wikigroups`, 'feilm') 
+                OR 
+                    INSTR(`wikigroups`, 'teaml')
+            ORDER BY
+                wikifullname
+                ASC
+            ;";
 		$data = $msdb->assoc($sql);
 		
 		$arEpost = array();
-		
-		if(is_array($data) && sizeof($data)) {
+		$size = count($data);
+        $size = ($size > 20) ? 20 : $size;
+        
+		if(is_array($data) && $size) {
 			foreach($data as $datum) {
 				$selectoptions .= '<option value="' . $datum['wikiepost'] . '">' . $datum['wikifullname'] . '</option>' . "\n";
 			}
@@ -408,7 +423,7 @@ class Rapport {
 		$output .= '<form name="mailrapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
 		$output .= '<input type="hidden" name="act" value="mailrapport" />' . "\n";
 		$output .= '<input type="hidden" name="rapportid" value="' . $this->_id . '" />' . "\n";
-		$output .= '<select multiple name="mailmottakere[]" />' . "\n";
+		$output .= '<select multiple size="'. $size .'" name="mailmottakere[]" />' . "\n";
 		$output .= $selectoptions;
 		$output .= '</select><br /><br />' . "\n";
 		$output .= '<input type="submit" class="msbutton" name="sendmail" value="Send rapport per e-post" />' . "\n";
