@@ -739,13 +739,14 @@ class msmodul_feilmrapport implements msmodul{
 			} catch (Exception $e) {
 				msg($e->getMessage());
 			}
-			
-            $datediff = $starttid->diff(new DateTime());
             
-            if($datediff->h > 14) { 
+            $starttime = strtotime($objSkift->getSkiftCreatedTime());
+            $hourdiff = floor((time() - $starttime) / 60 / 60);
+            
+            if($hourdiff > 14) { 
                 $ageclass = ' oldskift';
                 $agewarning = ' (Obs! Gammelt skift!)';
-            } elseif($datediff->h < 2) { 
+            } elseif($hourdiff < 2) { 
                 $ageclass = ' newskift'; 
                 $agewarning = ' (Obs! Nytt skift!)';
             } else { 
