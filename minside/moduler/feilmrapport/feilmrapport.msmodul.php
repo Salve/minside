@@ -377,7 +377,8 @@ class msmodul_feilmrapport implements msmodul{
 			foreach ($data as $datum) {
 			
 				$arMonths = explode(',', $datum['MONTHS']);
-				
+				sort($arMonths);
+                
 				$year = $datum['YEAR'];
 				$monthlist = '';
 				foreach ($arMonths as $month) {
