@@ -431,6 +431,13 @@ div.dagtwo div.dagheader {
 	width: 15px;
 }
 
+div.minside span.skift.oldskift {
+    background-color: #FFFF66;
+}
+
+div.minside span.skift.newskift {
+    background-color: #FF3333;
+}
 
 div.minside div.mswarningbar {
 	background-color: #FFDDDD;
