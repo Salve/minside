@@ -9,13 +9,48 @@ class NyhetOmrade {
 	private $_omrade_full;
 	private $_omrade;
     private $_acl;
+    
+    private $_dblinked = false;
+    private $_farge;
+    private $_visningsnavn;
+    private $_isdefault;
 	
 	public function __construct($omrade) {
 		$this->_omrade_full = $omrade;
 		$this->_omrade = noNS($omrade);
 		$this->_parent_ns = getNS($omrade);
 	}
-	
+    
+    // Db properties
+    public function getFarge() {
+        return $this->_farge;
+    }
+    public function setFarge($input) {
+        $this->_farge = $input;
+    }
+	public function getVisningsnavn() {
+        if(!empty($this->_visningsnavn)) {
+            return $this->_visningsnavn;
+        } else {
+            return $this->_omrade;
+        }
+    }
+    public function setVisningsnavn($input) {
+        $this->_visningsnavn = $input;
+    }
+    public function isDefault() {
+        return (bool) $this->_isdefault;
+    }
+    public function setDefault($input) {
+        $this->_isdefault = (bool) $input;
+    }
+    public function isDbLinked() {
+        return (bool) $this->_dblinked;
+    }
+    public function setDbLinked($input) {
+        $this->_dblinked = (bool) $input;
+    }
+    
 	public function getOmrade() {
 		return $this->_omrade;
 	}
@@ -39,8 +74,8 @@ class NyhetOmrade {
 		return $this->_acl;
 	}
 	
-	public static function getOmrader($parent_ns, $acl = 0) {
-        if (!array_key_exists($parent_ns, self::$_omrader)) {
+	public static function getOmrader($parent_ns, $acl=0, $force_reload=false) {
+        if ($force_reload || !array_key_exists($parent_ns, self::$_omrader)) {
             self::_loadOmrader($parent_ns);
         }
         
@@ -101,8 +136,57 @@ class NyhetOmrade {
 			$objOmrade = new NyhetOmrade($fil['id']);
 			$OmradeCol->additem($objOmrade, $objOmrade->getOmrade());
 		}
-		
+		self::_dbLink($OmradeCol, $parent_ns);
 		self::$_omrader[$parent_ns] = $OmradeCol;
 	}
+    
+    protected static function _dbLink(Collection &$colOmrade, $parent_ns, $recursive = false) {
+        global $msdb;
+
+        $safeparentns = $msdb->quote($parent_ns);
+        $sql= "SELECT omradenavn, visningsnavn, farge, isdefault
+                FROM nyheter_omrade
+                WHERE parentns = $safeparentns;";
+        $res = $msdb->assoc($sql);
+        
+        foreach($res as $row) {
+            if($colOmrade->exists($row['omradenavn'])) {
+                $objOmrade = $colOmrade->getItem($row['omradenavn']);
+                $objOmrade->setFarge($row['farge']);
+                $objOmrade->setVisningsnavn($row['visningsnavn']);
+                $objOmrade->setDefault($row['isdefault']);
+                $objOmrade->setDbLinked(true);
+            }
+        }
+        
+        $any_unsaved = false;
+        foreach($colOmrade as $objOmrade) {
+            if (!$objOmrade->isDbLinked()) {
+                if($recursive) throw new Exeption('Klarte ikke å legge nytt område til i database!');
+                $any_unsaved = true;
+                
+                $safeomrade = $msdb->quote($objOmrade->getOmrade());
+                $sql = "INSERT INTO nyheter_omrade SET omradenavn=$safeomrade, parentns = $safeparentns;";
+                $msdb->exec($sql);
+            }
+        }
+        
+        if ($any_unsaved) return self::_dbLink($colOmrade, $parent_ns, true);
+        return true;
+        
+    }
+    
+    public static function getVisningsinfoForNyhet(MsNyhet $objNyhet, $parent_ns) {
+        if (!array_key_exists($parent_ns, self::$_omrader)) {
+            self::_loadOmrader($parent_ns);
+        }
+        
+        $objOmrade = self::$_omrader[$parent_ns]->getItem($objNyhet->getOmrade());
+        
+        $info['visningsnavn'] = $objOmrade->getVisningsnavn();
+        $info['farge'] = $objOmrade->getFarge();
+        
+        return $info;
+    }
 
 }

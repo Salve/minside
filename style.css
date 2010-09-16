@@ -498,7 +498,7 @@ div.minside div.nyhet {
     overflow: hidden;
     width: 100%;
     margin-left: 20px;
-    margin-bottom: 1em;
+    margin-bottom: 3em;
     padding: 5px;
     border: 1px #C9D4DF;
     border-style: none none solid;
@@ -508,16 +508,6 @@ div.minside div.nyhettopbar {
     background-color: #DEE7EF;
 width: 100%;
 }
-
-div.minside div.nyhet.feilbed  > div.nyhettopbar{
-    background-color: #76B9F5;
-}
-
-div.minside div.nyhet.ks  > div.nyhettopbar{
-    background-color: #C9D4DF;
-}
-
-
 
 div.minside div.nyhettitle {
     float: left;

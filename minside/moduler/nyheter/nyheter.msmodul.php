@@ -53,6 +53,8 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
@@ -77,6 +79,9 @@ class msmodul_nyheter implements msmodul {
 				}
                 if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
+				}
+                if ($lvl >= MSAUTH_5) {
+					$toppmeny->addChild(new Menyitem('Områdeadmin','&page=nyheter&act=omradeadm'));
 				}
 			}
 			$meny->addItem($toppmeny);
@@ -250,7 +255,7 @@ class msmodul_nyheter implements msmodul {
                 msg('Lagring av nyhet: nyhet ikke endret.');
             }
             
-            return NyhetGen::genFullNyhetViewOnly($objNyhet);
+            return NyhetGen::genFullNyhet($objNyhet);
         } else {
             // Preview
             return NyhetGen::genEdit($objNyhet, true);
@@ -366,6 +371,66 @@ class msmodul_nyheter implements msmodul {
         }
         
         return (bool) $objNyhet->isPublished();
+    }
+    
+    public function gen_omrade_admin($force_reload=false) {
+        $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_NONE, $force_reload);
+        return NyhetGen::genOmradeAdmin($colOmrader);
+    }
+    
+    public function save_omrade_changes() {
+        global $msdb;
+        $sql = array();
+        $colOmrader = NyhetOmrade::getOmrader('msnyheter');
+        
+        $visnavn = $_REQUEST['visnavn'];
+        $farge = $_REQUEST['farge'];
+        $defaultomrade = $_REQUEST['defaultomrade'];
+        
+        // Sjekk default
+        if (isset($defaultomrade)) {
+            $objOmrade = $colOmrader->getItem($defaultomrade);
+            if(!empty($objOmrade) && !$objOmrade->isDefault()) {
+                $safeomrade = $msdb->quote($objOmrade->getOmrade());
+                $sql[] = "UPDATE nyheter_omrade SET isdefault=0;";
+                $sql[] = "UPDATE nyheter_omrade SET isdefault=1 WHERE omradenavn=$safeomrade;";
+            }
+        }
+        
+        // Sjekk visningsnavn
+        if (is_array($visnavn) && sizeof($visnavn)) {
+            foreach($visnavn as $k => $v) {
+                $objOmrade = $colOmrader->getItem($k);
+                if (!empty($objOmrade) && ($v != $objOmrade->getVisningsnavn()) ) {
+                    $safeomrade = $msdb->quote($objOmrade->getOmrade());
+                    $safevisningsnavn = $msdb->quote($v);
+                    $sql[] = "UPDATE nyheter_omrade SET visningsnavn=$safevisningsnavn WHERE omradenavn=$safeomrade;";
+                }
+            }
+        }
+        
+        // Sjekk farger
+        if (is_array($farge) && sizeof($farge)) {
+            foreach($farge as $k => $v) {
+                $objOmrade = $colOmrader->getItem($k);
+                if (!empty($objOmrade) && ($v != $objOmrade->getFarge()) ) {
+                    if (!preg_match("/^[A-F0-9]{6}$/iAD", $v)) {
+                        msg('Ugyldig fargekode "' . htmlspecialchars($v) . 
+                            '" for område "' . htmlspecialchars($k) . 
+                            '". Fargevalg lagres ikke for dette området!', -1);
+                        continue;
+                    }
+                    $safeomrade = $msdb->quote($objOmrade->getOmrade());
+                    $safefarge = $msdb->quote(strtoupper($v));
+                    $sql[] = "UPDATE nyheter_omrade SET farge=$safefarge WHERE omradenavn=$safeomrade;";
+                }
+            }
+        }
+        
+        foreach ($sql as $stmt) {
+            $msdb->exec($stmt);
+        }
+        
     }
 
 }
