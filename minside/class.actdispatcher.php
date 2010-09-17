@@ -36,8 +36,16 @@ class ActDispatcher {
 			throw new UnexpectedValueException("Ukjent handling: $inputact");
 		}
 		$objAct = $this->actcol->getItem($inputact);
-				
-		return $objAct->dispatch($this->caller, $this->adgang);
+        
+        try {
+            return $objAct->dispatch($this->caller, $this->adgang);
+        } catch (AdgangsException $e) {
+            return '<div class="mswarningbar"><strong>Ingen adgang</strong><br /><br />'. $e->getMessage() .'</div>';
+        } catch (Exception $e) {
+            return '<div class="mswarningbar"><strong>En feil har oppstått:</strong>' .
+                    '<br /><br /><em>'. $e->getMessage() . '</em>' .
+                    '<br /><br />Feil oppstod under behandling av: ' . $inputact . '</div>';
+        }
 		
 	}
 
