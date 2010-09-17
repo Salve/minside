@@ -20,10 +20,10 @@ class ActDispatcher {
 		
 		if ($this->actcol->exists($act)) {
 			$objAct = $this->actcol->getItem($act);	
-			$objAct->addHandler($handler, $param);
+			$objAct->addHandler($handler, $adgang, $param);
 		} else {
-			$objAct = new MsAct($act, $adgang);
-			$objAct->addHandler($handler, $param);
+			$objAct = new MsAct($act);
+			$objAct->addHandler($handler, $adgang, $param);
 			$this->actcol->addItem($objAct, $act);
 		}
 		
