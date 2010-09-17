@@ -63,7 +63,7 @@ class NyhetGen {
         
         // HTML
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
-        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="border-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
