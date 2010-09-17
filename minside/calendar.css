@@ -8,10 +8,10 @@ input, select, textarea {
 	font-size: 11px;
 }
 
-#calendar-header { background-color: #6699CC; padding-top: 2px; margin: auto; width: 100%; }
+#calendar-header { background-color: #DEE7EC; padding-top: 2px; margin: auto; width: 100%; }
 #calendar-header .closeme { padding: 0px 3px 2px 0px; }
 
-#calendar-body { padding: 2px 3px 3px 3px; background-color: #6699CC; margin: auto; width: 100%; }
+#calendar-body { padding: 2px 3px 3px 3px; background-color: #DEE7EC; margin: auto; width: 100%; }
 #calendar-body .general { background-color: #FFFFFF; }
 #calendar-body .othermonth { background-color: #EEEEEE; color: #AAAAAA; }
 #calendar-body .header { background-color: #6699CC; color: #FFFFFF; }
@@ -46,7 +46,7 @@ input, select, textarea {
 #calendar-footer .btn a:hover { text-decoration : underline; font-family: tahoma; color: #FF0000; }
 
 #calendar-header, #calendar-body, #calendar-footer { padding-left: 1px; padding-right: 1px; }
-#calendar-container { background-color: #6699CC; }
+#calendar-container { background-color: #DEE7EC; }
 
 .tcday, .tcmonth, .tcyear { font-size: 11px; z-index: 10; }
 
