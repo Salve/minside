@@ -377,7 +377,8 @@ class msmodul_feilmrapport implements msmodul{
 			foreach ($data as $datum) {
 			
 				$arMonths = explode(',', $datum['MONTHS']);
-				
+				sort($arMonths);
+                
 				$year = $datum['YEAR'];
 				$monthlist = '';
 				foreach ($arMonths as $month) {
@@ -738,17 +739,31 @@ class msmodul_feilmrapport implements msmodul{
 			} catch (Exception $e) {
 				msg($e->getMessage());
 			}
-			
+            
+            $starttime = strtotime($objSkift->getSkiftCreatedTime());
+            $hourdiff = floor((time() - $starttime) / 60 / 60);
+            
+            if($hourdiff > 14) { 
+                $ageclass = ' oldskift';
+                $agewarning = ' (Obs! Gammelt skift!)';
+            } elseif($hourdiff < 2) { 
+                $ageclass = ' newskift'; 
+                $agewarning = ' (Obs! Nytt skift!)';
+            } else { 
+                $ageclass = '' ;
+                $agewarning = '';
+            }
+            
 			if ($objSkift->isClosed()) {			
 				
-				
 				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" />';
-				$output .= '&nbsp;' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; ' . $this->LesbarTid($slutttid) . "<br />\n";
+                $output .= '&nbsp;' . '<span class="skift'. $ageclass .'">' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; ' . $this->LesbarTid($slutttid) . $agewarning . "<br />\n";
 			} else {
 				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" disabled />';
-				$output .= '&nbsp;' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; Ikke avsluttet! '; 
-				$output .= '(<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . "<br />\n";
+                $output .= '&nbsp;' . '<span class="skift'. $ageclass .'">' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; Ikke avsluttet! '; 
+				$output .= '(<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . $agewarning . "<br />\n";
 			}
+            $output .= '</span>';
 		}			
 					
 		$output .=	'

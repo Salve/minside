@@ -146,3 +146,17 @@ CREATE TABLE `sidebar_blokk` (
   PRIMARY KEY (`blokkid`),
   UNIQUE KEY `blokkid_UNIQUE` (`blokkid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `nyheter_omrade`;
+CREATE TABLE `nyheter_omrade` (
+  `omradeid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `omradenavn` varchar(50) NOT NULL,
+  `farge` varchar(10) DEFAULT NULL,
+  `isdefault` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `visningsnavn` varchar(50) DEFAULT NULL,
+  `parentns` varchar(50) NOT NULL,
+  PRIMARY KEY (`omradeid`),
+  UNIQUE KEY `omradeid_UNIQUE` (`omradeid`),
+  UNIQUE KEY `omradenavn_UNIQUE` (`omradenavn`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+

@@ -432,6 +432,13 @@ div.dagtwo div.dagheader {
 	width: 15px;
 }
 
+div.minside span.skift.oldskift {
+    background-color: #FFFF66;
+}
+
+div.minside span.skift.newskift {
+    background-color: #FF3333;
+}
 
 div.minside div.mswarningbar {
 	background-color: #FFDDDD;
@@ -498,7 +505,7 @@ div.minside div.nyhet {
     overflow: hidden;
     width: 80%;
     margin-left: 20px;
-    margin-bottom: 2em;
+    margin-bottom: 3em;
     padding: 5px;
     border: 2px #C9D4DF;
     border-style: none none solid;
@@ -517,16 +524,6 @@ div.minside div.nyhet.ks  > div.nyhettopbar{
     border-color: red;
 
 }
-
-div.minside div.nyhet.feilbed  > div.nyhettopbar{
-    border-color: blue;
-}
-
-div.minside div.nyhet.butikk  > div.nyhettopbar{
-    border-color: yellow;
-}
-
-
 
 div.minside div.nyhettitle {
     float: left;

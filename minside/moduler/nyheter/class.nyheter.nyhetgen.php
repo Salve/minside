@@ -51,6 +51,7 @@ class NyhetGen {
         $title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
         $omrade = $nyhet->getOmrade();
+        $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
         $pubdiff = time() - strtotime($nyhet->getPublishTime());
         $pubdager = floor($pubdiff / 60 / 60 / 24);
         $pubtimer = floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
@@ -61,7 +62,8 @@ class NyhetGen {
 		}
         
         // HTML
-        $omrade_html = '<div class="nyhetomrade">Område: ' . $nyhet->getOmrade() . '</div>';
+        $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -121,9 +123,8 @@ class NyhetGen {
 			<div class=\"nyhetcontainer\">
 			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
-				<div class=\"nyhettopbar\">
-                <div class=\"nyhetomradefarge\"></div>
-					<div class=\"nyhettitle \">$sticky$title</div>
+				<div class=\"nyhettopbar\"$omrade_farge>
+					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
 					<div class=\"nyhetinfo\">$omrade_html$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
@@ -153,8 +154,9 @@ class NyhetGen {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
 			} else {
 				foreach ($colOmrader as $objOmrade) {
-					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '">'. 
-						$objOmrade->getOmrade() . '</value>';
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . 
+                    (($objOmrade->isDefault()) ? ' selected="selected"' : '') .
+                    '">'. $objOmrade->getOmrade() . '</value>';
 				}
 			}
 			$html_omrade .= '</select>';
@@ -266,6 +268,38 @@ class NyhetGen {
         if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
 		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
 	}
+    
+    public static function genOmradeAdmin($colOmrader) {
+        $output .= "<h2>Områdeadministrasjon</h2>\n";
+        
+        $output .= '
+            <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
+            <table>
+                <tr>
+                    <th>Område </th>
+                    <th>Default </th>
+                    <th>Visningsnavn </th>
+                    <th>Farge </th>
+                </tr>
+        ';
+        foreach($colOmrader as $objOmrade) {
+            $omrade = $objOmrade->getOmrade();
+            $visningsnavn = $objOmrade->getVisningsnavn();
+            $farge = $objOmrade->getFarge();
+            $checked = ($objOmrade->isDefault()) ? ' checked="checked"' : '';
+            $output .= "
+                <tr>
+                    <td>$omrade</td>
+                    <td><input type=\"radio\" name=\"defaultomrade\" value=\"$omrade\"$checked /></td>
+                    <td><input type=\"text\" name=\"visnavn[$omrade]\" value=\"$visningsnavn\" /></td>
+                    <td><input type=\"text\" name=\"farge[$omrade]\" value=\"$farge\" /></td>
+                </tr>
+            ";
+        }
+        $output .= '</table><input type="submit" value="Lagre" /></form>';
+        
+        return $output;
+    }
 	
 	protected static function getMailLink($name, $epost) {
 		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';
