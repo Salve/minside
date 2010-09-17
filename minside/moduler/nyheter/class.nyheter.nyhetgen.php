@@ -82,7 +82,7 @@ class NyhetGen {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
             $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>';
+				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {
             $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         }
@@ -122,9 +122,10 @@ class NyhetGen {
 			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\">
+                <div class=\"nyhetomradefarge\"></div>
 					<div class=\"nyhettitle \">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade_html$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
