@@ -431,6 +431,12 @@ class msmodul_nyheter implements msmodul {
             $msdb->exec($stmt);
         }
         
+        if (count($sql)) {
+            msg('Lagret endringer i områdeadmin.', 1);
+        } else {
+            msg('Ingen endringer å lagre i områdeadmin.');
+        }
+        
     }
 
 }
