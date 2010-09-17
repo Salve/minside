@@ -90,6 +90,41 @@ class Skift {
 	public function _loadNotater(Collection $col) {
 		$arNotater = SkiftFactory::getNotaterForSkift($this->_id, $col);
 	}
+    
+    public function getLastAct($antall_akt = 1) {
+        global $msdb;
+        
+        $safeskiftid = $msdb->quote($this->getId());
+        $safeantall = (int) $antall_akt;
+        
+        $sql = "SELECT 
+                    akt.telleraktid AS id, 
+                    akt.tidspunkt AS tidspunkt, 
+                    akt.verdi AS verdi, 
+                    teller.tellerdesc AS teller 
+                FROM 
+                        feilrap_tellerakt AS akt 
+                    LEFT JOIN 
+                        feilrap_teller AS teller 
+                    ON 
+                        akt.tellerid = teller.tellerid 
+                WHERE 
+                    akt.skiftid=$safeskiftid
+                ORDER BY 
+                    akt.tidspunkt 
+                    DESC 
+                LIMIT 
+                    $safeantall;";
+                    
+        $data = $msdb->assoc($sql);
+        
+        if (!empty($data) && is_array($data)) {
+            return $data;
+        } else {
+            return array();
+        }
+        
+    }
 	
 	public function getSkiftLastUpdate() {
 		if ($this->checkedLastUpdate) {

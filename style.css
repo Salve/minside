@@ -262,6 +262,13 @@ div.minside table {
 	font-size: 1em;
 }
 
+div.minside div.tellerakt {
+    border: 1px solid #8cacbb;
+    margin: 3px 3px 10px 3px;
+    width: 14em;
+    float: left;
+}
+
 div.minside .feilmtable {
 	position:relative;
 	border-collapse: collapse;
@@ -459,6 +466,7 @@ div.minside div#warningentellere {
 
 div.tellertable {
 	position:relative;
+    clear: left;
 	width:35%;
 	float:left;
 	padding-top:0;
@@ -478,6 +486,7 @@ div.tellertable {
 
 div.notater {
 	position:relative;
+    clear: both;
 	width: 45%;
 	float:right;
 	right: 2em;
