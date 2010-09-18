@@ -262,6 +262,11 @@ div.minside table {
 	font-size: 1em;
 }
 
+div.minside div.sisteendringer {
+    position: relative;
+    left: 25px;
+}
+
 div.minside div.tellerakt {
     border: 1px solid #8cacbb;
     margin: 3px 3px 10px 3px;

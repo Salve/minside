@@ -142,10 +142,10 @@ class msmodul_feilmrapport implements msmodul{
 				$this->_slettNotat();
 				$this->_frapout .= $this->genSkift();
 				break;
-			case "angre_teller":
-				$this->_undoSisteEndring();
-				$this->_frapout .= $this->genSkift();
-				break;
+            case "undoakt":
+                $this->_undoAkt();
+                $this->_frapout .= $this->genSkift();
+                break;
 			case "modtellerorderned":
 				if ($this->_accessLvl >= MSAUTH_5) {
 					$this->_modTellerOrder('ned');
@@ -822,7 +822,7 @@ class msmodul_feilmrapport implements msmodul{
 		}
         
         // Nylig aktivitet
-        $arLastAkt = $objSkift->getLastAct(6);
+        $arLastAkt = $objSkift->getLastAct(3);
         if (count($arLastAkt)) {
             $skiftout .= '<div class="sisteendringer">';
             $skiftout .= '<strong>Siste endringer: </strong><br />';
@@ -831,8 +831,8 @@ class msmodul_feilmrapport implements msmodul{
                 $skiftout .= '<a href="' . MS_FMR_LINK . '&act=undoakt&aktid=' . $arAkt['id'] . '">' .
                     '<img style="float:right;margin-top:3px;margin-right:3px;" src="' . MS_IMG_PATH . 'trash.png"></a>';
                 $skiftout .= '<em>Klokken ' . date('H:i', strtotime($arAkt['tidspunkt'])) . ":</em><br />\n";
-                $skiftout .= $arAkt['teller'] . ": \n";
-                $skiftout .= (($arAkt['verdi'] < 0) ? $arAkt['verdi'] : '+' . $arAkt['verdi']) . "<br />\n";
+                $skiftout .= $arAkt['teller'] . ": \n<strong>";
+                $skiftout .= (($arAkt['verdi'] < 0) ? $arAkt['verdi'] : '+' . $arAkt['verdi']) . "</strong><br />\n";
                 $skiftout .= '</div>'; // tellerakt
             }
             $skiftout .= '</div>'; // sisteendringer
@@ -941,10 +941,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($objSkift->getNumActiveTellere() > 0) {
 			$skiftout .= '</table>' . "\n";
-			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
-			$skiftout .= '<input type="hidden" name="act" value="angre_teller" />' . "\n";
-			$skiftout .= '<input type="submit" name="angre" value="Angre siste endring" class="msbutton" />' . "\n";
-			$skiftout .= '</form></fieldset><br /><br />' . "\n";
+			$skiftout .= '</fieldset><br /><br />' . "\n";
 		}
 		
 		$skiftout .= '<div class="antalltall">';
@@ -1197,33 +1194,27 @@ class msmodul_feilmrapport implements msmodul{
 		}
 	}
 	
-	private function _undoSisteEndring() {
+	private function _undoAkt() {
 		global $msdb;
 		$skiftid = $this->getCurrentSkiftId();
-		$safeskiftid = $msdb->quote($skiftid);
-		$sql = "SELECT verdi, tellerid FROM feilrap_tellerakt WHERE skiftid=$safeskiftid ORDER BY telleraktid DESC LIMIT 1";
-		$data = $msdb->assoc($sql);
-		$verdi = (int) $data[0]['verdi'];
-		$tellerid = $data[0]['tellerid'];
-		
-		if ($verdi < 0) {
-			$verdi *= -1;
-			$decrease = false;
-		}
-		else {
-			$decrease = true;
-		}
-		
-		
-		try {
-			if (!isset($tellerid)) throw new Exception('Ingen endringer gjort.');
-			$objTeller = SkiftFactory::getTellerForSkift($tellerid, $skiftid);
-			$objTeller->modTeller($verdi, $decrease);
-		} 
-		catch (Exception $e){
-			msg('Klarte ikke å angre siste endring: ' . $e->getMessage(), -1);
-			return false;
-		}
+		$safetelleraktid = $msdb->quote($_REQUEST['aktid']);
+        
+        $sql = "SELECT skiftid FROM feilrap_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
+        $data = $msdb->num($sql);
+        if($data[0][0] === $skiftid) {
+            $sql = "DELETE FROM feilrap_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
+            $res = $msdb->exec($sql);
+            if($res) {
+                msg('Aktivitet slettet.', 1);
+                return;
+            } else {
+                msg('Klarte ikke å angre aktivitet.', -1);
+                return;
+            }
+        } else {
+            msg('Kan ikke angre aktivitet som ikke tilhører ditt aktive skift.');
+            return;
+        }
 		
 	}
 	
