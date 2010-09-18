@@ -44,7 +44,7 @@ class ActDispatcher {
         } catch (Exception $e) {
             return '<div class="mswarningbar"><strong>En feil har oppstått:</strong>' .
                     '<br /><br /><em>'. $e->getMessage() . '</em>' .
-                    '<br /><br />Feil oppstod under behandling av: ' . $inputact . '</div>';
+                    '<br /><br />Feil oppstod under behandling av: ' . $inputact . '</div><br />';
         }
 		
 	}

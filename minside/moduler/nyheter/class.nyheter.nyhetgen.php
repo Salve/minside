@@ -154,7 +154,7 @@ class NyhetGen {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
 			} else {
 				foreach ($colOmrader as $objOmrade) {
-					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . 
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '"' .
                     (($objOmrade->isDefault()) ? ' selected="selected"' : '') .
                     '">'. $objOmrade->getOmrade() . '</value>';
 				}
