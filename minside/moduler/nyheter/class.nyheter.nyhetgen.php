@@ -12,7 +12,7 @@ class NyhetGen {
 		return self::_genFullNyhet($nyhet);
 	}
 	
-	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array()) {
+	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array(), $returnto = NULL) {
         $acl = $nyhet->getAcl();
         $arOptions = array();
         
@@ -32,21 +32,21 @@ class NyhetGen {
         }
         
         $arOptions = array_merge($arOptions, $extraoptions);
-		return self::_genFullNyhet($nyhet, $arOptions);
+		return self::_genFullNyhet($nyhet, $arOptions, $returnto);
 	}
 	
-	public static function genFullNyhetDeleted(msnyhet &$nyhet) {
+	public static function genFullNyhetDeleted(msnyhet &$nyhet, $returnto = NULL) {
 		$arOptions = array(
 			'restore',
 			'permslett'
 		);
 		
-		return self::_genFullNyhet($nyhet, $arOptions);
+		return self::_genFullNyhet($nyhet, $arOptions, $returnto);
 	}
 	
-	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array()) {
+	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array(), $returnto = NULL) {
 		// Data
-        $type = $nyhet->getType();		
+        $type = $nyhet->getType();
 		$id = $nyhet->getId();
         $title = $nyhet->getTitle();
 		$body = $nyhet->getHtmlBody();
@@ -62,6 +62,7 @@ class NyhetGen {
 		}
         
         // HTML
+        $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="border-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
@@ -99,7 +100,7 @@ class NyhetGen {
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt['slett'] = '<a href="' . MS_NYHET_LINK . "&act=slett&nyhetid=$id\">" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\">" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
 		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
