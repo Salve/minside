@@ -235,7 +235,17 @@ class msmodul_nyheter implements msmodul {
         // Publish time
         $acl = $objNyhet->getAcl();
         if ($acl >= MSAUTH_3) {
-            $res = $objNyhet->setPublishTime($_POST['nyhetpubdato'] . ' ' . $_POST['nyhetpubdato_hour'] . ':' . $_POST['nyhetpubdato_minute']);
+            $indato = $_POST['nyhetpubdato'];
+            $inhour = $_POST['nyhetpubdato_hour'];
+            $inmin = $_POST['nyhetpubdato_minute'];
+            if (!$objNyhet->isSaved()) {
+                $timestamp = strtotime($indato . ' ' . $inhour . ':' . $inmin);
+                if ($timestamp < time()) {
+                    $inhour = date('H');
+                    $inmin = date('i');
+                }
+            }
+            $res = $objNyhet->setPublishTime($indato . ' ' . $inhour . ':' . $inmin);
             if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
         }
         
