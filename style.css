@@ -516,26 +516,29 @@ div.notater {
 
 div.minside div.nyhet {
 
-    overflow: hidden;
+   /* overflow: hidden;*/
     width: 80%;
-    margin-left: 20px;
+    margin-left: 3em;
     margin-bottom: 3em;
-    padding: 5px;
-    border: 2px #C9D4DF;
-    border-style: none none solid;
+    margin-right:3em;
+    padding-left: 1em;
+    padding-right: 1em;
+    border: 1px #C9D4DF;
+    border-style: none solid solid;
 }
 
 div.minside div.nyhettopbar {
-    background-color: #fff;
+    background-color: #dee7ef;
     height:100%;
+width:100%;
     clear:both;
-    border: 5px;
-    border-style: none none none solid;
 }
 
 
 div.minside div.nyhet.ks  > div.nyhettopbar{
-    border-color: red;
+/*    border-top:#C9D4DF 1px;
+    border-top-style: dotted;
+  */ 
 
 }
 
@@ -550,7 +553,7 @@ div.minside div.nyhettitle {
 div.minside div.nyhetinfo {
     float: left;
     font-size: 80%;
-    width:90.5%;
+    width:98%;
     color: #426973;
     clear: left;
     padding: 0 0 0.5em 0.5em;
@@ -645,8 +648,12 @@ div.minside div.nyhetsettext {
 
 div.minside div.omradeadmwrap {
     margin:2em;
+}
+div.minside table.omradeadmtbl {
+    background-color: #DEE7EC;
     border:1px #8cacdb;
     border-style: none none solid;
+
 }
 
 /* Sidebar */

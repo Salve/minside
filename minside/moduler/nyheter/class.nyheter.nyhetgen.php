@@ -271,7 +271,7 @@ class NyhetGen {
         
         $output .= '<div class="omradeadmwrap">
             <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
-            <table>
+            <table class="omradeadmtbl">
                 <tr>
                     <th>Område </th>
                     <th>Default </th>
