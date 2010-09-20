@@ -257,7 +257,7 @@ class tc_calendar{
 	
 	//write the select box of days
 	function writeDay(){
-		echo("<select name=\"".$this->objname."_day\" id=\"".$this->objname."_day\" onChange=\"javascript:tc_setDay('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcday\">");
+		echo("<select name=\"".$this->objname."_day\" id=\"".$this->objname."_day\" onChange=\"javascript:tc_setDay('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcday edit\">");
 		echo("<option value=\"00\">Dag</option>");
 		for($i=1; $i<=31; $i++){
 			$selected = ((int)$this->day == $i) ? " selected" : "";
@@ -268,7 +268,7 @@ class tc_calendar{
 	
 	//write the select box of months
 	function writeMonth(){
-		echo("<select name=\"".$this->objname."_month\" id=\"".$this->objname."_month\" onChange=\"javascript:tc_setMonth('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcmonth\">");
+		echo("<select name=\"".$this->objname."_month\" id=\"".$this->objname."_month\" onChange=\"javascript:tc_setMonth('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcmonth edit\">");
 		echo("<option value=\"00\">Måned</option>");
 		
 		$monthnames = $this->getMonthNames();		
@@ -282,7 +282,7 @@ class tc_calendar{
 	//write the year textbox
 	function writeYear(){
 		//echo("<input type=\"textbox\" name=\"".$this->objname."_year\" id=\"".$this->objname."_year\" value=\"$this->year\" maxlength=4 size=5 onBlur=\"javascript:tc_setYear('".$this->objname."', this.value, '$this->path');\" onKeyPress=\"javascript:if(yearEnter(event)){ tc_setYear('".$this->objname."', this.value, '$this->path'); return false; }\"> ");
-		echo("<select name=\"".$this->objname."_year\" id=\"".$this->objname."_year\" onChange=\"javascript:tc_setYear('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcyear\">");
+		echo("<select name=\"".$this->objname."_year\" id=\"".$this->objname."_year\" onChange=\"javascript:tc_setYear('".$this->objname."', this[this.selectedIndex].value, '$this->path');\" class=\"tcyear edit\">");
 		echo("<option value=\"0000\">År</option>");
 		
 		

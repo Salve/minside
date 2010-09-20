@@ -79,7 +79,7 @@ class NyhetGen {
 			: '';
         $sticky = ($nyhet->isSticky()) 
 			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
-				MS_IMG_PATH . 'pin_icon.png" />' 
+				MS_IMG_PATH . 'NeedleLeftYellow.png" />' 
 			: '' ;
         if (!$nyhet->getPublishTime()) {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
@@ -150,7 +150,7 @@ class NyhetGen {
 				<input class="edit" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
-			$html_omrade = 'Område: <select name="nyhetomrade">';
+			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" class="edit">';
 			if ($colOmrader->length() === 0) {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
 			} else {
@@ -160,22 +160,22 @@ class NyhetGen {
                     '">'. $objOmrade->getOmrade() . '</value>';
 				}
 			}
-			$html_omrade .= '</select>';
+			$html_omrade .= '</select></div>';
 			
 		}
 		
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
-		$html_sticky = 'Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
+		$html_sticky = '<div class="nyhetvelgsticky">Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
 			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
-			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky"'.$checked.' />';
+			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky"'.$checked.' /></div>';
 		
 		// Bilde
-		$html_bilde = 'Bilde: <input class="edit" type="text" name="nyhetbilde" id="nyhet__imgpath"' .
+		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'image.png" />';
+            'height="16" src="' . MS_IMG_PATH . 'image.png" /></div>';
 		
 		// Publiseringsdato
         // Vises kun dersom bruker har create rigths på nyhetområdet
@@ -201,64 +201,61 @@ class NyhetGen {
             
             ob_start(); // må ta vare på output...
             $objCalendar->writeScript();
-            $html_calendar = 'Publiseringsdato: ' . ob_get_clean();
+            $html_calendar = '<div class="nyhetpubdatovelger">Publiseringsdato: ' . ob_get_clean();
             
-            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour">';
-            $html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute">';
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit"></div>';
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
         }
-        
-        $output .= '<div class="editnyhet">';
-        $output .= '<p><strong>Rediger nyhet</strong></p>';
-		$output .= '<div class="toolbar">
-                <div id="draft__status"></div>
-                <div id="tool__bar"><a href="'.DOKU_BASE.'lib/exe/mediamanager.php?ns=msnyheter"
-                    target="_blank">Valg av mediafil</a></div>
-
-                <script type="text/javascript" charset="utf-8"><!--//--><![CDATA[//><!--
-                    textChanged = false;
-                    //--><!]]></script>
-             </div>';
-        $output .= '<form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">';
-        
-		$output .= '<input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />';
-        
-        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
-        
+        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));        
         $output .= '
-			
-            <div style="width:99%;">
-                         
-            
-            <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
-            <input type="hidden" name="rev" value="" />
-            <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" >'
-            . $rawwiki .
-            '</textarea>';
-			$output .= 'Overskrift: ';
-		$output .= '<input class="edit" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" /><br />';
-		$output .= $html_omrade . "<br />\n";
-		$output .= $html_bilde . "<br />\n";
-		$output .= $html_sticky . "<br />\n";
-		$output .= ($html_calendar) ? "$html_calendar<br />\n" : '';
-            $output .= '<div id="wiki__editbar" >
-            <div id="size__ctl" >
-            </div>
-            <div class="editButtons" >
-            <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="4" title="Lagre [S]" />
-            <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="5" title="Forhåndsvis [P]" />
-            <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="6" />
-            </div>
-            
-            </div>
-            </div>
-           
-            
+                    <div class="editnyhet">
+                        <p class="editnyhetoverskrift"><strong>Rediger nyhet</strong></p>
+                        <div class="toolbar">
+                            <div id="draft__status"></div>
+                            <div id="tool__bar">
+                                <a href="'.DOKU_BASE.'lib/exe/mediamanager.php?ns=msnyheter" target="_blank">
+                                    Valg av mediafil
+                                </a>
+                            </div>
+
+                            <script type="text/javascript" charset="utf-8">
+                                <!--//--><![CDATA[//><!-- textChanged = false; //--><!]]>
+                            </script>
+                        </div>
+                        <form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">
+                            <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
+                            <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
+                            <input type="hidden" name="rev" value="" />
+                            <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" style="width:99%">'
+                               . $rawwiki .'
+                            </textarea>
+                            <div class="nyhetattrib">
+                                <div class="msnyhetoverskrift">
+                                    <div clasS="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                </div>'
+                            .$html_omrade. '
+                            <div class="msclearer"></div>'
+                            .$html_bilde
+                            .$html_sticky. '
+                            <div class="msclearer"></div>'
+                            .(($html_calendar) ?: ''). '
+                            <div class="msclearer"></div>
+                        </div>
+                        <div id="wiki__editbar" >
+                            <div id="size__ctl" >
+                            </div>
+                            <div class="editButtons" >
+                                <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="4" title="Lagre [S]" />
+                                <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="5" title="Forhåndsvis [P]" />
+                                <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="6" />
+                            </div>
+                        </div>
+                    
             </form>
-        ';
-        $output .= '</div>'; // editnyhet
+        </div>'; // editnyhet
         
         if ($preview) $output .= self::genFullNyhetViewOnly($objNyhet);
 		
@@ -273,9 +270,9 @@ class NyhetGen {
     public static function genOmradeAdmin($colOmrader) {
         $output .= "<h2>Områdeadministrasjon</h2>\n";
         
-        $output .= '
+        $output .= '<div class="omradeadmwrap">
             <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
-            <table>
+            <table class="omradeadmtbl">
                 <tr>
                     <th>Område </th>
                     <th>Default </th>
@@ -291,13 +288,13 @@ class NyhetGen {
             $output .= "
                 <tr>
                     <td>$omrade</td>
-                    <td><input type=\"radio\" name=\"defaultomrade\" value=\"$omrade\"$checked /></td>
-                    <td><input type=\"text\" name=\"visnavn[$omrade]\" value=\"$visningsnavn\" /></td>
-                    <td><input type=\"text\" name=\"farge[$omrade]\" value=\"$farge\" /></td>
+                    <td><input type=\"radio\" class=\"edit\" name=\"defaultomrade\" value=\"$omrade\"$checked /></td>
+                    <td><input type=\"text\" class=\"edit\" name=\"visnavn[$omrade]\" value=\"$visningsnavn\" /></td>
+                    <td><input type=\"text\" class=\"edit\" name=\"farge[$omrade]\" value=\"$farge\" /></td>
                 </tr>
             ";
         }
-        $output .= '</table><input type="submit" value="Lagre" /></form>';
+        $output .= '</table></div><input type="submit" value="Lagre" class="button" /></form>';
         
         return $output;
     }
