@@ -10,7 +10,7 @@ require_once(DOKU_INC.'inc/search.php');
 
 class msmodul_nyheter implements msmodul {
 
-	public $dispatcher;
+	static $dispatcher;
 	
 	private $debug = true;
 	private $_msmodulact;
@@ -28,23 +28,23 @@ class msmodul_nyheter implements msmodul {
 		$this->_msmodulvars = $vars;
 
 		// Opprett ny dispatcher
-		$this->dispatcher = new ActDispatcher($this, $this->_adgangsNiva);
+		self::$dispatcher = new ActDispatcher($this, $this->_adgangsNiva);
 		// Funksjon som definerer handles for act-values
-		$this->_setHandlers($this->dispatcher);
+		$this->_setHandlers(self::$dispatcher);
 		
 		// Dispatch $act, dispatcher returnerer output
-		return $this->dispatcher->dispatch($act);
+		return self::$dispatcher->dispatch($act);
 
 	}
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
         $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
-		$dispatcher->addActHandler('slett', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
 		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
@@ -102,7 +102,7 @@ class msmodul_nyheter implements msmodul {
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
-            $nyhet = NyhetGen::genFullNyhet($objNyhet);
+            $nyhet = NyhetGen::genFullNyhet($objNyhet, array(), 'list');
             if ($objNyhet->isSticky()) {
                 $sticky .= $nyhet;
             } else {
@@ -123,12 +123,12 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'));
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), 'ulest');
         }
         
-        $merkallelest = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>';
-        
-		return $merkallelest . $output;
+        $output = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>' . $output;
+                
+		return $output;
 		
 	}
     
@@ -162,7 +162,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet);
+            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'upub');
         }
         
 		return $output;        
@@ -286,6 +286,12 @@ class msmodul_nyheter implements msmodul {
 		($objNyhet->slett())
 			? msg('Slettet nyhet: ' . $objNyhet->getTitle(), 1)
 			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
+            
+        if (isset($_REQUEST['returnto'])) {
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            throw new Exception('Sletting utført, men vet ikke hva som skal vises nå! (returnto ikke satt)');
+        }
 		
 	}
     
