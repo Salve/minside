@@ -451,7 +451,7 @@ div.minside span.skift.oldskift {
 div.minside span.skift.newskift {
     background-color: #FF3333;
 }
-
+/*MSWARNING  IMPORTANT DO NOT TOUCH SALVE SIN!!!*/
 div.minside div.mswarningbar {
 	background-color: #FFDDDD;
 	border: 1px solid #B20000;
@@ -587,6 +587,66 @@ div.minside div.nyhetimgleft {
 
 div.minside div.nyhetomrade {
     float:right;
+}
+
+/*Nyhet editor*/
+
+div.minside div.editnyhet {
+
+    margin:2em;
+}
+
+div.minside div.nyhetattrib {
+    background-color: #DEE7EC;
+    border:1px #8cacdb;
+    border-style: none none solid;
+}
+
+div.minside p.editnyhetoverskrift {
+    background-color:#DEE7EC;
+    color: #436976;
+}
+
+div.minside div.msnyhetoverskrift {
+    float: left;
+    width: 70%;
+}
+
+div.minside div.nyhetomradevelger {
+    float:right;
+}
+
+div.minside div.nyhetbildevelger {
+    float: left;
+}
+
+div.minside div.nyhetvelgsticky {
+    float: right;
+}
+
+div.minside div.nyhetpubdatovelger {
+    float: left;
+}
+
+div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift {
+    padding-top:0.25em;
+    padding-bottom:0.25em;
+    padding-left:0.5em;
+    padding-right:0.5em;
+}
+
+div.minside div.nyhetsettext {
+    width:5em;
+    padding-top:0.2em;
+    float:left;
+}
+
+/* Område ADM */
+
+div.minside div.omradeadmwrap {
+    margin:2em;
+    border:1px #8cacdb;
+    border-style: none none solid;
 }
 
 /* Sidebar */
