@@ -63,7 +63,7 @@ class NyhetGen {
         
         // HTML
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
-        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="border-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -84,7 +84,7 @@ class NyhetGen {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
             $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden)</div>';
+				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {
             $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         }
@@ -126,7 +126,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\"$omrade_farge>
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade_html$create$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade_html$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -154,7 +154,7 @@ class NyhetGen {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
 			} else {
 				foreach ($colOmrader as $objOmrade) {
-					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . 
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '"' .
                     (($objOmrade->isDefault()) ? ' selected="selected"' : '') .
                     '">'. $objOmrade->getOmrade() . '</value>';
 				}
