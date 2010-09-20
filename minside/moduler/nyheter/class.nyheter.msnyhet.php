@@ -3,10 +3,9 @@ if(!defined('MS_INC')) die();
 
 class MsNyhet {
 	
-	const VIKTIGHET_1 = '7 dager';
-	const VIKTIGHET_2 = '5 dager';
-	const VIKTIGHET_3 = '3 dager';
-
+	const PATH_MAX_LEN = 50; // Maks lengde på nyhetsoverskift del av wikipath etter cleanID er kjørt
+    const TITLE_MAX_LEN = 255;
+    
     public $under_construction = false;
 	
 	protected $_id;	
@@ -244,10 +243,13 @@ class MsNyhet {
 		return $this->_wikipath;
 	}
 	public function setWikiPath($input) {
+        if (empty($input)) return false;
         if ($input == 'auto') {
+            $input = str_replace(array(':', ';', '/', '\\'), '_' , $input);
             $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $this->getTitle();
             $input = cleanID($input, true);
         }
+        if (strlen($input) > self::PATH_MAX_LEN) $title = substr($input, 0, self::PATH_MAX_LEN);
         return $this->set_var($this->_wikipath, $input);
 	}
 	
@@ -255,6 +257,7 @@ class MsNyhet {
 		return $this->_title;
 	}	
 	public function setTitle($input) {
+        if (strlen($input) > self::TITLE_MAX_LEN) $title = substr($input, 0, self::TITLE_MAX_LEN);
         return $this->set_var($this->_title, $input);
 	}
 	

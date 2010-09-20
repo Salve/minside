@@ -223,7 +223,7 @@ class msmodul_nyheter implements msmodul {
             $objNyhet = new MsNyhet();
         }
         
-        $objNyhet->setTitle($_POST['nyhettitle']);
+        $objNyhet->setTitle(htmlspecialchars($_POST['nyhettitle']));
         if (!$objNyhet->isSaved()) {
 			$objNyhet->setOmrade($_POST['nyhetomrade']);
             $objNyhet->setWikiPath('auto');
