@@ -145,8 +145,8 @@ class NyhetGen {
     public static function genEdit(msnyhet &$objNyhet, $preview=false) {
 		// Område
 		if ($objNyhet->isSaved()) {
-			$html_omrade = 'Område:
-				<input class="edit" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled />';
+			$html_omrade = '<div class="nyhetomradevelger">Område:
+				<input class="edit" style="width:58px;" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled /></div>';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
 			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" class="edit">';
@@ -233,7 +233,7 @@ class NyhetGen {
                             </textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div clasS="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
                                 </div>'
                             .$html_omrade. '
                             <div class="msclearer"></div>'

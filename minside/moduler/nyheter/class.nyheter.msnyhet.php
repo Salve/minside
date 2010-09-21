@@ -235,7 +235,7 @@ class MsNyhet {
 		$width = (int) $width;
 		if ($width < 10 || $width > 2000) throw new Exception('Thumbnailbredde out of bounds. Sjekk config.');
 		
-		$tagformat = '<img src="%1$slib/exe/fetch.php?w=%2$u&amp;media=%3$s" class="media" alt="" width="%2$u" />';
+		$tagformat = '<img src="%1$slib/exe/fetch.php?w=%2$u&amp;media=%3$s" class="nyhetimg" alt="" width="%2$u" />';
 		return sprintf($tagformat, DOKU_BASE, $width, $this->getImagePath());
 		
 	}
