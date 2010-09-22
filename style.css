@@ -530,16 +530,21 @@ div.minside div.nyhet {
 div.minside div.nyhettopbar {
     background-color: #dee7ef;
     height:100%;
-width:100%;
+    width:100%;
     clear:both;
+	-moz-border-radius-topleft: 30px 30px;
+	-moz-border-radius-topright: 30px 30px;
+}
+
+div.minside div.nyhetcontent {
+    margin-top:1em;
 }
 
 
 div.minside div.nyhet.ks  > div.nyhettopbar{
 /*    border-top:#C9D4DF 1px;
     border-top-style: dotted;
-  */ 
-
+  */
 }
 
 div.minside div.nyhettitle {
@@ -569,12 +574,12 @@ div.minside div.nyhetinfo div.nyhetdel a{
 
 div.minside div.nyhetoptions {
     float: right;
-    margin-top: 0.25em;
-    margin-right: 0.25em;
+    margin-top: 1em;
+    margin-right: 0.5em;
 }
 
 div.minside div.nyhetbody {
-    padding-top: 0.5em;
+
 }
 
 div.dokuwiki div.nyhetbody div.tags {
@@ -586,16 +591,21 @@ div.dokuwiki div.nyhetbody div.tags {
 
 div.minside div.nyhetimgleft {
 	float: left;
+    border-style:none;
 }
 
 div.minside div.nyhetomrade {
     float:right;
 }
 
+div.nyhetimgleft img.nyhetimg {
+    border:0;
+    margin-right:1em;
+}
+
 /*Nyhet editor*/
 
 div.minside div.editnyhet {
-
     margin:2em;
 }
 
@@ -643,6 +653,8 @@ div.minside div.nyhetsettext {
     padding-top:0.2em;
     float:left;
 }
+
+
 
 /* Område ADM */
 
