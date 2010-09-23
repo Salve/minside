@@ -41,6 +41,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
         $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
@@ -71,6 +72,7 @@ class msmodul_nyheter implements msmodul {
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
 				$toppmeny->addChild(new Menyitem('Uleste nyheter','&page=nyheter&act=ulest'));
+				$toppmeny->addChild(new Menyitem('Arkiverte nyheter','&page=nyheter&act=arkiv'));
 				if ($lvl >= MSAUTH_2) {
 					$toppmeny->addChild(new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub'));
 				}
@@ -131,6 +133,22 @@ class msmodul_nyheter implements msmodul {
 		return $output;
 		
 	}
+    
+    public function gen_nyhet_arkiv() {
+    
+        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter($this->_userID);
+        
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv');
+        }
+                
+		return '<strong>DETTE ER EN MIDLERTIDIG LISTE OVER ALLE NYHETER!<br />Arkiv kommer...</strong><br /><br />' . $output;
+        
+    }
     
     public function gen_ext_view() {
         $inputpath = $this->_msmodulvars;

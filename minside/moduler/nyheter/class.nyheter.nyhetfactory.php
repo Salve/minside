@@ -51,6 +51,24 @@ class NyhetFactory {
         
     }
     
+    public static function getAllePubliserteNyheter() {
+        global $msdb;
+		
+		$omrader = self::getSafeOmrader(MSAUTH_1);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE pubtime < NOW()
+				AND nyheter_nyhet.omrade IN ($omrader)
+				AND deletetime IS NULL
+			ORDER BY nyhetid DESC
+            LIMIT 10000;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+    
     public static function getNyligePubliserteNyheter() {
         global $msdb;
 		
