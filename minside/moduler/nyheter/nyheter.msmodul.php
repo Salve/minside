@@ -207,11 +207,26 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function save_nyhet_changes() {
-        if($_REQUEST['editabort']) {
+        $act_abort = !empty($_REQUEST['editabort']);
+        $act_preview = !empty($_REQUEST['editpreview']);
+        $nyhetid = $_REQUEST['nyhetid'];
+        
+        if($act_abort) {
             msg('Endringer ikke lagret.');
             return $this->gen_nyheter_full();
         };
-        $nyhetid = $_REQUEST['nyhetid'];
+        
+        // Validation
+        if (strlen(trim($_POST['nyhettitle'])) == 0) {
+            msg('Nyhet ikke lagret: Overskrift kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+
+        if (strlen(trim($_POST['wikitext'])) == 0) {
+            msg('Nyhet ikke lagret: Nyhet-tekst kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+        
         if ($nyhetid) {
             try{
                 $objNyhet = NyhetFactory::getNyhetById($nyhetid);
@@ -249,9 +264,9 @@ class msmodul_nyheter implements msmodul {
             if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
         }
         
-        $objNyhet->setWikiTekst($_POST['wikitext']);
+        $objNyhet->setWikiTekst($_POST['wikitext'], $act_preview);
         
-        if (!$_REQUEST['editpreview']) {
+        if (!$act_preview) {
             // Ikke preview eller abort - lagre
             if ($objNyhet->hasUnsavedChanges()) {
                 try{
