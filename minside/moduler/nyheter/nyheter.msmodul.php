@@ -39,7 +39,7 @@ class msmodul_nyheter implements msmodul {
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
-		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
@@ -70,7 +70,7 @@ class msmodul_nyheter implements msmodul {
 		if ($lvl > MSAUTH_NONE) { 
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
-				$toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
+				$toppmeny->addChild(new Menyitem('Uleste nyheter','&page=nyheter&act=ulest'));
 				if ($lvl >= MSAUTH_2) {
 					$toppmeny->addChild(new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub'));
 				}
