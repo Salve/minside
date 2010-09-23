@@ -78,7 +78,7 @@ class NyhetGen {
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
 			: '';
         $sticky = ($nyhet->isSticky()) 
-			? '<img alt="sticky" title="Sticky nyhet" width="19" height="24" src="' .
+			? '<img alt="sticky" title="Sticky nyhet" class="sticky" src="' .
 				MS_IMG_PATH . 'NeedleLeftYellow.png" />' 
 			: '' ;
         if (!$nyhet->getPublishTime()) {
@@ -155,7 +155,7 @@ class NyhetGen {
 				<input class="edit" style="width:58px;" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled /></div>';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
-			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" class="edit">';
+			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" tabindex="4" class="edit">';
 			if ($colOmrader->length() === 0) {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
 			} else {
@@ -173,10 +173,10 @@ class NyhetGen {
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
 		$html_sticky = '<div class="nyhetvelgsticky">Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
 			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
-			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky"'.$checked.' /></div>';
+			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
 		
 		// Bilde
-		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" name="nyhetbilde" id="nyhet__imgpath"' .
+		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" tabindex="3" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
@@ -247,7 +247,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
