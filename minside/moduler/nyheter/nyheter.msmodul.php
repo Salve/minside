@@ -95,7 +95,7 @@ class msmodul_nyheter implements msmodul {
 
 	public function gen_nyheter_full() {
 		
-        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter();
+        $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
 		
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter();

@@ -51,7 +51,7 @@ class NyhetFactory {
         
     }
     
-    public static function getAllePubliserteNyheter() {
+    public static function getNyligePubliserteNyheter() {
         global $msdb;
 		
 		$omrader = self::getSafeOmrader(MSAUTH_1);
