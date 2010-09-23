@@ -64,7 +64,7 @@ class NyhetGen {
         // HTML
         $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
-        $omrade_farge = ($omradeinfo['farge']) ? ' style="border-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -84,10 +84,15 @@ class NyhetGen {
         if (!$nyhet->getPublishTime()) {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
-            $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
+            if ($pubdager == 0) {
+                $tid_siden = $pubtimer . (($pubtimer === 1) ? ' time' : ' timer');
+            } else {
+                $tid_siden = $pubdager . (($pubdager === 1) ? ' dag' : ' dager');
+            }
+            $publish = '<div class="nyhetpub">Publisert '. self::dispTime($nyhet->getPublishTime()) .
+				' (' . $tid_siden . ' siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {
-            $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
+            $publish = '<div class="nyhetpub">Publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         }
 		
         // Options/icon
