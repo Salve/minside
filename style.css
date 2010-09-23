@@ -532,8 +532,6 @@ div.minside div.nyhettopbar {
     height:100%;
     width:100%;
     clear:both;
-	-moz-border-radius-topleft: 30px 30px;
-	-moz-border-radius-topright: 30px 30px;
 }
 
 div.minside div.nyhetcontent {
