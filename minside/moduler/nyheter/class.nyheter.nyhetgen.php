@@ -64,7 +64,7 @@ class NyhetGen {
         // HTML
         $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
-        $omrade_farge = ($omradeinfo['farge']) ? ' style="border-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -84,10 +84,15 @@ class NyhetGen {
         if (!$nyhet->getPublishTime()) {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
-            $publish = '<div class="nyhetpub">Nyhet publisert '. self::dispTime($nyhet->getPublishTime()) .
-				' (' . $pubdager . ' dager, ' . $pubtimer . ' timer siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
+            if ($pubdager == 0) {
+                $tid_siden = $pubtimer . (($pubtimer === 1) ? ' time' : ' timer');
+            } else {
+                $tid_siden = $pubdager . (($pubdager === 1) ? ' dag' : ' dager');
+            }
+            $publish = '<div class="nyhetpub">Publisert '. self::dispTime($nyhet->getPublishTime()) .
+				' (' . $tid_siden . ' siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {
-            $publish = '<div class="nyhetpub">Nyhet publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
+            $publish = '<div class="nyhetpub">Publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         }
 		
         // Options/icon
@@ -209,7 +214,15 @@ class NyhetGen {
             // Bruker har ikke create rights på området
             $html_calendar = '';
         }
-        $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));        
+        
+        // Wikitekst
+        $rawwiki = $objNyhet->getWikiTekst();
+        if (empty($rawwiki)) {
+            $rawwiki = formText(rawWiki($objNyhet->getWikiPath()));
+        }
+        
+        
+        // "Template"
         $output .= '
                     <div class="editnyhet">
                         <p class="editnyhetoverskrift"><strong>Rediger nyhet</strong></p>
@@ -224,38 +237,36 @@ class NyhetGen {
                             <script type="text/javascript" charset="utf-8">
                                 <!--//--><![CDATA[//><!-- textChanged = false; //--><!]]>
                             </script>
-                        </div>
+                        </div> <!-- toolbar -->
                         <form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">
                             <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
                             <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
                             <input type="hidden" name="rev" value="" />
                             <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" style="width:99%">'
-                               . $rawwiki .'
-                            </textarea>
+                               . $rawwiki .
+                            '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
                                     <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
                                 </div>'
-                            .$html_omrade. '
-                            <div class="msclearer"></div>'
-                            .$html_bilde
-                            .$html_sticky. '
-                            <div class="msclearer"></div>'
-                            .(($html_calendar) ?: ''). '
-                            <div class="msclearer"></div>
-                        </div>
-                        <div id="wiki__editbar" >
-                            <div id="size__ctl" >
+                                .$html_omrade. '
+                                <div class="msclearer"></div>'
+                                .$html_bilde
+                                .$html_sticky. '
+                                <div class="msclearer"></div>'
+                                .(($html_calendar) ?: ''). '
+                                <div class="msclearer"></div>
                             </div>
-                            <div class="editButtons" >
-                                <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="4" title="Lagre [S]" />
-                                <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="5" title="Forhåndsvis [P]" />
-                                <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="6" />
+                            <div id="wiki__editbar" >
+                                <div id="size__ctl" ></div>
+                                <div class="editButtons" >
+                                    <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="4" title="Lagre [S]" />
+                                    <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="5" title="Forhåndsvis [P]" />
+                                    <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="6" />
+                                </div>
                             </div>
-                        </div>
-                    
-            </form>
-        </div>'; // editnyhet
+                        </form>
+                    </div>'; // editnyhet
         
         if ($preview) $output .= self::genFullNyhetViewOnly($objNyhet);
 		

@@ -39,8 +39,9 @@ class msmodul_nyheter implements msmodul {
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
-		$dispatcher->addActHandler('show', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
 		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
 		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
         $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
@@ -70,7 +71,8 @@ class msmodul_nyheter implements msmodul {
 		if ($lvl > MSAUTH_NONE) { 
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
-				$toppmeny->addChild(new Menyitem('Vis alle','&page=nyheter&act=list'));
+				$toppmeny->addChild(new Menyitem('Uleste nyheter','&page=nyheter&act=ulest'));
+				$toppmeny->addChild(new Menyitem('Arkiverte nyheter','&page=nyheter&act=arkiv'));
 				if ($lvl >= MSAUTH_2) {
 					$toppmeny->addChild(new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub'));
 				}
@@ -95,7 +97,7 @@ class msmodul_nyheter implements msmodul {
 
 	public function gen_nyheter_full() {
 		
-        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter();
+        $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
 		
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter();
@@ -131,6 +133,22 @@ class msmodul_nyheter implements msmodul {
 		return $output;
 		
 	}
+    
+    public function gen_nyhet_arkiv() {
+    
+        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter($this->_userID);
+        
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter();
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv');
+        }
+                
+		return '<strong>DETTE ER EN MIDLERTIDIG LISTE OVER ALLE NYHETER!<br />Arkiv kommer...</strong><br /><br />' . $output;
+        
+    }
     
     public function gen_ext_view() {
         $inputpath = $this->_msmodulvars;
@@ -207,11 +225,26 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function save_nyhet_changes() {
-        if($_REQUEST['editabort']) {
+        $act_abort = !empty($_REQUEST['editabort']);
+        $act_preview = !empty($_REQUEST['editpreview']);
+        $nyhetid = $_REQUEST['nyhetid'];
+        
+        if($act_abort) {
             msg('Endringer ikke lagret.');
             return $this->gen_nyheter_full();
         };
-        $nyhetid = $_REQUEST['nyhetid'];
+        
+        // Validation
+        if (strlen(trim($_POST['nyhettitle'])) == 0) {
+            msg('Nyhet ikke lagret: Overskrift kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+
+        if (strlen(trim($_POST['wikitext'])) == 0) {
+            msg('Nyhet ikke lagret: Nyhet-tekst kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+        
         if ($nyhetid) {
             try{
                 $objNyhet = NyhetFactory::getNyhetById($nyhetid);
@@ -249,9 +282,9 @@ class msmodul_nyheter implements msmodul {
             if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
         }
         
-        $objNyhet->setWikiTekst($_POST['wikitext']);
+        $objNyhet->setWikiTekst($_POST['wikitext'], $act_preview);
         
-        if (!$_REQUEST['editpreview']) {
+        if (!$act_preview) {
             // Ikke preview eller abort - lagre
             if ($objNyhet->hasUnsavedChanges()) {
                 try{

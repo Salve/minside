@@ -264,14 +264,22 @@ div.minside table {
 
 div.minside div.sisteendringer {
     position: relative;
+    width: 100%;
     left: 25px;
 }
 
 div.minside div.tellerakt {
     border: 1px solid #8cacbb;
     margin: 3px 3px 10px 3px;
-    width: 14em;
+    width: 30%;
+    overflow: hidden;
     float: left;
+}
+
+div.minside div.tellerakttekst {
+    float: left;
+    width: 90%;
+    overflow: hidden;
 }
 
 div.minside .feilmtable {
@@ -532,7 +540,6 @@ div.minside div.nyhettopbar {
     height:100%;
     width:100%;
     clear:both;
-
 }
 
 div.minside div.nyhetcontent {

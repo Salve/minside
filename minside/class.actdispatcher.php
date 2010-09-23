@@ -32,15 +32,18 @@ class ActDispatcher {
 	}
 	
 	function dispatch($inputact){
-		if (!$this->actcol->exists($inputact)) {
-			throw new UnexpectedValueException("Ukjent handling: $inputact");
-		}
-		$objAct = $this->actcol->getItem($inputact);
-        
+		
         try {
+            if (!$this->actcol->exists($inputact)) {
+                throw new UnexpectedValueException("Ukjent handling: $inputact");
+            }
+            
+            $objAct = $this->actcol->getItem($inputact);
             return $objAct->dispatch($this->caller, $this->adgang);
         } catch (AdgangsException $e) {
             return '<div class="mswarningbar"><strong>Ingen adgang</strong><br /><br />'. $e->getMessage() .'</div>';
+        }catch (UnexpectedValueException $e) {
+            return '<div class="mswarningbar"><strong>Dispatcher feilet</strong><br /><br />'. $e->getMessage() .'</div>';
         } catch (Exception $e) {
             return '<div class="mswarningbar"><strong>En feil har oppstått:</strong>' .
                     '<br /><br /><em>'. $e->getMessage() . '</em>' .

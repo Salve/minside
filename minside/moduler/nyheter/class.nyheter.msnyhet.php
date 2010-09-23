@@ -275,15 +275,15 @@ class MsNyhet {
 	public function getWikiTekst() {
 		return $this->_wikitekst;
 	}
-	public function setWikiTekst($input) {
+	public function setWikiTekst($input, $nowrite = false) {
         $input = cleanText($input);
         $newhash = md5($input);
         $oldhash = $this->getWikiHash();
         if ($newhash != $oldhash) {
             msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
-            $this->set_var($this->_wikitekst, $input);
+            $this->_wikitekst = $input;
             $this->setWikiHash($newhash);
-            $this->write_wikitext();
+            if (!$nowrite) { $this->write_wikitext(); }
             $this->update_html();
         } else {
             msg('setWikiTekst called, no changes');
@@ -453,11 +453,16 @@ class MsNyhet {
         $keep = $conf['allowdebug'];
         $conf['allowdebug'] = 0;
         
-        $newtekst = p_wiki_xhtml($this->getWikiPath(), '', false);
+        $wikitekst = $this->getWikiTekst();
+        if (!isset($wikitekst)) {
+            $html = p_wiki_xhtml($this->getWikiPath(), '', false);
+        } else {
+            $html = DokuWiki_Plugin::render($wikitekst);
+        }
         
         $conf['allowdebug'] = $keep;
 
-        $this->setHtmlBody($newtekst);
+        $this->setHtmlBody($html);
     }
     
     public function update_db() {
