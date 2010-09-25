@@ -2,9 +2,13 @@
 if(!defined('MS_INC')) die();
 define('MS_SERVICE_LINK', MS_LINK . "&page=service");
 require_once('class.service.oppdragcollection.php');
+require_once('class.service.elementcollection.php');
+require_once('class.service.oppdragelement.php');
+require_once('class.service.fritekstelement.php');
 require_once('class.service.serviceoppdrag.php');
 require_once('class.service.bboppdrag.php');
 require_once('class.service.servicefactory.php');
+require_once('class.service.oppdragelementfactory.php');
 require_once('class.service.servicegen.php');
 
 class msmodul_service implements msmodul {
@@ -36,7 +40,9 @@ class msmodul_service implements msmodul {
 	}
 	
 	private function _setHandlers(&$dispatcher) {
-		$dispatcher->addActHandler('show', 'gen_oppdrag_create', MSAUTH_1);
+		$dispatcher->addActHandler('show', 'gen_create_bb', MSAUTH_1);
+		$dispatcher->addActHandler('nybb', 'gen_create_bb', MSAUTH_1);
+		$dispatcher->addActHandler('nyalarm', 'gen_create_alarm', MSAUTH_1);
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
@@ -45,6 +51,8 @@ class msmodul_service implements msmodul {
 		if ($lvl > MSAUTH_NONE) { 
 			$toppmeny = new Menyitem('Serviceoppdrag','&page=service');
 			if (isset($this->_msmodulact)) { // Modul er lastet/vises
+				$toppmeny->addChild(new Menyitem('Nytt BB-oppdrag','&page=service&act=nybb'));
+				$toppmeny->addChild(new Menyitem('Nytt alarm-oppdrag','&page=service&act=nyalarm'));
 				$toppmeny->addChild(new Menyitem('Mine oppdrag','&page=service&act=arkiv'));
 				if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild(new Menyitem('Oppdragstyper','&page=service&act=admoppdrag'));
@@ -58,10 +66,16 @@ class msmodul_service implements msmodul {
  *           HANDLERS           *
 \********************************/
 
-	public function gen_oppdrag_create() {
+	public function gen_create_bb() {
+		$objOppdrag = ServiceFactory::getNewBBOppdrag();
+        return $objOppdrag->genXhtml();
+		
+	}
+    
+    public function gen_create_alarm() {
 		
         return ServiceGen::genIngenOppdrag('<br /> TEST OUTPUT');
 		
 	}
-
+    
 }

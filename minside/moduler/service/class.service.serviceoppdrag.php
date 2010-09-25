@@ -3,11 +3,6 @@ if(!defined('MS_INC')) die();
 
 abstract class ServiceOppdrag {
     
-    public $under_construction = false;
-    
-    protected $_isSaved;
-    protected $_id;
-    
     public $elements;
     
     public function __construct() {

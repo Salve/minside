@@ -2,17 +2,15 @@
 if(!defined('MS_INC')) die();
 
 class BBOppdrag extends ServiceOppdrag {
-        
-    public function __construct() {
-        parent::__construct();
+    
+    public function __construct(ElementCollection $col) {
+        $this->elements = $col;
     }
     
-    public function setSaved($id) {
-        $this->_id = $id;
-        $this->_isSaved = true;
+    public function genXhtml() {
+        foreach($this->elements as $objElement) {
+            $output .= $objElement->genInput();
+        }
+        return $output;
     }
-    public function isSaved() {
-        return (bool) $this->_isSaved;
-    }
-    
 }
