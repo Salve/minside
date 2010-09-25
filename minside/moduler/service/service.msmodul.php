@@ -3,6 +3,7 @@ if(!defined('MS_INC')) die();
 define('MS_SERVICE_LINK', MS_LINK . "&page=service");
 require_once('class.service.oppdragcollection.php');
 require_once('class.service.serviceoppdrag.php');
+require_once('class.service.bboppdrag.php');
 require_once('class.service.servicefactory.php');
 require_once('class.service.servicegen.php');
 
@@ -36,7 +37,6 @@ class msmodul_service implements msmodul {
 	
 	private function _setHandlers(&$dispatcher) {
 		$dispatcher->addActHandler('show', 'gen_oppdrag_create', MSAUTH_1);
-		
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
@@ -51,8 +51,7 @@ class msmodul_service implements msmodul {
 				}
 			}
 			$meny->addItem($toppmeny);
-		}
-			
+		}	
 	}
 	
 /********************************\
