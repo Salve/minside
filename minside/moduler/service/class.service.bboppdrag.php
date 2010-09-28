@@ -8,6 +8,12 @@ class BBOppdrag extends ServiceOppdrag {
     }
     
     public function genXhtml() {
+        $output .= '
+            <form action="'.MS_SERVICE_LINK.'&act=subbb" method="POST">
+                
+            
+        
+            ';
         foreach($this->elements as $objElement) {
             $output .= $objElement->genInput();
         }

@@ -17,4 +17,6 @@ abstract class ServiceOppdrag {
         return (bool) $this->_isSaved;
     }
     
+    abstract function genXhtml() {}
+    
 }
