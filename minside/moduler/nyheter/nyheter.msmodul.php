@@ -256,7 +256,7 @@ class msmodul_nyheter implements msmodul {
             $objNyhet = new MsNyhet();
         }
         
-        $objNyhet->setTitle(htmlspecialchars($_POST['nyhettitle']));
+        $objNyhet->setTitle($_POST['nyhettitle']);
         if (!$objNyhet->isSaved()) {
 			$objNyhet->setOmrade($_POST['nyhetomrade']);
             $objNyhet->setWikiPath('auto');
@@ -317,7 +317,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
 		($objNyhet->slett())
-			? msg('Slettet nyhet: ' . $objNyhet->getTitle(), 1)
+			? msg('Slettet nyhet: ' . $objNyhet->getTitle(true), 1)
 			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
             
         if (isset($_REQUEST['returnto'])) {
@@ -338,7 +338,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
 		($objNyhet->restore())
-			? msg('Gjenopprettet nyhet: ' . $objNyhet->getTitle(), 1)
+			? msg('Gjenopprettet nyhet: ' . $objNyhet->getTitle(true), 1)
 			: msg('Klarte ikke å gjenopprette nyhet med id: ' . $objNyhet->getId(), -1);
 		
 	}
@@ -353,7 +353,7 @@ class msmodul_nyheter implements msmodul {
 		}
 		
 		($objNyhet->permslett())
-			? msg('Slettet nyhet: "' . $objNyhet->getTitle() . '" permanent.', 1)
+			? msg('Slettet nyhet: "' . $objNyhet->getTitle(true) . '" permanent.', 1)
 			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
 		
 	}

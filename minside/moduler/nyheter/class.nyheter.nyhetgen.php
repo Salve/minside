@@ -48,7 +48,7 @@ class NyhetGen {
 		// Data
         $type = $nyhet->getType();
 		$id = $nyhet->getId();
-        $title = $nyhet->getTitle();
+        $title = $nyhet->getTitle(true);
 		$body = $nyhet->getHtmlBody();
         $omrade = $nyhet->getOmrade();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
@@ -247,7 +247,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" name="nyhettitle" value="' . $objNyhet->getTitle(true) . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
