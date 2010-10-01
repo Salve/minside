@@ -4,6 +4,8 @@ define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
 require_once('class.nyheter.nyhetcollection.php');
 require_once('class.nyheter.msnyhet.php');
 require_once('class.nyheter.omrade.php');
+require_once('class.nyheter.nyhettag.php');
+require_once('class.nyheter.nyhettagcollection.php');
 require_once('class.nyheter.nyhetfactory.php');
 require_once('class.nyheter.nyhetgen.php');
 require_once(DOKU_INC.'inc/search.php');
