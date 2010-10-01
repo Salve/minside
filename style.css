@@ -462,9 +462,10 @@ div.minside span.skift.newskift {
 /*MSWARNING  IMPORTANT DO NOT TOUCH SALVE SIN!!!*/
 div.minside div.mswarningbar {
 	background-color: #FFDDDD;
-	border: 1px solid #B20000;
+	border: 1px dashed #B20000;
 	border-collapse:collapse;
 	clear:both;
+    margin:auto;
 	margin-bottom:2em;
 	min-height:20px;
 	padding:15px 20px 15px 20px;
@@ -546,6 +547,11 @@ div.minside div.nyhetcontent {
     margin-top:1em;
 }
 
+div.minside img.sticky {
+    height:1em;
+    width:1em;
+}
+
 
 div.minside div.nyhet.ks  > div.nyhettopbar{
 /*    border-top:#C9D4DF 1px;
@@ -555,7 +561,8 @@ div.minside div.nyhet.ks  > div.nyhettopbar{
 
 div.minside div.nyhettitle {
     float: left;
-    font-size: 140%;
+    height:1.5em;
+    font-size: 1.5em;
     color: #426973;
     font-weight: bold;
     padding: 0.5em 0 0.5em 0.5em;
