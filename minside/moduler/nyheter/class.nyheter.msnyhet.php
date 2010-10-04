@@ -245,16 +245,16 @@ class MsNyhet {
 	public function setWikiPath($input) {
         if (empty($input)) return false;
         if ($input == 'auto') {
-            $input = str_replace(array(':', ';', '/', '\\'), '_' , $input);
-            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $this->getTitle();
+            $title = str_replace(array(':', ';', '/', '\\'), '_' , $this->getTitle());
+            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $title;
             $input = cleanID($input, true);
         }
         if (strlen($input) > self::PATH_MAX_LEN) $title = substr($input, 0, self::PATH_MAX_LEN);
         return $this->set_var($this->_wikipath, $input);
 	}
 	
-	public function getTitle() {
-		return $this->_title;
+	public function getTitle($safe = false) {
+		return ($safe) ? htmlspecialchars($this->_title) : $this->_title;
 	}	
 	public function setTitle($input) {
         if (strlen($input) > self::TITLE_MAX_LEN) $title = substr($input, 0, self::TITLE_MAX_LEN);

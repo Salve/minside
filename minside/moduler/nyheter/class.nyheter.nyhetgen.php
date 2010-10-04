@@ -48,7 +48,7 @@ class NyhetGen {
 		// Data
         $type = $nyhet->getType();
 		$id = $nyhet->getId();
-        $title = $nyhet->getTitle();
+        $title = $nyhet->getTitle(true);
 		$body = $nyhet->getHtmlBody();
         $omrade = $nyhet->getOmrade();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
