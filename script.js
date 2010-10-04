@@ -16,6 +16,11 @@ function openNyhetImgForm(nyhetid) {
 	return false;
 }
 
+//clearer txtfelt som blir gitt til funksjonen
+function cleartxt(txtid) {
+    document.getElementById(txtid).value = "";
+}
+
 function submitFormImgSub() {
 	var img_input = $('wiki__text').value;
 	var re = new RegExp('\{\{\:([a-z.:_0-9]*)\|\}\}');

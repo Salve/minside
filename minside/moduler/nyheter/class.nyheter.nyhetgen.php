@@ -180,7 +180,8 @@ class NyhetGen {
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'image.png" /></div>';
+            'height="16" src="' . MS_IMG_PATH . 'image.png" /><img alt="Slett felt" title="Slett felt" class="" src="' .
+				MS_IMG_PATH . 'trash.png" onClick="cleartxt(\'nyhet__imgpath\');" /></div>';
 		
 		// Publiseringsdato
         // Vises kun dersom bruker har create rigths på nyhetområdet
