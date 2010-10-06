@@ -61,7 +61,7 @@ class NyhetFactory {
 			" WHERE pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY nyhetid DESC
+			ORDER BY pubtime DESC
             LIMIT 10000;";
         $res = $msdb->assoc($sql);
         
@@ -80,7 +80,7 @@ class NyhetFactory {
                 AND pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY nyhetid DESC
+			ORDER BY pubtime DESC
             LIMIT 100;";
         $res = $msdb->assoc($sql);
         
@@ -99,7 +99,7 @@ class NyhetFactory {
 			" WHERE (pubtime > NOW() OR pubtime IS NULL)
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY nyhetid DESC
+			ORDER BY pubtime DESC
             LIMIT 500;";
         $res = $msdb->assoc($sql);
         
