@@ -40,6 +40,21 @@ function submitFormImgSub() {
 
 
 // Calendar
+
+function setTodaysdate() {
+    var todaysdate = new Date();
+    var todaysmin = todaysdate.getMinutes();
+    if (todaysmin < 10) todaysmin="0"+todaysmin;
+    var todayshours = todaysdate.getHours();
+    if (todayshours < 10) todayshours="0"+todayshours;
+    var todaysyear = todaysdate.getFullYear();
+    document.getElementById("nyhetpubdato_day").selectedIndex = todaysdate.getDate();
+    document.getElementById("nyhetpubdato_month").selectedIndex = todaysdate.getMonth()+1;
+    document.getElementById("nyhetpubdato_year").value = todaysdate.getFullYear();
+    document.getElementById("nyhetpubdato_hour").value = todayshours;
+    document.getElementById("nyhetpubdato_minute").value = todaysmin;
+}
+
 function toggleCalendar(objname){
 	var div_obj = document.getElementById('div_'+objname);
 	if (div_obj.style.visibility=="hidden") {
