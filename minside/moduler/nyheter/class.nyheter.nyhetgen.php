@@ -208,8 +208,8 @@ class NyhetGen {
             ob_start(); // må ta vare på output...
             $objCalendar->writeScript();
             $html_calendar = '<div class="nyhetpubdatovelger">Publiseringsdato: ' . ob_get_clean();
-            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
-            $html_calendar .= ':<input type="text" size="1" maxlength="2" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
             $html_calendar .= '<img alt="Send nyhet til topp ved å sette dagens dato" align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
         } else {
             // Bruker har ikke create rights på området

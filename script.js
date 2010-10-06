@@ -41,13 +41,38 @@ function submitFormImgSub() {
 
 // Calendar
 
+function properhours() {
+    var todayshours = new Date();
+    var properH = todayshours.getHours();
+    if (properH < 10) properH = "0"+properH;
+    return properH;
+}
+
+function propermins() {
+    var todaysmins = new Date();
+    var properM = todaysmins.getMinutes();
+    if (properM < 10) properM = "0"+properM;
+    return properM;
+}
+
+function checkHour(hours) {
+    if (document.getElementById(hours).value > 23) {
+        alert ("Ugyldig time valg");
+        document.getElementById(hours).value = properhours();
+    }
+}
+
+function checkMins(mins) {
+    if (document.getElementById(mins).value > 59) {
+        alert ("Ugyldig minutt valg");
+        document.getElementById(mins).value = propermins();
+    }
+}
+
 function setTodaysdate() {
     var todaysdate = new Date();
-    var todaysmin = todaysdate.getMinutes();
-    if (todaysmin < 10) todaysmin="0"+todaysmin;
-    var todayshours = todaysdate.getHours();
-    if (todayshours < 10) todayshours="0"+todayshours;
-    var todaysyear = todaysdate.getFullYear();
+    var todaysmin = propermins();
+    var todayshours = properhours();
     document.getElementById("nyhetpubdato_day").selectedIndex = todaysdate.getDate();
     document.getElementById("nyhetpubdato_month").selectedIndex = todaysdate.getMonth()+1;
     document.getElementById("nyhetpubdato_year").value = todaysdate.getFullYear();
