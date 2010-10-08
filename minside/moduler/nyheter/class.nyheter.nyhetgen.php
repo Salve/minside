@@ -311,6 +311,88 @@ class NyhetGen {
         
         return $output;
     }
+    
+	public static function genTagAdmin(NyhetTagCollection $colTags) {
+        $output .= "<h2>Kategori og tag-administrasjon</h2>\n";
+        
+        $output .= '<div class="tagadm">
+            <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+            <table class="tagadmtbl">
+                <tr>
+                    <th>Type </th>
+                    <th>Navn </th>
+                    <th>Ikke velgbar </th>
+                    <th>Ikke i arkiv </th>
+                    <th>Handling </th>
+                </tr>
+        ';
+
+        foreach($colTags as $objTag) {
+            switch($objTag->getType()) {
+                case NyhetTag::TYPE_KATEGORI:
+                    $type = 'Kategori';
+                    break;
+                case NyhetTag::TYPE_TAG:
+                    $type = 'Tag';
+                    break;
+                default:
+                    $type = 'Ukjent / feil';
+                    break;
+            }
+            $navn = $objTag->getNavn();
+            $noview = ($objTag->noView()) ? 'checked' : '';
+            $noselect = ($objTag->noSelect()) ? 'checked' : '';
+            $id = $objTag->getId();
+            $output .= "
+                <tr>
+                    <td>$type</td>
+                    <td>$navn</td>
+                    <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
+                    <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
+                    ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tellerid='.$id.'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                </tr>
+            ";
+        }
+        
+        $output .= '</table>';
+        if ($colTags->length() === 0)  {
+            $output .= '<div class="mswarningbar">Ingen tags / kategorier her!</div>';
+        }
+        $output .= '<input type="submit" value="Lagre" class="button" /></form>';
+        
+        // Ny tag  
+        $output .= '<div class="tagadmnytag">
+                        <h2>Ny kategori / tag</h2>
+                        <form action="' . MS_NYHET_LINK . '&act=savenytag" method="POST">
+                        <table class="tagadmnytagtbl">
+                            <tr>
+                                <th>Type</th>
+                                <th>Navn</th>
+                                <th>Handling</th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <select name="nytagtype">
+                                        <option value="'.NyhetTag::TYPE_TAG.'">Tag</option>
+                                        <option value="'.NyhetTag::TYPE_KATEGORI.'">Kategori</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" class="edit" name="nytagnavn" />
+                                </td>
+                                <td>
+                                    <input type="submit" value="Lagre" class="button" />
+                                </td>
+                            </tr>
+                        </table>
+                        </form>
+                    </div>
+            ';
+        
+        $output .= '</div>'; // tagadm
+        
+        return $output;
+    }
 	
 	protected static function getMailLink($name, $epost) {
 		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';

@@ -7,7 +7,7 @@ class NyhetTagFactory {
         '   nyheter_tag.tagid AS tagid,
             nyheter_tag.tagnavn AS tagnavn,
             nyheter_tag.no_select AS no_select,
-            nyheter_tag.no_view AS no_view,
+            nyheter_tag.no_view AS no_view
         ';
 	
 	
@@ -56,7 +56,7 @@ class NyhetTagFactory {
             $objNyhetTagCol->addItem($objNyhetTag, $objNyhetTag->getId());
         }
         
-        return $objNyhetCol;
+        return $objNyhetTagCol;
     }
     
     protected static function createNyhetTagObjektFromDbRow(&$row) {

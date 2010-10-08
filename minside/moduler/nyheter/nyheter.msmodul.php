@@ -7,6 +7,7 @@ require_once('class.nyheter.omrade.php');
 require_once('class.nyheter.nyhettag.php');
 require_once('class.nyheter.nyhettagcollection.php');
 require_once('class.nyheter.nyhetfactory.php');
+require_once('class.nyheter.nyhettagfactory.php');
 require_once('class.nyheter.nyhetgen.php');
 require_once(DOKU_INC.'inc/search.php');
 
@@ -55,6 +56,7 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('tagadm', 'gen_tag_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
@@ -86,6 +88,9 @@ class msmodul_nyheter implements msmodul {
 				}
                 if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild(new Menyitem('Områdeadmin','&page=nyheter&act=omradeadm'));
+				}
+                if ($lvl >= MSAUTH_5) {
+					$toppmeny->addChild(new Menyitem('Tag-/kategori-admin','&page=nyheter&act=tagadm'));
 				}
 			}
 			$meny->addItem($toppmeny);
@@ -427,6 +432,11 @@ class msmodul_nyheter implements msmodul {
     public function gen_omrade_admin($force_reload=false) {
         $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_NONE, $force_reload);
         return NyhetGen::genOmradeAdmin($colOmrader);
+    }
+    
+    public function gen_tag_admin() {
+        $colTag = NyhetTagFactory::getAlleNyhetTags(true, true);
+        return NyhetGen::genTagAdmin($colTag);
     }
     
     public function save_omrade_changes() {
