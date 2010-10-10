@@ -317,6 +317,7 @@ class NyhetGen {
         
         $output .= '<div class="tagadm">
             <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+            <input type="hidden" name="tagact" value="edit" />
             <table class="tagadmtbl">
                 <tr>
                     <th>Type </th>
@@ -344,12 +345,13 @@ class NyhetGen {
             $noselect = ($objTag->noSelect()) ? 'checked' : '';
             $id = $objTag->getId();
             $output .= "
+                <input type=\"hidden\" name=\"tagid\" value=\"$id\" />
                 <tr>
                     <td>$type</td>
                     <td>$navn</td>
                     <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
                     <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
-                    ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tellerid='.$id.'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                    ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
                 </tr>
             ";
         }
@@ -363,7 +365,8 @@ class NyhetGen {
         // Ny tag  
         $output .= '<div class="tagadmnytag">
                         <h2>Ny kategori / tag</h2>
-                        <form action="' . MS_NYHET_LINK . '&act=savenytag" method="POST">
+                        <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+                        <input type="hidden" name="tagact" value="new" />
                         <table class="tagadmnytagtbl">
                             <tr>
                                 <th>Type</th>

@@ -57,6 +57,8 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('tagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
@@ -429,14 +431,29 @@ class msmodul_nyheter implements msmodul {
         return (bool) $objNyhet->isPublished();
     }
     
-    public function gen_omrade_admin($force_reload=false) {
-        $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_NONE, $force_reload);
-        return NyhetGen::genOmradeAdmin($colOmrader);
-    }
-    
     public function gen_tag_admin() {
         $colTag = NyhetTagFactory::getAlleNyhetTags(true, true);
         return NyhetGen::genTagAdmin($colTag);
+    }
+    
+    public function save_tag_changes() {
+        if ($POST['tagact'] == 'edit') {
+            $objNyhetTag = NyhetTagFactory($_POST['tagid']);
+        } elseif ($_POST['tagact'] == 'new') {
+            $objNyhetTag = new NyhetTag($_POST['nytagtype']);
+            $objNyhetTag->setNavn(cleanID($_POST['nytagnavn']));
+            $objNyhetTag->updateDb();
+        } else {
+            throw new Exception('Tag act er ikke satt, vet ikke hva som skal gjøres.');
+        }
+        
+        
+        
+    }
+    
+    public function gen_omrade_admin($force_reload=false) {
+        $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_NONE, $force_reload);
+        return NyhetGen::genOmradeAdmin($colOmrader);
     }
     
     public function save_omrade_changes() {

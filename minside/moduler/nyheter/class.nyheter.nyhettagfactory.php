@@ -6,6 +6,7 @@ class NyhetTagFactory {
     const SQL_NYHET_TAG_FIELDS =
         '   nyheter_tag.tagid AS tagid,
             nyheter_tag.tagnavn AS tagnavn,
+            nyheter_tag.tagtype AS tagtype,
             nyheter_tag.no_select AS no_select,
             nyheter_tag.no_view AS no_view
         ';
@@ -65,7 +66,7 @@ class NyhetTagFactory {
             throw new Exception('Ingen eller ugyldig data gitt til factory');
         }
         
-        $objNyhetTag = new NyhetTag($row['nyhetstype'], true, $row['nyhetid']);
+        $objNyhetTag = new NyhetTag($row['tagtype'], true, $row['tagid']);
         
         $objNyhetTag->under_construction = true;
         
