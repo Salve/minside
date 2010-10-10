@@ -71,11 +71,18 @@ function checkMins(mins) {
 
 function setTodaysdate() {
     var todaysdate = new Date();
+    var todaysday = todaysdate.getDate();
+    var todaysmonth = todaysdate.getMonth()+1;
+    var todaysyear = todaysdate.getFullYear();
     var todaysmin = propermins();
     var todayshours = properhours();
-    document.getElementById("nyhetpubdato_day").selectedIndex = todaysdate.getDate();
-    document.getElementById("nyhetpubdato_month").selectedIndex = todaysdate.getMonth()+1;
-    document.getElementById("nyhetpubdato_year").value = todaysdate.getFullYear();
+
+    document.getElementById("nyhetpubdato_day").selectedIndex = todaysday;
+    tc_setDay('nyhetpubdato', todaysday, 'lib/plugins/minside/minside/');
+    document.getElementById("nyhetpubdato_month").selectedIndex = todaysmonth;
+    tc_setMonth('nyhetpubdato', todaysmonth, 'lib/plugins/minside/minside/');
+    document.getElementById("nyhetpubdato_year").value = todaysyear;
+    tc_setYear('nyhetpubdato', todaysyear, 'lib/plugins/minside/minside/');
     document.getElementById("nyhetpubdato_hour").value = todayshours;
     document.getElementById("nyhetpubdato_minute").value = todaysmin;
 }
@@ -165,7 +172,7 @@ function tc_setDay(objname, dvalue, path){
 function tc_setMonth(objname, mvalue, path){
 	var obj = document.getElementById(objname);
 	var date_array = obj.value.split("-");
-	
+
 	//check if date is not allow to select
 	if(!isDateAllow(objname, date_array[2], mvalue, date_array[0])){
 		alert("This date is not allow to select");
@@ -179,7 +186,7 @@ function tc_setMonth(objname, mvalue, path){
 		
 		if(isDate(date_array[2], mvalue, date_array[0])){
 			obj.value = date_array[0] + "-" + mvalue + "-" + date_array[2];
-		
+
 			var obj = document.getElementById(objname+'_frame');
 			
 			var year_start = document.getElementById(objname+'_year_start').value;
@@ -207,7 +214,7 @@ function tc_setMonth(objname, mvalue, path){
 function tc_setYear(objname, yvalue, path){
 	var obj = document.getElementById(objname);
 	var date_array = obj.value.split("-");
-	
+
 	//check if date is not allow to select
 	if(!isDateAllow(objname, date_array[2], date_array[1], yvalue)){
 		alert("This date is not allow to select");
