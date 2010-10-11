@@ -160,3 +160,22 @@ CREATE TABLE `nyheter_omrade` (
   UNIQUE KEY `omradenavn_UNIQUE` (`omradenavn`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `nyheter_tag`;
+CREATE TABLE `nyheter_tag` (
+  `tagid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tagnavn` varchar(45) NOT NULL,
+  `no_select` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `no_view` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `tagtype` tinyint(3) unsigned NOT NULL,
+  `is_deleted` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`tagid`),
+  UNIQUE KEY `tagid_UNIQUE` (`tagid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `nyheter_tag_x_nyhet`;
+CREATE TABLE `nyheter_tag_x_nyhet` (
+  `tagid` int(10) unsigned NOT NULL,
+  `nyhetid` int(10) unsigned NOT NULL,
+  KEY `tagnyhet` (`tagid`,`nyhetid`),
+  KEY `nyhettag` (`nyhetid`,`tagid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
