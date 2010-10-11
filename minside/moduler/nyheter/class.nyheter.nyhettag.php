@@ -11,6 +11,7 @@ class NyhetTag {
     protected $_navn;
     protected $_noselect;
     protected $_noview;
+    protected $_isdeleted;
     
     protected $_issaved = false;
     protected $_hasunsavedchanges = false;
@@ -81,13 +82,22 @@ class NyhetTag {
         return $this->_noview;
     }
     
+    public function setIsDeleted($input) {
+        $input = (bool) $input;
+        $this->set_var($this->_isdeleted, $input);
+    }
+    public function isDeleted() {
+        return (bool) $this->_isdeleted;
+    }
+    
     protected function set_var(&$var, &$value) {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            $trace = debug_backtrace();
-            $caller = $trace[1]['function'];
-            msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            // Debug
+            // $trace = debug_backtrace();
+            // $caller = $trace[1]['function'];
+            // msg('Endring av nyhet_tag fra funksjon: ' . $caller);
             
             $this->_hasunsavedchanges = true;
 		}
@@ -102,7 +112,7 @@ class NyhetTag {
         global $msdb;
         
         $safenavn = $msdb->quote($this->getNavn());
-        $safetype = $msdb->quote($this->getType());
+        $safetype = (int) $this->getType();
         $safeid = $msdb->quote($this->getId());
         $safenoview = ($this->noView()) ? '1' : '0';
         $safenoselect = ($this->noSelect()) ? '1' : '0';
@@ -114,7 +124,7 @@ class NyhetTag {
                     no_select=$safenoselect ";
                     
         if($this->isSaved()) {
-            $presql = "UPDATE nyheter_tag SET ";
+            $presql = "UPDATE nyheter_tag ";
             $postsql = " WHERE tagid=$safeid LIMIT 1;";
         } else {
             $presql = "INSERT INTO nyheter_tag ";
@@ -129,6 +139,16 @@ class NyhetTag {
         $this->_hasunsavedchanges = false;
         
         return (bool) $res;
+    }
+    
+    public function slett() {
+        if ($this->isDeleted()) throw new Exception('Kan ikke slette tag/kategori som allerede er slettet.');
+        
+        global $msdb;
+        $safeid = $msdb->quote($this->getId());
+        $sql = "UPDATE nyheter_tag SET is_deleted = 1 WHERE tagid = $safeid LIMIT 1";
+        
+        return (bool) $msdb->exec($sql);
     }
     
 }

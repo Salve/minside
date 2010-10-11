@@ -8,13 +8,14 @@ class NyhetTagFactory {
             nyheter_tag.tagnavn AS tagnavn,
             nyheter_tag.tagtype AS tagtype,
             nyheter_tag.no_select AS no_select,
-            nyheter_tag.no_view AS no_view
+            nyheter_tag.no_view AS no_view,
+            nyheter_tag.is_deleted AS is_deleted
         ';
 	
 	
     private function __construct() { }
     
-    public static function getTagById($input_tagid) {
+    public static function getNyhetTagById($input_tagid) {
         global $msdb;
         
         $safeid = $msdb->quote($input_tagid);
@@ -27,7 +28,7 @@ class NyhetTagFactory {
         
     }
     
-    public static function getAlleNyhetTags($get_noselect = true, $get_noview = false) {
+    public static function getAlleNyhetTags($get_noselect = true, $get_noview = false, $get_deleted = false) {
         global $msdb;
         
         $limits = array();
@@ -37,12 +38,16 @@ class NyhetTagFactory {
         if (!$get_noview) {
             $limits[] = 'no_view = 0';
         }
+        if (!$get_deleted) {
+            $limits[] = 'is_deleted = 0';
+        }
         
         $sql = "SELECT " . self::SQL_NYHET_TAG_FIELDS . 
 			" FROM nyheter_tag \n";
 		for($i=0; $i <= (count($limits) - 1); $i++) {
             $sql .= (($i === 0) ? 'WHERE ' : 'AND ') . $limits[$i] . "\n";
         }
+        $sql .= "ORDER BY tagtype, tagid\n";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetTagCollectionFromDbResult($res);
@@ -73,6 +78,7 @@ class NyhetTagFactory {
         $objNyhetTag->setNavn($row['tagnavn']);
         $objNyhetTag->setNoSelect($row['no_select']);
         $objNyhetTag->setNoView($row['no_view']);
+        $objNyhetTag->setIsDeleted($row['is_deleted']);
         
         $objNyhetTag->under_construction = false;
         
