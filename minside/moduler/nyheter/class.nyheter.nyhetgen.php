@@ -211,7 +211,6 @@ class NyhetGen {
             $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
             $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
             $html_calendar .= '<img alt="Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen." align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
-
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
@@ -308,6 +307,96 @@ class NyhetGen {
             ";
         }
         $output .= '</table></div><input type="submit" value="Lagre" class="button" /></form>';
+        
+        return $output;
+    }
+    
+	public static function genTagAdmin(NyhetTagCollection $colTags) {
+        $output .= "<h2>Kategori og tag-administrasjon</h2>\n";
+        
+        $output .= '<div class="tagadm">';
+        
+        $output .= '<div class="level3">';
+        if ($colTags->length() === 0)  {
+            $output .= '<div class="mswarningbar">Ingen tags / kategorier her!</div>';
+        } else {
+            $output .= '<form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+                <input type="hidden" name="tagact" value="edit" />
+                <table class="tagadmtbl">
+                    <tr>
+                        <th>Type </th>
+                        <th>Navn </th>
+                        <th>Ikke velgbar </th>
+                        <th>Ikke i arkiv </th>
+                        <th>Handling </th>
+                    </tr>
+            ';
+
+            foreach($colTags as $objTag) {
+                switch($objTag->getType()) {
+                    case NyhetTag::TYPE_KATEGORI:
+                        $type = 'Kategori';
+                        break;
+                    case NyhetTag::TYPE_TAG:
+                        $type = 'Tag';
+                        break;
+                    default:
+                        $type = 'Ukjent / feil';
+                        break;
+                }
+                $navn = $objTag->getNavn();
+                $noview = ($objTag->noView()) ? 'checked' : '';
+                $noselect = ($objTag->noSelect()) ? 'checked' : '';
+                $id = $objTag->getId();
+                $output .= "
+                    <input type=\"hidden\" name=\"tagadmdata[$id][tagid]\" value=\"$id\" />
+                    <tr>
+                        <td>$type</td>
+                        <td>$navn</td>
+                        <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
+                        <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
+                        ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                    </tr>
+                ";
+            }
+            
+            $output .= '</table>';
+            $output .= '<input type="submit" value="Lagre" class="button" /></form>';
+        }
+        $output .= '</div>'; // level3
+        // Ny tag  
+        $output .= '<div class="tagadmnytag">
+                        <h2>Ny kategori / tag</h2>
+                        <div class="level3">
+                            <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+                            <input type="hidden" name="tagact" value="new" />
+                            <table class="tagadmnytagtbl">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Navn</th>
+                                    <th>Handling</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <select name="nytagtype">
+                                            <option value="'.NyhetTag::TYPE_TAG.'">Tag</option>
+                                            <option value="'.NyhetTag::TYPE_KATEGORI.'">Kategori</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="edit" name="nytagnavn" />
+                                    </td>
+                                    <td>
+                                        <input type="submit" value="Lagre" class="button" />
+                                    </td>
+                                </tr>
+                            </table>
+                            </form>
+                        </div>
+                    </div>
+            ';
+        
+        $output .= '</div>'; // tagadm
         
         return $output;
     }

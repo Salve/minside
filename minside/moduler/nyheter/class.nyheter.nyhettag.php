@@ -11,14 +11,16 @@ class NyhetTag {
     protected $_navn;
     protected $_noselect;
     protected $_noview;
+    protected $_isdeleted;
     
     protected $_issaved = false;
+    protected $_hasunsavedchanges = false;
     
     public $under_construction = false;
     public $baseurl;
     
     public function __construct($type, $issaved=false, $id=null, $baseurl='') {
-        if ($type !== self::TYPE_KATEGORI && $type !== self::TYPE_TAG) {
+        if ($type != self::TYPE_KATEGORI && $type != self::TYPE_TAG) {
             throw new Exception('Ugyldig tag/kategori-type: ' . htmlspecialchars($type));
         }
         if ($issaved && ($id == false)) {
@@ -32,7 +34,7 @@ class NyhetTag {
     }
     
     public function __destruct() {
-        if ($this->hasUnsavedChanges()) {
+        if ($this->_hasunsavedchanges) {
             $id = $this->getId();
             msg("NyhetTag $id destructed with unsaved changes", -1);
         }
@@ -53,38 +55,49 @@ class NyhetTag {
         return (bool) $this->_issaved;
     }
     public function getId() {
-        if (!$this->isSaved) return false;
+        if (!$this->isSaved()) return false;
         return $this->_id;
     }
     
     public function setNavn($input) {
-        $this->set_var($this->_navn, (bool) $input);
+        $this->set_var($this->_navn, $input);
     }
     public function getNavn() {
         return $this->_navn;
     }
     
     public function setNoSelect($input) {
-        $this->set_var($this->_noselect, (bool) $input);
+        $input = (bool) $input;
+        $this->set_var($this->_noselect, $input);
     }
     public function noSelect() {
         return $this->_noselect;
     }
     
     public function setNoView($input) {
-        $this->set_var($this->_noview, (bool) $input);
+        $input = (bool) $input;
+        $this->set_var($this->_noview, $input);
     }
     public function noView() {
         return $this->_noview;
+    }
+    
+    public function setIsDeleted($input) {
+        $input = (bool) $input;
+        $this->set_var($this->_isdeleted, $input);
+    }
+    public function isDeleted() {
+        return (bool) $this->_isdeleted;
     }
     
     protected function set_var(&$var, &$value) {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            $trace = debug_backtrace();
-            $caller = $trace[1]['function'];
-            msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            // Debug
+            // $trace = debug_backtrace();
+            // $caller = $trace[1]['function'];
+            // msg('Endring av nyhet_tag fra funksjon: ' . $caller);
             
             $this->_hasunsavedchanges = true;
 		}
@@ -92,5 +105,50 @@ class NyhetTag {
 		$var = $value;
 		return true;
 	}
+    
+    public function updateDb() {
+        if (!$this->_hasunsavedchanges) return false;
+        
+        global $msdb;
+        
+        $safenavn = $msdb->quote($this->getNavn());
+        $safetype = (int) $this->getType();
+        $safeid = $msdb->quote($this->getId());
+        $safenoview = ($this->noView()) ? '1' : '0';
+        $safenoselect = ($this->noSelect()) ? '1' : '0';
+        
+        $midsql = " SET
+                    tagnavn=$safenavn,
+                    tagtype=$safetype,
+                    no_view=$safenoview,
+                    no_select=$safenoselect ";
+                    
+        if($this->isSaved()) {
+            $presql = "UPDATE nyheter_tag ";
+            $postsql = " WHERE tagid=$safeid LIMIT 1;";
+        } else {
+            $presql = "INSERT INTO nyheter_tag ";
+            $postsql = '';
+        }
+        $sql = $presql . $midsql . $postsql;
+        $res = $msdb->exec($sql);
+        
+        if(!$this->isSaved()) {
+            $this->setSaved($msdb->getLastInsertId());
+        }
+        $this->_hasunsavedchanges = false;
+        
+        return (bool) $res;
+    }
+    
+    public function slett() {
+        if ($this->isDeleted()) throw new Exception('Kan ikke slette tag/kategori som allerede er slettet.');
+        
+        global $msdb;
+        $safeid = $msdb->quote($this->getId());
+        $sql = "UPDATE nyheter_tag SET is_deleted = 1 WHERE tagid = $safeid LIMIT 1";
+        
+        return (bool) $msdb->exec($sql);
+    }
     
 }

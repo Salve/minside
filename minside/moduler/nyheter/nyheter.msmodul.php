@@ -7,6 +7,7 @@ require_once('class.nyheter.omrade.php');
 require_once('class.nyheter.nyhettag.php');
 require_once('class.nyheter.nyhettagcollection.php');
 require_once('class.nyheter.nyhetfactory.php');
+require_once('class.nyheter.nyhettagfactory.php');
 require_once('class.nyheter.nyhetgen.php');
 require_once(DOKU_INC.'inc/search.php');
 
@@ -55,6 +56,11 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
+		$dispatcher->addActHandler('tagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
@@ -86,6 +92,9 @@ class msmodul_nyheter implements msmodul {
 				}
                 if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild(new Menyitem('Områdeadmin','&page=nyheter&act=omradeadm'));
+				}
+                if ($lvl >= MSAUTH_5) {
+					$toppmeny->addChild(new Menyitem('Tag-/kategori-admin','&page=nyheter&act=tagadm'));
 				}
 			}
 			$meny->addItem($toppmeny);
@@ -422,6 +431,54 @@ class msmodul_nyheter implements msmodul {
         }
         
         return (bool) $objNyhet->isPublished();
+    }
+    
+    public function gen_tag_admin() {
+        $colTag = NyhetTagFactory::getAlleNyhetTags(true, true);
+        return NyhetGen::genTagAdmin($colTag);
+    }
+    
+    public function save_tag_changes() {
+        if ($_POST['tagact'] == 'edit') {
+            $colTag = NyhetTagFactory::getAlleNyhetTags(true, true, false);
+            $data = (array) $_REQUEST['tagadmdata'];
+            foreach($data as $tagid => $tagoptions) {
+                $objNyhetTag = $colTag->getItem($tagid);
+                if(!($objNyhetTag instanceof NyhetTag)) {
+                    msg('Fant ikke tag med id: ' . $tagid, -1);
+                    continue;
+                }
+                
+                $objNyhetTag->setNoSelect((bool)(array_key_exists('noselect', $tagoptions)));
+                $objNyhetTag->setNoView((bool)(array_key_exists('noview', $tagoptions)));
+                $objNyhetTag->updateDb();
+            }
+        } elseif ($_POST['tagact'] == 'new') {
+            $objNyhetTag = new NyhetTag($_POST['nytagtype']);
+            $objNyhetTag->setNavn(htmlspecialchars($_POST['nytagnavn']));
+            $objNyhetTag->updateDb();
+        } else {
+            throw new Exception('Tag act er ikke satt, vet ikke hva som skal gjøres.');
+        }
+        
+    }
+    
+    public function slett_tag() {
+        $tagid = $_REQUEST['tagid'];
+        if(!empty($tagid)) {
+            $objTag = NyhetTagFactory::getNyhetTagById($tagid);
+            if ($objTag->slett()) {
+                msg('Slettet ' . (($objTag->getType() == NyhetTag::TYPE_TAG) ? 'tag' : 'kategori') . ' med navn: ' . $objTag->getNavn() .
+                    ' og id: ' . $objTag->getId(), 1);
+            } else {
+                msg('Klarte ikke å slette ' . (($objTag->getType() == NyhetTag::TYPE_TAG) ? 'tag' : 'kategori') . '!', -1);
+            } 
+            unset($objTag);
+            return;
+        } else {
+            throw new Exception('Kan ikke slette tag, tagid ikke gitt');
+        }
+        
     }
     
     public function gen_omrade_admin($force_reload=false) {
