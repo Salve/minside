@@ -820,7 +820,7 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= 'Skift lukkes automatisk 14 timer etter de er opprettet.<br />';
 			$skiftout .= '</div>'; // warnoldskift
 		}
-		
+
 		// Vis notater
 		
 		$skiftout .= '<div class="notater"><fieldset id="notatfield" class="msfieldset"><legend>Notater</legend>';
@@ -861,6 +861,28 @@ class msmodul_feilmrapport implements msmodul{
 			$skiftout .= '<fieldset id="tellerfieldset" class="msfieldset"><legend>Tellere</legend>';
 			$skiftout .= '<table class="feilmtable"><th class="top">Beskrivelse</th><th class="top" colspan="2">Endre verdi</th>';	
 		}
+        // Nylig aktivitet
+        $arLastAkt = $objSkift->getLastAct(6);
+        if (count($arLastAkt)) {
+            $skiftout .= '<div class="sisteendringer msclearer">';
+            $skiftout .= '<strong><a href="javascript:;"  onClick="undoAct(\'viewAct\')">Siste endringer</a></strong><br />';
+            $skiftout .= '<div style="display:none;" id="viewAct">';
+            foreach ($arLastAkt as $arAkt) {
+                $skiftout .= '<div class="tellerakt msclearer">';
+                $skiftout .= '<div class="tellerakttekst">';
+                $skiftout .= '<em>Kl. ' . date('H:i:s', strtotime($arAkt['tidspunkt'])) . ":</em>&nbsp;&nbsp;<strong>";
+                $skiftout .= (($arAkt['verdi'] < 0) ? $arAkt['verdi'] : '+' . $arAkt['verdi']) . "</strong><br />\n";
+                $skiftout .= str_replace(' ', '&nbsp;', $arAkt['teller']) . "\n";
+                $skiftout .= '</div>'; // tellerakttekst
+                $skiftout .= '<div class="telleraktbilde">';
+                $skiftout .= '<a href="' . MS_FMR_LINK . '&act=undoakt&aktid=' . $arAkt['id'] . '">' .
+                    '<img style="float:right;margin-top:3px;margin-right:3px;" src="' . MS_IMG_PATH . 'trash.png"></a>';
+                $skiftout .= '</div>'; // telleraktbilde
+                $skiftout .= '</div>'; // tellerakt
+            }
+            $skiftout .= '</div>'; // sisteendringer
+            $skiftout .= '</div>';
+        }
 		
 		foreach($objSkift->tellere as $objTeller) {
 			if (!$objTeller->isActive()) continue;
@@ -889,6 +911,7 @@ class msmodul_feilmrapport implements msmodul{
 					break;
 			}
 		}
+
 		
 		if ($colSecTeller->length() > 0){
 			$skiftout .= '<tr>' . "\n";
@@ -962,33 +985,14 @@ class msmodul_feilmrapport implements msmodul{
         $skiftout .= '</div>'; // antalltall
         
 		$skiftout .= '</div>'; // tellertable
-        
+
 		// Close skift knapp
 		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
 		$skiftout .= '<input type="submit" class="msbutton" id="avsluttskift" value="Avslutt skift" />' . "\n";
 		$skiftout .= '</form>' . "\n";
         
-        // Nylig aktivitet
-        $arLastAkt = $objSkift->getLastAct(6);
-        if (count($arLastAkt)) {
-            $skiftout .= '<div class="sisteendringer msclearer">';
-            $skiftout .= '<strong>Siste endringer: </strong><br />';
-            foreach ($arLastAkt as $arAkt) {
-                $skiftout .= '<div class="tellerakt">';
-                $skiftout .= '<div class="tellerakttekst">';
-                $skiftout .= '<em>Kl. ' . date('H:i:s', strtotime($arAkt['tidspunkt'])) . ":</em>&nbsp;&nbsp;<strong>";
-                $skiftout .= (($arAkt['verdi'] < 0) ? $arAkt['verdi'] : '+' . $arAkt['verdi']) . "</strong><br />\n";
-                $skiftout .= str_replace(' ', '&nbsp;', $arAkt['teller']) . "\n";
-                $skiftout .= '</div>'; // tellerakttekst
-                $skiftout .= '<div class="telleraktbilde">';
-                $skiftout .= '<a href="' . MS_FMR_LINK . '&act=undoakt&aktid=' . $arAkt['id'] . '">' .
-                    '<img style="float:right;margin-top:3px;margin-right:3px;" src="' . MS_IMG_PATH . 'trash.png"></a>';
-                $skiftout .= '</div>'; // telleraktbilde
-                $skiftout .= '</div>'; // tellerakt
-            }
-            $skiftout .= '</div>'; // sisteendringer
-        }
+
         
 		$skiftout .= '</div>' . "\n"; // skift_full
 		
