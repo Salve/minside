@@ -534,3 +534,15 @@ function tc_updateDay(objname, yearNum, monthNum, daySelected){
 	
 	return dayObj.value;
 }
+
+// Act Undo
+function undoAct(element) {
+    var ele = document.getElementById(element);
+    var visi = ele.style.display;
+    if (visi!="none"){
+        document.getElementById(element).style.display="none";
+    }
+    else {
+        document.getElementById(element).style.display="";
+    }
+}

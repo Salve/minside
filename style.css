@@ -264,22 +264,21 @@ div.minside table {
 
 div.minside div.sisteendringer {
     position: relative;
-    width: 100%;
-    left: 25px;
+    width: 80%;
 }
 
 div.minside div.tellerakt {
     border: 1px #8cacbb;
     border-style: none none solid none;
     margin: 3px 3px 10px 3px;
-    width: 30%;
+    width: 100%;
     overflow: hidden;
     float: left;
 }
 
 div.minside div.tellerakttekst {
     float: left;
-    width: 90%;
+    width: 70%;
     overflow: hidden;
 }
 
@@ -317,6 +316,17 @@ div.minside .actheader {
 div.minside .subactheader {
 	font-size: 120%;
 	font-weight: bold;
+}
+
+div.minside #viewAct {
+    width: 100%;
+    position: absolute;
+    top:1.5em;
+    left:0;
+    padding:1em;
+    background:white;
+    border:1px solid #8CACBB;
+    z-index:1;
 }
 
 div.rapportarkiv {
