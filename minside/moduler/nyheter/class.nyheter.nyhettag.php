@@ -167,9 +167,11 @@ class NyhetTag {
                                 INNER JOIN 
                                     nyheter_tag_x_nyhet 
                                 ON 
-                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid;
+                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
                             WHERE 
-                                nyheter_tag_x_nyhet.nyhetid = $safenyhetid;";
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
                 $insertsql = "INSERT INTO nyheter_tag_x_nyhet
                                 SET tagid = $safekatid, 
                                     nyhetid = $safenyhetid;";
@@ -182,7 +184,9 @@ class NyhetTag {
                             ON
                                 nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
                             WHERE
-                                nyheter_tag_x_nyhet.nyhetid = $safenyhetid;";
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
                 $msdb->startTrans();
                 $msdb->exec($deletesql);
                 $msdb->exec($insertsql);

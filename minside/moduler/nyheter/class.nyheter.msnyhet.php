@@ -99,6 +99,7 @@ class MsNyhet {
              !$objInputTag->isSaved()) {
             throw new Exception('Feil ved setting av kategori på nyhet: Ikke gyldig kategori-objekt.');
         }
+        if ($this->getKategori() == $objInputTag) return false;
         $this->_objkategori = $objInputTag;
         if (!$this->under_construction && !$nosave) {
             msg('Loading callback for kategori update'); // debug
