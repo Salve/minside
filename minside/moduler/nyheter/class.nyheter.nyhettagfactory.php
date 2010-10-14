@@ -72,6 +72,58 @@ class NyhetTagFactory {
         
     }
     
+    public static function attachTagsToNyhet(MsNyhet &$objNyhet) {
+        $nyhetcol = new NyhetCollection();
+        $nyhetcol->addItem($objNyhet, $objNyhet->getId());
+        self::attachTagsToNyhetCollection($nyhetcol);
+        unset($nyhetcol);
+    }
+    
+    public static function attachTagsToNyhetCollection(NyhetCollection &$nyhetcol) { 
+        global $msdb;
+        $tagcol = self::getAlleNyhetTags(true, true);
+        
+        $arNyhetid = array();
+        foreach($nyhetcol as $objNyhet) {
+            $arNyhetid[] = $msdb->quote($objNyhet->getId());
+        }
+        $nyhetider = implode(',', $arNyhetid);
+        $nyhetider = ($nyhetider) ?: "''";
+        
+        $sql = "
+            SELECT 
+                nyhetid, 
+                GROUP_CONCAT(tagid) as 'tagids' 
+            FROM 
+                nyheter_tag_x_nyhet 
+            WHERE 
+                nyhetid IN ($nyhetider) 
+            GROUP BY 
+                nyhetid;";
+        
+        $data = $msdb->assoc($sql);
+        foreach($data  as $datum) {
+            $objNyhet =& $nyhetcol->getItem($datum['nyhetid']);
+            $objNyhet->under_construction = true;
+            $arTagid = explode(',', $datum['tagids']);
+            foreach($arTagid as $tagid) {
+                if($tagcol->exists($tagid)) {
+                    $objTag = $tagcol->getItem($tagid);
+                    switch($objTag->getType()) {
+                        case NyhetTag::TYPE_KATEGORI:
+                            $objNyhet->setKategori($objTag);
+                            break;
+                        case NyhetTag::TYPE_TAG:
+                            $objNyhet->addTag($objTag);
+                            break;
+                    }
+                }
+            }
+            $objNyhet->under_construction = false;
+        }
+    }
+    
+    
     protected static function createNyhetTagCollectionFromDbResult(array &$result) {
         $objNyhetTagCol = new NyhetTagCollection();
         
