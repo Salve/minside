@@ -622,6 +622,10 @@ div.minside div.nyhetomrade {
     float:right;
 }
 
+div.minside div.nyhetkategori {
+    float:right;
+}
+
 div.nyhetimgleft img.nyhetimg {
     border:0;
     margin-right:1em;
@@ -653,6 +657,10 @@ div.minside div.nyhetomradevelger {
     float:right;
 }
 
+div.minside div.nyhetkategorivelger {
+    float:right;
+}
+
 div.minside div.nyhetbildevelger {
     float: left;
 }
@@ -665,7 +673,7 @@ div.minside div.nyhetpubdatovelger {
     float: left;
 }
 
-div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift {
+div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger {
     padding-top:0.25em;
     padding-bottom:0.25em;
     padding-left:0.5em;

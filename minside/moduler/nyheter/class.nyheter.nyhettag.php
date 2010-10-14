@@ -151,4 +151,50 @@ class NyhetTag {
         return (bool) $msdb->exec($sql);
     }
     
+    public function getKategoriUpdateFunction() {
+        if (!$this->isSaved()) throw new Exception('Kan ikke generere DB-update funksjon for kategori som ikke er lagret.');
+        $tagid = $this->getId();
+        return function($nyhetid) use ($tagid)
+            {
+                global $msdb;
+                $safekatid = $msdb->quote($tagid);
+                $safenyhetid = $msdb->quote($nyhetid);
+                $safetype = NyhetTag::TYPE_KATEGORI;
+                $deletesql = "DELETE FROM 
+                                nyheter_tag_x_nyhet    
+                            USING
+                                    nyheter_tag 
+                                INNER JOIN 
+                                    nyheter_tag_x_nyhet 
+                                ON 
+                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid;
+                            WHERE 
+                                nyheter_tag_x_nyhet.nyhetid = $safenyhetid;";
+                $insertsql = "INSERT INTO nyheter_tag_x_nyhet
+                                SET tagid = $safekatid, 
+                                    nyhetid = $safenyhetid;";
+                $checksql = "SELECT
+                                COUNT(*)
+                            FROM
+                                nyheter_tag
+                            INNER JOIN
+                                nyheter_tag_x_nyhet
+                            ON
+                                nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE
+                                nyheter_tag_x_nyhet.nyhetid = $safenyhetid;";
+                $msdb->startTrans();
+                $msdb->exec($deletesql);
+                $msdb->exec($insertsql);
+                $res = $msdb->num($checksql);
+                if ($res[0][0] === '1') {
+                    $msdb->commit();
+                    return true;
+                } else {
+                    $msdb->rollBack();
+                    throw new Exception('Update DB feilet: Feil under knytning av kategori og nyhet.');
+                }
+            };
+    }
+    
 }

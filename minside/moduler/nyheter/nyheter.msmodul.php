@@ -276,6 +276,21 @@ class msmodul_nyheter implements msmodul {
 		$objNyhet->setIsSticky(($_POST['nyhetsticky'] == 'sticky') ? true : false);
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
         
+        // Kategori
+        $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
+        $inputkategori = $_POST['nyhetkategori'];
+        foreach($colKategorier as $objKategori) {
+            if ($objKategori->getNavn() === $inputkategori) {
+                $objFoundKategori = $objKategori;
+                break;
+            }
+        }
+        if($objFoundKategori instanceof NyhetTag) {
+            $objNyhet->setKategori($objFoundKategori, $act_preview);
+        } else {
+            throw new Exception('Feil ved redigering av nyhet: Ugyldig kategori valgt!');
+        }
+        
         // Publish time
         $acl = $objNyhet->getAcl();
         if ($acl >= MSAUTH_3) {
@@ -302,7 +317,7 @@ class msmodul_nyheter implements msmodul {
                     $objNyhet->update_db();
                     $objNyhet = NyhetFactory::getNyhetById($objNyhet->getId());
                 } catch (Exception $e) {
-                    msg('Klarte ikke å lagre nyhet!', -1);
+                    msg('Klarte ikke å lagre nyhet: ' . $e->getMessage(), -1);
                     return false;
                 }
             } else {

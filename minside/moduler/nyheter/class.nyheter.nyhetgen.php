@@ -65,6 +65,7 @@ class NyhetGen {
         $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
+        $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -132,7 +133,7 @@ class NyhetGen {
 				<div class=\"nyhettopbar\"$omrade_farge>
 					<div class=\"nyhettitle\">$sticky$title</div>
 					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade_html$publish$lastmod$delete</div>
+					<div class=\"nyhetinfo\">$omrade_html<br />$kategori_html$publish$lastmod$delete</div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -155,9 +156,15 @@ class NyhetGen {
 				<input class="edit" style="width:58px;" type="text" name="nyhetomrade" value="' . $objNyhet->getOmrade() . '" disabled /></div>';
 		} else {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
-			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" tabindex="4" class="edit">';
+			$html_omrade = '<div class="nyhetomradevelger">Område: <select name="nyhetomrade" tabindex="3" class="edit">';
 			if ($colOmrader->length() === 0) {
 				$html_omrade .= 'Du har ikke tilgang til noen områder!';
+            } elseif ($objNyhet->getOmrade() != false) {
+                foreach ($colOmrader as $objOmrade) {
+					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '"' .
+                    (($objOmrade->getOmrade() == $objNyhet->getOmrade()) ? ' selected="selected"' : '') .
+                    '>'. $objOmrade->getOmrade() . '</option>';
+				}
 			} else {
 				foreach ($colOmrader as $objOmrade) {
 					$html_omrade .= '<option value="' . $objOmrade->getOmrade() . '"' .
@@ -168,6 +175,16 @@ class NyhetGen {
 			$html_omrade .= '</select></div>';
 			
 		}
+        
+        // Kategori
+        $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
+        $html_kategori = '<div class="nyhetkategorivelger">Kategori: <select name="nyhetkategori" tabindex="5" class="edit">';
+        foreach ($colKategorier as $objKategori) {
+            $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' .
+            (($objKategori == $objNyhet->getKategori()) ? ' selected="selected"' : '') .
+            '>' . $objKategori->getNavn() . '</option>';
+        }
+        $html_kategori .= '</select></div>'; // nyhetkategorivelger
 		
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
@@ -176,7 +193,7 @@ class NyhetGen {
 			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
 		
 		// Bilde
-		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" tabindex="3" name="nyhetbilde" id="nyhet__imgpath"' .
+		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" tabindex="4" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
 			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
 			'title="Legg til bilde" width="16" ' .
@@ -253,17 +270,18 @@ class NyhetGen {
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
                                 .$html_bilde
-                                .$html_sticky. '
+                                .$html_kategori. '
                                 <div class="msclearer"></div>'
-                                .(($html_calendar) ?: ''). '
+                                .(($html_calendar) ?: '')
+                                .$html_sticky. '
                                 <div class="msclearer"></div>
                             </div>
                             <div id="wiki__editbar" >
                                 <div id="size__ctl" ></div>
                                 <div class="editButtons" >
-                                    <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="4" title="Lagre [S]" />
-                                    <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="5" title="Forhåndsvis [P]" />
-                                    <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="6" />
+                                    <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="6" title="Lagre [S]" />
+                                    <input name="editpreview" type="submit" value="Forhåndsvis" class="button" id="edbtn__preview" accesskey="p" tabindex="7" title="Forhåndsvis [P]" />
+                                    <input name="editabort" type="submit" value="Avbryt" class="button" tabindex="8" />
                                 </div>
                             </div>
                         </form>

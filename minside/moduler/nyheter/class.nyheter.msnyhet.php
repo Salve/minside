@@ -31,6 +31,11 @@ class MsNyhet {
 	protected $_htmlbody;
 	protected $_wikihash;
 	protected $_wikitekst;
+    
+    protected $_objkategori;
+    protected $_coltags;
+    
+    private $_dbcallback = array();
 	
 	public function __construct($isSaved = false, $id = null) {
 		if ($isSaved && !$id) {
@@ -74,12 +79,54 @@ class MsNyhet {
 		if (!$this->under_construction) {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
 			if (!$colOmrader->exists($input)) {
-				throw new Exception('Ugyldig område angitt!');
+				throw new Exception('Ugyldig område angitt: ' . htmlspecialchars($input));
 			}
 		}
 		
         return $this->set_var($this->_omrade, $input);
 	}
+    
+    public function getKategori() {
+        if (!isset($this->_objkategori)) $this->_objkategori = NyhetTagFactory::getBlankKategori();
+        return $this->_objkategori;
+    }
+    public function getKategoriNavn() {
+        if (!isset($this->_objkategori)) $this->_objkategori = NyhetTagFactory::getBlankKategori();
+        return $this->_objkategori->getNavn();
+    }
+    public function setKategori(NyhetTag $objInputTag, $nosave = false) {
+        if (($objInputTag->getType() !== NyhetTag::TYPE_KATEGORI) ||
+             !$objInputTag->isSaved()) {
+            throw new Exception('Feil ved setting av kategori på nyhet: Ikke gyldig kategori-objekt.');
+        }
+        $this->_objkategori = $objInputTag;
+        if (!$this->under_construction && !$nosave) {
+            msg('Loading callback for kategori update'); // debug
+            $this->_hasunsavedchanges = true;
+            $this->_dbcallback[] = $objInputTag->getKategoriUpdateFunction();
+        }
+        return true;
+    }
+    
+    public function getTags() {
+        if (!isset($this->_coltags)) $this->_coltags = new NyhetTagCollection();
+        return $this->_coltags;
+    }
+    public function addTag(NyhetTag $input) {
+        if ($input->getType !== NyhetTag::TYPE_TAG) {
+            throw new Exception('Feil ved setting av tag på nyhet: Ikke gyldig tag-objekt.');
+        }
+        if (!isset($this->_coltags)) $this->_coltags = new NyhetTagCollection();
+        $this->_coltags->additem($input);
+        if (!$this->under_construction) {
+            // update db her - TODO
+        }
+    }
+    public function addTags(NyhetTagCollection $input) {
+        foreach ($input as $objNyhetTag) {
+            $this->addTag($objNyhetTag);
+        }
+    }
 	
 	public function getPublishTime() {
 		return $this->_pubtime;
@@ -507,7 +554,6 @@ class MsNyhet {
         
         $sql = $presql . $midsql . $postsql;
         $res = $msdb->exec($sql);
-        $this->_hasunsavedchanges = false;
         
         if(!$this->isSaved()) {
             $this->setId($msdb->getLastInsertId());
@@ -515,6 +561,12 @@ class MsNyhet {
         
         $this->_issaved = true;
         
+        foreach($this->_dbcallback as $func) {
+            msg('Running callback!');
+            $func($this->getId());
+        }
+        
+        $this->_hasunsavedchanges = false;
         // return true dersom db ble endret
         return (bool) $res;
     }
