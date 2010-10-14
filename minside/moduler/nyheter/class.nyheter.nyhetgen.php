@@ -179,6 +179,7 @@ class NyhetGen {
         // Kategori
         $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
         $html_kategori = '<div class="nyhetkategorivelger">Kategori: <select name="nyhetkategori" tabindex="5" class="edit">';
+        $html_kategori .= '<option value="0">Velg: </option>';
         foreach ($colKategorier as $objKategori) {
             $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' .
             (($objKategori == $objNyhet->getKategori()) ? ' selected="selected"' : '') .

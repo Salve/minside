@@ -247,12 +247,18 @@ class msmodul_nyheter implements msmodul {
         
         // Validation
         if (strlen(trim($_POST['nyhettitle'])) == 0) {
-            msg('Nyhet ikke lagret: Overskrift kan ikke være blank.', -1);
+            msg('Obligatorisk data mangler: Overskrift kan ikke være blank.', -1);
             $act_preview = true;
         }
 
         if (strlen(trim($_POST['wikitext'])) == 0) {
-            msg('Nyhet ikke lagret: Nyhet-tekst kan ikke være blank.', -1);
+            msg('Obligatorisk data mangler: Nyhet-tekst kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+        
+        $inputkategori = $_POST['nyhetkategori'];
+        if ($inputkategori == '0') {
+            msg('Obligatorisk data mangler: Kategori må velges.', -1);
             $act_preview = true;
         }
         
@@ -278,7 +284,6 @@ class msmodul_nyheter implements msmodul {
         
         // Kategori
         $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
-        $inputkategori = $_POST['nyhetkategori'];
         foreach($colKategorier as $objKategori) {
             if ($objKategori->getNavn() === $inputkategori) {
                 $objFoundKategori = $objKategori;
@@ -287,7 +292,7 @@ class msmodul_nyheter implements msmodul {
         }
         if($objFoundKategori instanceof NyhetTag) {
             $objNyhet->setKategori($objFoundKategori, $act_preview);
-        } else {
+        } elseif (!$act_preview) {
             throw new Exception('Feil ved redigering av nyhet: Ugyldig kategori valgt!');
         }
         

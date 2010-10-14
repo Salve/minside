@@ -153,6 +153,7 @@ class NyhetTag {
     
     public function getKategoriUpdateFunction() {
         if (!$this->isSaved()) throw new Exception('Kan ikke generere DB-update funksjon for kategori som ikke er lagret.');
+        if ($this->getType() !== self::TYPE_KATEGORI) throw new Exception('Kan ikke generere DB-update funksjon for tags som ikke er av type kategori.');
         $tagid = $this->getId();
         return function($nyhetid) use ($tagid)
             {
