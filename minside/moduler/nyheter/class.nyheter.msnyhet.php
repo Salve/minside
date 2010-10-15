@@ -47,9 +47,11 @@ class MsNyhet {
 	}
     
     public function __destruct() {
-        if ($this->hasUnsavedChanges()) {
-            $id = $this->getId();
-            msg("Nyhet $id destructed with unsaved changes", -1);
+        if(MinSide::DEBUG) {
+            if ($this->hasUnsavedChanges()) {
+                $id = $this->getId();
+                msg("Nyhet $id destructed with unsaved changes", -1);
+            }
         }
     }
 	
@@ -102,7 +104,7 @@ class MsNyhet {
         if ($this->getKategori() == $objInputTag) return false;
         $this->_objkategori = $objInputTag;
         if (!$this->under_construction && !$nosave) {
-            msg('Loading callback for kategori update'); // debug
+            if(MinSide::DEBUG) msg('Loading callback for kategori update'); // debug
             $this->_hasunsavedchanges = true;
             $this->_dbcallback['kategori'] = $objInputTag->getKategoriUpdateFunction();
         }
@@ -128,7 +130,7 @@ class MsNyhet {
         $colTags = $this->getTags();
         $colTags->additem($objInputTag, $objInputTag->getId());
         if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
-            msg('Loading callback for tag update'); // debug
+            if(MinSide::DEBUG) msg('Loading callback for tag update'); // debug
             $this->_hasunsavedchanges = true;
             $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($colTags);
         }
@@ -137,12 +139,12 @@ class MsNyhet {
         if ($colInputTags != $this->getTags()) {
             $this->_coltags = $colInputTags;
             if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
-                msg('Loading callback for tag update'); // debug
+                if(MinSide::DEBUG) msg('Loading callback for tag update'); // debug
                 $this->_hasunsavedchanges = true;
                 $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($this->_coltags);
             }
         } else {
-            msg('Setting tags: no changes - no save'); // debug
+            if(MinSide::DEBUG) msg('Setting tags: no changes - no save'); // debug
         }
     }
 	
@@ -345,13 +347,13 @@ class MsNyhet {
         $newhash = md5($input);
         $oldhash = $this->getWikiHash();
         if ($newhash != $oldhash) {
-            msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
+            if(MinSide::DEBUG) msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
             $this->_wikitekst = $input;
             $this->setWikiHash($newhash);
             if (!$nowrite) { $this->write_wikitext(); }
             $this->update_html();
         } else {
-            msg('setWikiTekst called, no changes');
+            if(MinSide::DEBUG) msg('setWikiTekst called, no changes');
         }
         
         return true;
@@ -372,9 +374,11 @@ class MsNyhet {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            $trace = debug_backtrace();
-            $caller = $trace[1]['function'];
-            msg('Endring av nyhet fra funksjon: ' . $caller);
+            if(MinSide::DEBUG) {
+                $trace = debug_backtrace();
+                $caller = $trace[1]['function'];
+                msg('Endring av nyhet fra funksjon: ' . $caller);
+            }
             
             $this->_hasunsavedchanges = true;
 		}
@@ -508,12 +512,12 @@ class MsNyhet {
 		$resultat = saveWikiText($id, $text, $summary, $minor);
         $GLOBALS['ms_writing_to_dw'] = false;
 
-		msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
+		if(MinSide::DEBUG) msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
         
 	}
     
     public function update_html() {
-        msg('update html kallt');
+        if(MinSide::DEBUG) msg('update html kallt');
         global $conf;
         $keep = $conf['allowdebug'];
         $conf['allowdebug'] = 0;
@@ -531,7 +535,7 @@ class MsNyhet {
     }
     
     public function update_db() {
-        msg('update db kallt');
+        if(MinSide::DEBUG) msg('update db kallt');
         global $msdb;
         
         $safeid = $msdb->quote($this->getId());
@@ -580,7 +584,7 @@ class MsNyhet {
         $this->_issaved = true;
         
         foreach($this->_dbcallback as $func) {
-            msg('Running callback!');
+            if(MinSide::DEBUG) msg('Running callback!');
             $func($this->getId());
         }
         

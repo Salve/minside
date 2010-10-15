@@ -36,7 +36,7 @@ class NyhetTag {
     public function __destruct() {
         if ($this->_hasunsavedchanges) {
             $id = $this->getId();
-            msg("NyhetTag $id destructed with unsaved changes", -1);
+            if(MinSide::DEBUG) msg("NyhetTag $id destructed with unsaved changes", -1);
         }
     }
     
@@ -94,10 +94,11 @@ class NyhetTag {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            // Debug
-            // $trace = debug_backtrace();
-            // $caller = $trace[1]['function'];
-            // msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            if(MinSide::DEBUG) {
+                $trace = debug_backtrace();
+                $caller = $trace[1]['function'];
+                msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            }
             
             $this->_hasunsavedchanges = true;
 		}

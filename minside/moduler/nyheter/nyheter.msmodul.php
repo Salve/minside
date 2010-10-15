@@ -341,7 +341,7 @@ class msmodul_nyheter implements msmodul {
                     return false;
                 }
             } else {
-                msg('Lagring av nyhet: nyhet ikke endret.');
+                if(MinSide::DEBUG) msg('Lagring av nyhet: nyhet ikke endret.');
             }
             
             return NyhetGen::genFullNyhet($objNyhet);
@@ -405,7 +405,7 @@ class msmodul_nyheter implements msmodul {
 	}
     
     public function update_nyhet_from_wp() {
-        msg('Oppdaterer nyhet basert på ekstern redigering');
+        if(MinSide::DEBUG) msg('Oppdaterer nyhet basert på ekstern redigering');
         
         $data = $this->_msmodulvars;
         
@@ -436,10 +436,16 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        ($objNyhet->merkLest($this->_userID))?
-            msg("Merket nyhetid $inputid som lest", 1):
-            msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
         
+        if ($objNyhet->merkLest($this->_userID)) {
+            if(MinSide::DEBUG) {
+                msg("Merket nyhetid $inputid som lest", 1);
+            }
+        } else {
+            if(MinSide::DEBUG) {
+                msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
+            }
+        }
     }
     
     public function merk_alle_lest() {
@@ -577,7 +583,7 @@ class msmodul_nyheter implements msmodul {
         if (count($sql)) {
             msg('Lagret endringer i områdeadmin.', 1);
         } else {
-            msg('Ingen endringer å lagre i områdeadmin.');
+            if(MinSide::DEBUG) msg('Ingen endringer å lagre i områdeadmin.');
         }
         
     }

@@ -92,17 +92,18 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 
 			print $objMinSide->gen_minside();
 
-			$ms_endtime = microtime(true);
-			$ms_gentime = $ms_endtime - $ms_starttime;
-			$db_gentime = $objMinSide->getDbGentime();
-			$db_percent = round($db_gentime / $ms_gentime * 100);
-			$ms_gentime = round($ms_gentime,2);
-			$db_gentime = round($db_gentime,4);
-			$db_queries = $objMinSide->getNumDbQueries();
-			print '<br /><br /><br />';
-			$sGentime = "Min Side generert på $ms_gentime sec! Totalt $db_queries SQL-spørring" . (($db_queries == 1) ? '' : 'er') . " tok $db_gentime sec ($db_percent%)";
-			msg($sGentime);
-			
+			if(MinSide::DEBUG) {
+                $ms_endtime = microtime(true);
+                $ms_gentime = $ms_endtime - $ms_starttime;
+                $db_gentime = $objMinSide->getDbGentime();
+                $db_percent = round($db_gentime / $ms_gentime * 100);
+                $ms_gentime = round($ms_gentime,2);
+                $db_gentime = round($db_gentime,4);
+                $db_queries = $objMinSide->getNumDbQueries();
+                print '<br /><br /><br />';
+                $sGentime = "Min Side generert på $ms_gentime sec! Totalt $db_queries SQL-spørring" . (($db_queries == 1) ? '' : 'er') . " tok $db_gentime sec ($db_percent%)";
+                msg($sGentime);
+            }
 			
         }
     }
@@ -186,7 +187,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             $event->data = $objMinSide->genModul('nyheter', 'extview', $INFO['id']);
             return true;
         } catch (Exception $e) {
-            msg('Klarte å vise denne nyheten gjennom MinSide: ' . $e->getMessage(), -1);
+            msg('Klarte ikke å vise denne nyheten gjennom MinSide: ' . $e->getMessage(), -1);
             return false;
         }
         

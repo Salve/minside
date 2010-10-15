@@ -28,6 +28,8 @@ class AdgangsException extends Exception { }
 
 class MinSide { // denne classen instansieres og gen_minside() kjøres for å generere minside
 
+const DEBUG = false;
+
 private static $_objMinside;
 
 private static $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
@@ -149,7 +151,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 		$result = $msdb->exec("INSERT INTO internusers (wikiname, createtime, lastlogin, isactive) VALUES (" . $msdb->quote($username) . ", now(), now(), '1');");
 		if ($result = 1) {
-			msg("Opprettet ny brukerid for bruker: $username",1); //debug
+			if(MinSide::DEBUG) msg("Opprettet ny brukerid for bruker: $username",1); //debug
 			return true;
 		} else {
 			return false; // klarte ikke å opprette bruker - db classen klikker sikkert før vi får returnert false her...
