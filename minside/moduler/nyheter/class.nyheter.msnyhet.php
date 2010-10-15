@@ -450,15 +450,23 @@ class MsNyhet {
         $sql[] = "DELETE
                 FROM nyheter_lest
                 WHERE nyhetid=$safenyhetid
-                LIMIT 1";
+                LIMIT 1;";
+        $sql[] = "DELETE
+                FROM nyheter_tag_x_nyhet
+                WHERE nyhetid=$safenyhetid;";
         $sql[] = "DELETE
                 FROM nyheter_nyhet
                 WHERE nyhetid=$safenyhetid
-                LIMIT 1";
+                LIMIT 1;";
                 
         $res = true;
-        foreach ($sql as $stmt) {
-            $res = ($res && ($msdb->exec($stmt) !== false));
+        try {
+            foreach ($sql as $stmt) {
+                $res = ($res && ($msdb->exec($stmt) !== false));
+            }
+        } catch(Exception $e) {
+            $msdb->rollBack();
+            return false;
         }
         if ($res) {
             $msdb->commit();
