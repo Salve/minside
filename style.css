@@ -558,6 +558,10 @@ div.minside div.nyhetcontent {
     margin-top:1em;
 }
 
+div.minside div.nyhetbody {
+    overflow: hidden;
+}
+
 div.minside img.sticky {
     height:1em;
     width:1em;
