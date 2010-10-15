@@ -296,6 +296,21 @@ class msmodul_nyheter implements msmodul {
             throw new Exception('Feil ved redigering av nyhet: Ugyldig kategori valgt!');
         }
         
+        // Tags
+        $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
+        $colSelectedTags = new NyhetTagCollection();
+        $arSelectedTags = (array) $_POST['nyhettags'];
+        foreach($arSelectedTags as $k => $v) {
+            $objTag = $colTags->getItem($k);
+            if($objTag instanceof NyhetTag) {
+                $colSelectedTags->additem($objTag, $objTag->getId());
+            } else {
+                msg('Tag med id: ' . htmlspecialchars($k) . ' er ikke kjent og kan ikke knyttes til nyhet!', -1);
+                continue;
+            }
+        }
+        $objNyhet->setTags($colSelectedTags, $act_preview);
+        
         // Publish time
         $acl = $objNyhet->getAcl();
         if ($acl >= MSAUTH_3) {

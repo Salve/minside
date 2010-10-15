@@ -66,6 +66,7 @@ class NyhetGen {
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
+        $tags_html = self::genTagList($nyhet->getTags());
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
 				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
@@ -139,6 +140,7 @@ class NyhetGen {
 				<div class=\"nyhetcontent\">
 					<div class=\"nyhetimgleft\">$img</div>
 					<div class=\"nyhetbody\">$body</div>
+                    $tags_html
 					<div class=\"msclearer\"></div>
 				</div>
 			</div>
@@ -186,7 +188,20 @@ class NyhetGen {
             '>' . $objKategori->getNavn() . '</option>';
         }
         $html_kategori .= '</select></div>'; // nyhetkategorivelger
-		
+        
+        // Tags
+        $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
+		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
+        $i = 0;
+        foreach ($colTags as $objTag) {
+            $i++;
+            $checked = ($objNyhet->hasTag($objTag)) ? 'checked="checked"' : '';
+            $html_tags .= '<input type="checkbox" class="edit" id="tag' . $i . 
+                '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
+                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label> \n";
+        }
+        $html_tags .= '</div>'; // nyhettagvelger
+        
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
 		$html_sticky = '<div class="nyhetvelgsticky">Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
@@ -275,6 +290,8 @@ class NyhetGen {
                                 <div class="msclearer"></div>'
                                 .(($html_calendar) ?: '')
                                 .$html_sticky. '
+                                <div class="msclearer"></div>'
+                                .$html_tags. '
                                 <div class="msclearer"></div>
                             </div>
                             <div id="wiki__editbar" >
@@ -429,5 +446,19 @@ class NyhetGen {
 		$timestamp = strtotime($sqltime);
 		return date(self::TIME_FORMAT, $timestamp);
 	}
+    
+    protected static function genTagList(NyhetTagCollection $colTags) {
+        if ($colTags->length() === 0) return '';
+        $output = "\n".'<div class="tags"><span>';
+        foreach($colTags as $objTag) {
+            // TODO: Fiks url når arkiv er implementert
+            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv" class="wikilink1" ' .
+                'title="tag:' . $objTag->getNavn() . '">' . $objTag->getNavn() . '</a>';
+        }
+        $output .= implode(', ', $arOutput);
+        $output .= '</span></div>';
+        
+        return $output;
+    }
 	
 }

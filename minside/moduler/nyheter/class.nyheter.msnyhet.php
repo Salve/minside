@@ -104,7 +104,7 @@ class MsNyhet {
         if (!$this->under_construction && !$nosave) {
             msg('Loading callback for kategori update'); // debug
             $this->_hasunsavedchanges = true;
-            $this->_dbcallback[] = $objInputTag->getKategoriUpdateFunction();
+            $this->_dbcallback['kategori'] = $objInputTag->getKategoriUpdateFunction();
         }
         return true;
     }
@@ -113,19 +113,36 @@ class MsNyhet {
         if (!isset($this->_coltags)) $this->_coltags = new NyhetTagCollection();
         return $this->_coltags;
     }
-    public function addTag(NyhetTag $input) {
-        if ($input->getType !== NyhetTag::TYPE_TAG) {
+    public function hasTag(NyhetTag $objInputTag) {
+        if ($objInputTag->getType() !== NyhetTag::TYPE_TAG) {
+            return false;
+        }
+        $colTag = $this->getTags();
+        return (bool) $colTag->exists($objInputTag->getId());
+    }
+    public function addTag(NyhetTag $objInputTag, $nosave = false) {
+        if (($objInputTag->getType() !== NyhetTag::TYPE_TAG) ||
+            !$objInputTag->isSaved()) {
             throw new Exception('Feil ved setting av tag på nyhet: Ikke gyldig tag-objekt.');
         }
-        if (!isset($this->_coltags)) $this->_coltags = new NyhetTagCollection();
-        $this->_coltags->additem($input);
-        if (!$this->under_construction) {
-            // update db her - TODO
+        $colTags = $this->getTags();
+        $colTags->additem($objInputTag, $objInputTag->getId());
+        if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
+            msg('Loading callback for tag update'); // debug
+            $this->_hasunsavedchanges = true;
+            $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($colTags);
         }
     }
-    public function addTags(NyhetTagCollection $input) {
-        foreach ($input as $objNyhetTag) {
-            $this->addTag($objNyhetTag);
+    public function setTags(NyhetTagCollection $colInputTags, $nosave = false) {
+        if ($colInputTags != $this->getTags()) {
+            $this->_coltags = $colInputTags;
+            if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
+                msg('Loading callback for tag update'); // debug
+                $this->_hasunsavedchanges = true;
+                $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($this->_coltags);
+            }
+        } else {
+            msg('Setting tags: no changes - no save'); // debug
         }
     }
 	

@@ -202,4 +202,58 @@ class NyhetTag {
             };
     }
     
+    public static function getTagUpdateFunction(NyhetTagCollection &$colTags) {
+        return function($nyhetid) use(&$colTags)
+            {
+                global $msdb;
+                $safenyhetid = $msdb->quote($nyhetid);
+                $safetype = NyhetTag::TYPE_TAG;
+                $arTags = array();
+                foreach($colTags as $objTag) {
+                    $arTags[] = '(' . $safenyhetid . ", '" . $objTag->getId() . "')";
+                }
+                $safeinsertvalues = implode(", \n", $arTags);
+                $deletesql = "DELETE FROM 
+                                nyheter_tag_x_nyhet    
+                            USING
+                                    nyheter_tag 
+                                INNER JOIN 
+                                    nyheter_tag_x_nyhet 
+                                ON 
+                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE 
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $insertsql = "INSERT INTO nyheter_tag_x_nyhet (nyhetid, tagid)
+                                VALUES
+                                $safeinsertvalues;";
+                $checksql = "SELECT
+                                COUNT(*)
+                            FROM
+                                nyheter_tag
+                            INNER JOIN
+                                nyheter_tag_x_nyhet
+                            ON
+                                nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $msdb->startTrans();
+                $msdb->exec($deletesql);
+                if ($colTags->length() > 0) {
+                    $msdb->exec($insertsql);
+                }
+                $res = $msdb->num($checksql);
+                if ($res[0][0] === (string) $colTags->length()) {
+                    $msdb->commit();
+                    return true;
+                } else {
+                    $msdb->rollBack();
+                    throw new Exception('Update DB feilet: Feil under knytning av tags og nyhet.');
+                }
+            };
+    }
+    
 }

@@ -602,15 +602,17 @@ div.minside div.nyhetoptions {
     margin-right: 0.5em;
 }
 
-div.minside div.nyhetbody {
-
-}
-
-div.dokuwiki div.nyhetbody div.tags {
+div.minside div.nyhetcontent div.tags {
 	border: none;
 	clear:both;
 	font-size:95%;
-	text-align:left;
+	text-align:right;
+    padding-top: 3px;
+}
+
+div.minside div.nyhetcontent div.tags span {
+    background:url("./minside/bilder/tag.gif") no-repeat scroll 0 1px transparent;
+    padding:1px 0 1px 16px;
 }
 
 div.minside div.nyhetimgleft {
@@ -673,7 +675,7 @@ div.minside div.nyhetpubdatovelger {
     float: left;
 }
 
-div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger {
+div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger, div.nyhettagvelger {
     padding-top:0.25em;
     padding-bottom:0.25em;
     padding-left:0.5em;

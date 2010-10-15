@@ -114,7 +114,7 @@ class NyhetTagFactory {
                             $objNyhet->setKategori($objTag);
                             break;
                         case NyhetTag::TYPE_TAG:
-                            $objNyhet->addTag($objTag);
+                            $objNyhet->addTag($objTag, false);
                             break;
                     }
                 }
