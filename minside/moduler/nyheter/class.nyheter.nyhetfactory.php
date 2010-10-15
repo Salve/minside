@@ -166,18 +166,22 @@ class NyhetFactory {
         
     }
     
-    protected static function createNyhetCollectionFromDbResult(array &$result) {
+    protected static function createNyhetCollectionFromDbResult(array &$result, $linktags=true) {
         $objNyhetCol = new NyhetCollection();
         
         foreach ($result as $row) {
-            $objNyhet = self::createNyhetsobjektFromDbRow($row);
+            $objNyhet = self::createNyhetsobjektFromDbRow($row, false);
             $objNyhetCol->addItem($objNyhet, $objNyhet->getId());
+        }
+        
+        if(($objNyhetCol->length() > 0) && $linktags) {
+            NyhetTagFactory::attachTagsToNyhetCollection($objNyhetCol);
         }
         
         return $objNyhetCol;
     }
     
-    protected static function createNyhetsobjektFromDbRow(&$row) {
+    protected static function createNyhetsobjektFromDbRow(&$row, $linktags=true) {
         
         if (empty($row) || !is_array($row)) {
             throw new Exception('Ingen eller ugyldig data gitt til factory');
@@ -206,6 +210,10 @@ class NyhetFactory {
 		$objNyhet->setPublishTime($row['pubtime']);
         
         $objNyhet->under_construction = false;
+        
+        if($linktags) {
+            NyhetTagFactory::attachTagsToNyhet($objNyhet);
+        }
         
         return $objNyhet;
         

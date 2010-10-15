@@ -36,7 +36,7 @@ class NyhetTag {
     public function __destruct() {
         if ($this->_hasunsavedchanges) {
             $id = $this->getId();
-            msg("NyhetTag $id destructed with unsaved changes", -1);
+            if(MinSide::DEBUG) msg("NyhetTag $id destructed with unsaved changes", -1);
         }
     }
     
@@ -94,10 +94,11 @@ class NyhetTag {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            // Debug
-            // $trace = debug_backtrace();
-            // $caller = $trace[1]['function'];
-            // msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            if(MinSide::DEBUG) {
+                $trace = debug_backtrace();
+                $caller = $trace[1]['function'];
+                msg('Endring av nyhet_tag fra funksjon: ' . $caller);
+            }
             
             $this->_hasunsavedchanges = true;
 		}
@@ -149,6 +150,111 @@ class NyhetTag {
         $sql = "UPDATE nyheter_tag SET is_deleted = 1 WHERE tagid = $safeid LIMIT 1";
         
         return (bool) $msdb->exec($sql);
+    }
+    
+    public function getKategoriUpdateFunction() {
+        if (!$this->isSaved()) throw new Exception('Kan ikke generere DB-update funksjon for kategori som ikke er lagret.');
+        if ($this->getType() !== self::TYPE_KATEGORI) throw new Exception('Kan ikke generere DB-update funksjon for tags som ikke er av type kategori.');
+        $tagid = $this->getId();
+        return function($nyhetid) use ($tagid)
+            {
+                global $msdb;
+                $safekatid = $msdb->quote($tagid);
+                $safenyhetid = $msdb->quote($nyhetid);
+                $safetype = NyhetTag::TYPE_KATEGORI;
+                $deletesql = "DELETE FROM 
+                                nyheter_tag_x_nyhet    
+                            USING
+                                    nyheter_tag 
+                                INNER JOIN 
+                                    nyheter_tag_x_nyhet 
+                                ON 
+                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE 
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $insertsql = "INSERT INTO nyheter_tag_x_nyhet
+                                SET tagid = $safekatid, 
+                                    nyhetid = $safenyhetid;";
+                $checksql = "SELECT
+                                COUNT(*)
+                            FROM
+                                nyheter_tag
+                            INNER JOIN
+                                nyheter_tag_x_nyhet
+                            ON
+                                nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $msdb->startTrans();
+                $msdb->exec($deletesql);
+                $msdb->exec($insertsql);
+                $res = $msdb->num($checksql);
+                if ($res[0][0] === '1') {
+                    $msdb->commit();
+                    return true;
+                } else {
+                    $msdb->rollBack();
+                    throw new Exception('Update DB feilet: Feil under knytning av kategori og nyhet.');
+                }
+            };
+    }
+    
+    public static function getTagUpdateFunction(NyhetTagCollection &$colTags) {
+        return function($nyhetid) use(&$colTags)
+            {
+                global $msdb;
+                $safenyhetid = $msdb->quote($nyhetid);
+                $safetype = NyhetTag::TYPE_TAG;
+                $arTags = array();
+                foreach($colTags as $objTag) {
+                    $arTags[] = '(' . $safenyhetid . ", '" . $objTag->getId() . "')";
+                }
+                $safeinsertvalues = implode(", \n", $arTags);
+                $deletesql = "DELETE FROM 
+                                nyheter_tag_x_nyhet    
+                            USING
+                                    nyheter_tag 
+                                INNER JOIN 
+                                    nyheter_tag_x_nyhet 
+                                ON 
+                                    nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE 
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $insertsql = "INSERT INTO nyheter_tag_x_nyhet (nyhetid, tagid)
+                                VALUES
+                                $safeinsertvalues;";
+                $checksql = "SELECT
+                                COUNT(*)
+                            FROM
+                                nyheter_tag
+                            INNER JOIN
+                                nyheter_tag_x_nyhet
+                            ON
+                                nyheter_tag.tagid = nyheter_tag_x_nyhet.tagid
+                            WHERE
+                                    nyheter_tag_x_nyhet.nyhetid = $safenyhetid
+                                AND
+                                    nyheter_tag.tagtype = $safetype;";
+                $msdb->startTrans();
+                $msdb->exec($deletesql);
+                if ($colTags->length() > 0) {
+                    $msdb->exec($insertsql);
+                }
+                $res = $msdb->num($checksql);
+                if ($res[0][0] === (string) $colTags->length()) {
+                    $msdb->commit();
+                    return true;
+                } else {
+                    $msdb->rollBack();
+                    throw new Exception('Update DB feilet: Feil under knytning av tags og nyhet.');
+                }
+            };
     }
     
 }

@@ -247,12 +247,18 @@ class msmodul_nyheter implements msmodul {
         
         // Validation
         if (strlen(trim($_POST['nyhettitle'])) == 0) {
-            msg('Nyhet ikke lagret: Overskrift kan ikke være blank.', -1);
+            msg('Obligatorisk data mangler: Overskrift kan ikke være blank.', -1);
             $act_preview = true;
         }
 
         if (strlen(trim($_POST['wikitext'])) == 0) {
-            msg('Nyhet ikke lagret: Nyhet-tekst kan ikke være blank.', -1);
+            msg('Obligatorisk data mangler: Nyhet-tekst kan ikke være blank.', -1);
+            $act_preview = true;
+        }
+        
+        $inputkategori = $_POST['nyhetkategori'];
+        if ($inputkategori == '0') {
+            msg('Obligatorisk data mangler: Kategori må velges.', -1);
             $act_preview = true;
         }
         
@@ -275,6 +281,35 @@ class msmodul_nyheter implements msmodul {
         }
 		$objNyhet->setIsSticky(($_POST['nyhetsticky'] == 'sticky') ? true : false);
 		$objNyhet->setImagePath($_POST['nyhetbilde']);
+        
+        // Kategori
+        $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
+        foreach($colKategorier as $objKategori) {
+            if ($objKategori->getNavn() === $inputkategori) {
+                $objFoundKategori = $objKategori;
+                break;
+            }
+        }
+        if($objFoundKategori instanceof NyhetTag) {
+            $objNyhet->setKategori($objFoundKategori, $act_preview);
+        } elseif (!$act_preview) {
+            throw new Exception('Feil ved redigering av nyhet: Ugyldig kategori valgt!');
+        }
+        
+        // Tags
+        $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
+        $colSelectedTags = new NyhetTagCollection();
+        $arSelectedTags = (array) $_POST['nyhettags'];
+        foreach($arSelectedTags as $k => $v) {
+            $objTag = $colTags->getItem($k);
+            if($objTag instanceof NyhetTag) {
+                $colSelectedTags->additem($objTag, $objTag->getId());
+            } else {
+                msg('Tag med id: ' . htmlspecialchars($k) . ' er ikke kjent og kan ikke knyttes til nyhet!', -1);
+                continue;
+            }
+        }
+        $objNyhet->setTags($colSelectedTags, $act_preview);
         
         // Publish time
         $acl = $objNyhet->getAcl();
@@ -302,11 +337,11 @@ class msmodul_nyheter implements msmodul {
                     $objNyhet->update_db();
                     $objNyhet = NyhetFactory::getNyhetById($objNyhet->getId());
                 } catch (Exception $e) {
-                    msg('Klarte ikke å lagre nyhet!', -1);
+                    msg('Klarte ikke å lagre nyhet: ' . $e->getMessage(), -1);
                     return false;
                 }
             } else {
-                msg('Lagring av nyhet: nyhet ikke endret.');
+                if(MinSide::DEBUG) msg('Lagring av nyhet: nyhet ikke endret.');
             }
             
             return NyhetGen::genFullNyhet($objNyhet);
@@ -370,7 +405,7 @@ class msmodul_nyheter implements msmodul {
 	}
     
     public function update_nyhet_from_wp() {
-        msg('Oppdaterer nyhet basert på ekstern redigering');
+        if(MinSide::DEBUG) msg('Oppdaterer nyhet basert på ekstern redigering');
         
         $data = $this->_msmodulvars;
         
@@ -401,10 +436,16 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        ($objNyhet->merkLest($this->_userID))?
-            msg("Merket nyhetid $inputid som lest", 1):
-            msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
         
+        if ($objNyhet->merkLest($this->_userID)) {
+            if(MinSide::DEBUG) {
+                msg("Merket nyhetid $inputid som lest", 1);
+            }
+        } else {
+            if(MinSide::DEBUG) {
+                msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
+            }
+        }
     }
     
     public function merk_alle_lest() {
@@ -542,7 +583,7 @@ class msmodul_nyheter implements msmodul {
         if (count($sql)) {
             msg('Lagret endringer i områdeadmin.', 1);
         } else {
-            msg('Ingen endringer å lagre i områdeadmin.');
+            if(MinSide::DEBUG) msg('Ingen endringer å lagre i områdeadmin.');
         }
         
     }

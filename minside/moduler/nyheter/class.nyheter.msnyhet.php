@@ -31,6 +31,11 @@ class MsNyhet {
 	protected $_htmlbody;
 	protected $_wikihash;
 	protected $_wikitekst;
+    
+    protected $_objkategori;
+    protected $_coltags;
+    
+    private $_dbcallback = array();
 	
 	public function __construct($isSaved = false, $id = null) {
 		if ($isSaved && !$id) {
@@ -42,9 +47,11 @@ class MsNyhet {
 	}
     
     public function __destruct() {
-        if ($this->hasUnsavedChanges()) {
-            $id = $this->getId();
-            msg("Nyhet $id destructed with unsaved changes", -1);
+        if(MinSide::DEBUG) {
+            if ($this->hasUnsavedChanges()) {
+                $id = $this->getId();
+                msg("Nyhet $id destructed with unsaved changes", -1);
+            }
         }
     }
 	
@@ -74,12 +81,72 @@ class MsNyhet {
 		if (!$this->under_construction) {
 			$colOmrader = NyhetOmrade::getOmrader('msnyheter', AUTH_CREATE);
 			if (!$colOmrader->exists($input)) {
-				throw new Exception('Ugyldig område angitt!');
+				throw new Exception('Ugyldig område angitt: ' . htmlspecialchars($input));
 			}
 		}
 		
         return $this->set_var($this->_omrade, $input);
 	}
+    
+    public function getKategori() {
+        if (!isset($this->_objkategori)) $this->_objkategori = NyhetTagFactory::getBlankKategori();
+        return $this->_objkategori;
+    }
+    public function getKategoriNavn() {
+        if (!isset($this->_objkategori)) $this->_objkategori = NyhetTagFactory::getBlankKategori();
+        return $this->_objkategori->getNavn();
+    }
+    public function setKategori(NyhetTag $objInputTag, $nosave = false) {
+        if (($objInputTag->getType() !== NyhetTag::TYPE_KATEGORI) ||
+             !$objInputTag->isSaved()) {
+            throw new Exception('Feil ved setting av kategori på nyhet: Ikke gyldig kategori-objekt.');
+        }
+        if ($this->getKategori() == $objInputTag) return false;
+        $this->_objkategori = $objInputTag;
+        if (!$this->under_construction && !$nosave) {
+            if(MinSide::DEBUG) msg('Loading callback for kategori update'); // debug
+            $this->_hasunsavedchanges = true;
+            $this->_dbcallback['kategori'] = $objInputTag->getKategoriUpdateFunction();
+        }
+        return true;
+    }
+    
+    public function getTags() {
+        if (!isset($this->_coltags)) $this->_coltags = new NyhetTagCollection();
+        return $this->_coltags;
+    }
+    public function hasTag(NyhetTag $objInputTag) {
+        if ($objInputTag->getType() !== NyhetTag::TYPE_TAG) {
+            return false;
+        }
+        $colTag = $this->getTags();
+        return (bool) $colTag->exists($objInputTag->getId());
+    }
+    public function addTag(NyhetTag $objInputTag, $nosave = false) {
+        if (($objInputTag->getType() !== NyhetTag::TYPE_TAG) ||
+            !$objInputTag->isSaved()) {
+            throw new Exception('Feil ved setting av tag på nyhet: Ikke gyldig tag-objekt.');
+        }
+        $colTags = $this->getTags();
+        $colTags->additem($objInputTag, $objInputTag->getId());
+        if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
+            if(MinSide::DEBUG) msg('Loading callback for tag update'); // debug
+            $this->_hasunsavedchanges = true;
+            $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($colTags);
+        }
+    }
+    public function setTags(NyhetTagCollection $colInputTags, $nosave = false) {
+        if ($colInputTags != $this->getTags()) {
+            $this->_coltags = $colInputTags;
+            if (!$this->under_construction && !$nosave && !isset($this->_dbcallback['tags'])) {
+                if(MinSide::DEBUG) msg('Loading callback for tag update'); // debug
+                $this->_hasunsavedchanges = true;
+                $this->_dbcallback['tags'] = NyhetTag::getTagUpdateFunction($this->_coltags);
+            }
+        } else {
+            if(MinSide::DEBUG) msg('Setting tags: no changes - no save'); // debug
+        }
+    }
 	
 	public function getPublishTime() {
 		return $this->_pubtime;
@@ -280,13 +347,13 @@ class MsNyhet {
         $newhash = md5($input);
         $oldhash = $this->getWikiHash();
         if ($newhash != $oldhash) {
-            msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
+            if(MinSide::DEBUG) msg("Wikitekst has changed; old hash: $oldhash new hash: $newhash");
             $this->_wikitekst = $input;
             $this->setWikiHash($newhash);
             if (!$nowrite) { $this->write_wikitext(); }
             $this->update_html();
         } else {
-            msg('setWikiTekst called, no changes');
+            if(MinSide::DEBUG) msg('setWikiTekst called, no changes');
         }
         
         return true;
@@ -307,9 +374,11 @@ class MsNyhet {
 		
 		if (!$this->under_construction && ($var != $value)) {
             
-            $trace = debug_backtrace();
-            $caller = $trace[1]['function'];
-            msg('Endring av nyhet fra funksjon: ' . $caller);
+            if(MinSide::DEBUG) {
+                $trace = debug_backtrace();
+                $caller = $trace[1]['function'];
+                msg('Endring av nyhet fra funksjon: ' . $caller);
+            }
             
             $this->_hasunsavedchanges = true;
 		}
@@ -443,12 +512,12 @@ class MsNyhet {
 		$resultat = saveWikiText($id, $text, $summary, $minor);
         $GLOBALS['ms_writing_to_dw'] = false;
 
-		msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
+		if(MinSide::DEBUG) msg('saveWikiText kallt, path: ' . $id . ' textlen: ' . strlen($text));
         
 	}
     
     public function update_html() {
-        msg('update html kallt');
+        if(MinSide::DEBUG) msg('update html kallt');
         global $conf;
         $keep = $conf['allowdebug'];
         $conf['allowdebug'] = 0;
@@ -466,7 +535,7 @@ class MsNyhet {
     }
     
     public function update_db() {
-        msg('update db kallt');
+        if(MinSide::DEBUG) msg('update db kallt');
         global $msdb;
         
         $safeid = $msdb->quote($this->getId());
@@ -507,7 +576,6 @@ class MsNyhet {
         
         $sql = $presql . $midsql . $postsql;
         $res = $msdb->exec($sql);
-        $this->_hasunsavedchanges = false;
         
         if(!$this->isSaved()) {
             $this->setId($msdb->getLastInsertId());
@@ -515,6 +583,12 @@ class MsNyhet {
         
         $this->_issaved = true;
         
+        foreach($this->_dbcallback as $func) {
+            if(MinSide::DEBUG) msg('Running callback!');
+            $func($this->getId());
+        }
+        
+        $this->_hasunsavedchanges = false;
         // return true dersom db ble endret
         return (bool) $res;
     }
