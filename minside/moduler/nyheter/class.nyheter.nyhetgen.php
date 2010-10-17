@@ -436,6 +436,126 @@ class NyhetGen {
         
         return $output;
     }
+    
+    public static function genArkivOptions() {
+    
+        // Datofilter
+        $html_datofilter = 
+            'Fradato: <input class="edit" type="text" name="fdato" value="'.((hsc($_GET['fdato']))?:'').'" /><br />
+             Tildato: <input class="edit" type="text" name="tdato" value="'.((hsc($_GET['tdato']))?:'').'" /><br />
+            ';
+        
+        // Overskriftfilter
+        $html_overskriftfilter =
+            '<input class="edit" type="text" name="oskrift" value="'.((hsc($_GET['oskrift']))?:'').'" /><br />
+            Støtter wildcards (* eller %)';
+        // Tagfilter
+        
+        // Kategorifilter
+        $colKat = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_KATEGORI);
+        foreach($colKat as $objKat) {
+            $selected = (in_array($objKat->getId(), (array) $_GET['fkat'])) ? ' selected' : '';
+            $katopts .= '<option value="' . $objKat->getId() . "\"$selected>" . $objKat->getNavn() . '</option>';
+        }
+        $html_kategorifilter = 
+            '<select name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
+            Hold inne ctrl for å velge flere.';
+            
+        // Tagfilter
+        $colTag = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_TAG);
+        foreach($colTag as $objTag) {
+            $selected = (in_array($objTag->getId(), (array) $_GET['ftag'])) ? ' selected' : '';
+            $tagopts .= '<option value="' . $objTag->getId() . "\"$selected>" . $objTag->getNavn() . '</option>';
+        }
+        if ($_GET['tagfilter'] == 'AND') {
+            $tfANDchecked = ' checked';
+            $tfORchecked = '';
+        } else {
+            $tfANDchecked = '';
+            $tfORchecked = ' checked';
+        }
+        $html_tagfilter = 
+            '<select name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
+            Hold inne ctrl for å velge flere.<br />
+            <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
+            <label for="tfOR">Minst en av valgte tags</label><br />
+            <input type="radio" id="tfAND" name="tagfilter" value="AND"'.$tfANDchecked.' />
+            <label for="tfAND">Alle valgte tags</label>';
+        
+        // Sortering
+        
+        // Submit
+        $html_submit = '<input class="edit" type="submit" />';
+        
+        // "Template"
+        $output = '
+            <div class="arkivoptions">
+                <form method="GET">
+                <input type="hidden" name="do" value="minside" />
+                <input type="hidden" name="page" value="nyheter" />
+                <input type="hidden" name="act" value="arkiv" />
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Dato-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_datofilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Overskrift-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_overskriftfilter.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Tag-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_tagfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Kategori-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_kategorifilter.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Sortering</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_sortering.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Søk</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_submit.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+        ';
+        
+        $output .= '</form></div>'; // arkivoptions
+        return $output;
+    }
 	
 	protected static function getMailLink($name, $epost) {
 		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';

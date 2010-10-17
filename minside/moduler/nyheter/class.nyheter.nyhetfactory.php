@@ -35,6 +35,46 @@ class NyhetFactory {
 		LEFT JOIN internusers AS deleteby
 			ON nyheter_nyhet.deleteby = deleteby.id
 		';
+    
+    const SQL_TAG_AND_JOIN_FORMAT =
+        ' LEFT JOIN
+        (
+            SELECT 
+                tagbind.nyhetid AS nyhetid
+            FROM 
+                nyheter_tag_x_nyhet AS tagbind
+            WHERE 
+                tagbind.tagid IN(%1$s)
+            GROUP BY 
+                tagbind.nyhetid
+            HAVING 
+                count(tagbind.nyhetid) = \'%2$u\'
+        ) AS taghits ON taghits.nyhetid = nyheter_nyhet.nyhetid
+        ';
+    
+    const SQL_TAG_OR_JOIN_FORMAT =
+        ' LEFT JOIN
+        (
+            SELECT 
+                DISTINCT tagbind.nyhetid AS nyhetid
+            FROM 
+                nyheter_tag_x_nyhet AS tagbind
+            WHERE 
+                tagbind.tagid IN(%1$s)
+        ) AS taghits ON taghits.nyhetid = nyheter_nyhet.nyhetid
+        ';
+    
+    const SQL_KATEGORI_JOIN_FORMAT =
+        ' LEFT JOIN
+        (
+            SELECT
+                DISTINCT katbind.nyhetid AS nyhetid
+            FROM
+                nyheter_tag_x_nyhet AS katbind
+            WHERE
+                katbind.tagid IN(%1$s)
+        ) AS kathits ON kathits.nyhetid = nyheter_nyhet.nyhetid
+        ';
 	
     private function __construct() { }
     
@@ -163,6 +203,65 @@ class NyhetFactory {
         $res = $msdb->assoc($sql);
         
         return self::createNyhetsobjektFromDbRow($res[0]);
+        
+    }
+    
+    public static function getNyheterMedLimits(array $limits=array()) {
+        global $msdb;
+        
+        $omrader = self::getSafeOmrader(MSAUTH_1);
+        
+        $where = array();
+        $join = array();
+        
+        // Kategorier
+        if (array_key_exists('fkat', $limits) && is_array($limits['fkat']) && sizeof($limits['fkat'])) {
+            $arsafekat = array();
+            foreach ($limits['fkat'] as $katid) {
+                $arsafekat[] = $msdb->quote($katid);
+            }
+            $katlist = implode(', ', $arsafekat);
+            $join[] = sprintf(self::SQL_KATEGORI_JOIN_FORMAT, $katlist);
+            $where[] = "kathits.nyhetid IS NOT NULL";
+        }
+        // Tags
+        if (array_key_exists('ftag', $limits) && is_array($limits['ftag']['data']) && 
+            sizeof($limits['ftag']['data']) && !empty($limits['ftag']['mode'])) {
+            $arsafetag = array();
+            foreach ($limits['ftag']['data'] as $tagid) {
+                $arsafetag[] = $msdb->quote($tagid);
+            }
+            $taglist = implode(', ', $arsafetag);
+            if($limits['ftag']['mode'] == 'OR') {
+                $join[] = sprintf(self::SQL_TAG_OR_JOIN_FORMAT, $taglist);
+            } else {
+                $join[] = sprintf(self::SQL_TAG_AND_JOIN_FORMAT, $taglist, count($arsafetag));
+            }
+            $where[] = "taghits.nyhetid IS NOT NULL";
+        }
+        // Fradato
+        if (array_key_exists('fdato', $limits)) $where[] = "pubtime >= '" . $limits['fdato'] . "'";
+        // Tildato
+        if (array_key_exists('tdato', $limits)) $where[] = "pubtime <= '" . $limits['tdato'] . "'";
+        // Overskriftsøk
+        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote($limits['oskrift']);
+        
+        
+        $sql_where = implode(' AND ', $where);
+        $sql_join = implode(" \n", $join);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+            (($sql_join) ?: '' ) .
+			" WHERE pubtime < NOW()
+                " . (($sql_where) ? " AND $sql_where" : '' ) .
+				" AND nyheter_nyhet.omrade IN ($omrader)
+				AND deletetime IS NULL
+			ORDER BY pubtime DESC
+            LIMIT 10000;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
         
     }
     

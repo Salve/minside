@@ -146,18 +146,50 @@ class msmodul_nyheter implements msmodul {
 	}
     
     public function gen_nyhet_arkiv() {
-    
-        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter($this->_userID);
+        
+        $output = NyhetGen::genArkivOptions();
+        
+        // Fradato
+        $limits = array();
+        if (!empty($_GET['fdato'])) {
+            $timestamp = strtotime($_GET['fdato']);
+            if($timestamp !== false) {
+                $limits['fdato'] = date('Y-m-d', $timestamp) . ' 00:00:00';
+            }
+        }
+        // Tildato
+        if (!empty($_GET['tdato'])) {
+            $timestamp = strtotime($_GET['tdato']);
+            if($timestamp !== false) {
+                $limits['tdato'] = date('Y-m-d', $timestamp) . ' 23:59:59';
+            }
+        }
+        // Overskriftsøk
+        if (!empty($_GET['oskrift'])) {
+            $limits['oskrift'] = str_replace('*', '%', trim($_GET['oskrift']));
+        }
+        // Kategori
+        $arInputKat = (array) $_GET['fkat'];
+        if (!empty($arInputKat)) {
+            $limits['fkat'] = $arInputKat;
+        }
+        // Tags
+        $arInputTag = (array) $_GET['ftag'];
+        if (!empty($arInputTag)) {
+            $limits['ftag']['data'] = $arInputTag;
+            $limits['ftag']['mode'] = ($_GET['tagfilter'] == 'AND') ? 'AND' : 'OR';
+        }
+        
+        $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
         
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return $output . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
 		}
-		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv');
         }
                 
-		return '<strong>DETTE ER EN MIDLERTIDIG LISTE OVER ALLE NYHETER!<br />Arkiv kommer...</strong><br /><br />' . $output;
+		return $output;
         
     }
     
