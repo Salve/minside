@@ -209,8 +209,6 @@ class NyhetFactory {
     public static function getNyheterMedLimits(array $limits=array()) {
         global $msdb;
         
-        $omrader = self::getSafeOmrader(MSAUTH_1);
-        
         $where = array();
         $join = array();
         
@@ -239,13 +237,30 @@ class NyhetFactory {
             }
             $where[] = "taghits.nyhetid IS NOT NULL";
         }
+        // Publishers
+        if (array_key_exists('fpublishers', $limits) && is_array($limits['fpublishers']) && sizeof($limits['fpublishers'])) {
+            $arsafepub = array();
+            foreach ($limits['fpublishers'] as $pubid) {
+                $arsafepub[] = $msdb->quote($pubid);
+            }
+            $publist = implode(', ', $arsafepub);
+            $where[] = "createby.id IN($publist)";
+        }
         // Fradato
-        if (array_key_exists('fdato', $limits)) $where[] = "pubtime >= '" . $limits['fdato'] . "'";
+        if (array_key_exists('fdato', $limits)) $where[] = "pubtime >= '" . date('Y-m-d', $limits['fdato']) . ' 00:00:00' . "'";
         // Tildato
-        if (array_key_exists('tdato', $limits)) $where[] = "pubtime <= '" . $limits['tdato'] . "'";
+        if (array_key_exists('tdato', $limits)) $where[] = "pubtime <= '" . date('Y-m-d', $limits['tdato']) . ' 23:59:59' . "'";
         // Overskriftsøk
-        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote($limits['oskrift']);
-        
+        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace('*', '%', $limits['oskrift']));
+        // Sortorder
+        $safesortorder = ($limits['sortorder']) ?: 'DESC';
+        // Områder
+        if (array_key_exists('fomrader', $limits)) {
+            $wantedomrader = $limits['fomrader'];
+        } else {
+            $wantedomrader = array();
+        }
+        $omrader = self::getSafeOmrader(MSAUTH_1, $wantedomrader);
         
         $sql_where = implode(' AND ', $where);
         $sql_join = implode(" \n", $join);
@@ -257,7 +272,7 @@ class NyhetFactory {
                 " . (($sql_where) ? " AND $sql_where" : '' ) .
 				" AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY pubtime DESC
+			ORDER BY pubtime $safesortorder
             LIMIT 10000;";
         $res = $msdb->assoc($sql);
         
@@ -318,13 +333,18 @@ class NyhetFactory {
         
     }
     
-	protected static function getSafeOmrader($auth) {
+	protected static function getSafeOmrader($auth, array $wantedomrader=array()) {
 		global $msdb;
-		
+        
+        // Wantedomrader er array med områder bruker ønsker å filtrere (i arkivet)
+		$docheck = (bool) sizeof($wantedomrader);
+        
 		$colOmrader = NyhetOmrade::getOmrader('msnyheter', $auth);
 		$arOmrader = array();
 		foreach ($colOmrader as $objOmrade) {
-			$arOmrader[] = $msdb->quote($objOmrade->getOmrade());
+            if(!$docheck || in_array($objOmrade->getOmrade(), $wantedomrader)) {
+                $arOmrader[] = $msdb->quote($objOmrade->getOmrade());
+            }
 		}
 		$omrader = implode(',', $arOmrader);
 		return ($omrader) ?: "''";

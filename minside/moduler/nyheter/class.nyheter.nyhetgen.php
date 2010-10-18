@@ -437,37 +437,63 @@ class NyhetGen {
         return $output;
     }
     
-    public static function genArkivOptions() {
+    public static function genArkivOptions(array $data=array()) {
     
         // Datofilter
+        // Fradato
+        $infdato = $data['fdato'];
+        $objCalendarFra = new tc_calendar("fdato", true);
+        if ($infdato) {
+            $objCalendarFra->setDate(date('d', $infdato), date('m', $infdato), date('Y', $infdato));
+        }
+        $objCalendarFra->setPath('lib/plugins/minside/minside/');
+        $objCalendarFra->startMonday(true);
+        $objCalendarFra->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        ob_start(); // må ta vare på output...
+        $objCalendarFra->writeScript();
+        $html_datofra = ob_get_clean();
+        
+        // Tildato
+        $intdato = $data['tdato'];
+        $objCalendarTil = new tc_calendar("tdato", true);
+        if ($intdato) {
+            $objCalendarTil->setDate(date('d', $intdato), date('m', $intdato), date('Y', $intdato));
+        }
+        $objCalendarTil->setPath('lib/plugins/minside/minside/');
+        $objCalendarTil->startMonday(true);
+        $objCalendarTil->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        ob_start(); // må ta vare på output...
+        $objCalendarTil->writeScript();
+        $html_datotil = ob_get_clean();
+        
         $html_datofilter = 
-            'Fradato: <input class="edit" type="text" name="fdato" value="'.((hsc($_GET['fdato']))?:'').'" /><br />
-             Tildato: <input class="edit" type="text" name="tdato" value="'.((hsc($_GET['tdato']))?:'').'" /><br />
+            'Fradato: '.$html_datofra.'<br />
+             Tildato: '.$html_datotil.'<br />
             ';
         
         // Overskriftfilter
         $html_overskriftfilter =
-            '<input class="edit" type="text" name="oskrift" value="'.((hsc($_GET['oskrift']))?:'').'" /><br />
+            '<input class="edit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br />
             Støtter wildcards (* eller %)';
         // Tagfilter
         
         // Kategorifilter
         $colKat = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_KATEGORI);
         foreach($colKat as $objKat) {
-            $selected = (in_array($objKat->getId(), (array) $_GET['fkat'])) ? ' selected' : '';
+            $selected = (in_array($objKat->getId(), (array) $data['fkat'])) ? ' selected' : '';
             $katopts .= '<option value="' . $objKat->getId() . "\"$selected>" . $objKat->getNavn() . '</option>';
         }
         $html_kategorifilter = 
-            '<select name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
+            '<select class="edit tagselect" name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
             Hold inne ctrl for å velge flere.';
             
         // Tagfilter
         $colTag = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_TAG);
         foreach($colTag as $objTag) {
-            $selected = (in_array($objTag->getId(), (array) $_GET['ftag'])) ? ' selected' : '';
+            $selected = (in_array($objTag->getId(), (array) $data['ftag']['data'])) ? ' selected' : '';
             $tagopts .= '<option value="' . $objTag->getId() . "\"$selected>" . $objTag->getNavn() . '</option>';
         }
-        if ($_GET['tagfilter'] == 'AND') {
+        if ($data['ftag']['mode'] == 'AND') {
             $tfANDchecked = ' checked';
             $tfORchecked = '';
         } else {
@@ -475,7 +501,7 @@ class NyhetGen {
             $tfORchecked = ' checked';
         }
         $html_tagfilter = 
-            '<select name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
+            '<select class="edit tagselect" name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
             Hold inne ctrl for å velge flere.<br />
             <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
             <label for="tfOR">Minst en av valgte tags</label><br />
@@ -483,17 +509,54 @@ class NyhetGen {
             <label for="tfAND">Alle valgte tags</label>';
         
         // Sortering
+        if ($data['sortorder'] == 'ASC') {
+            $sortASCyes = ' checked';
+            $sortASCno = '';
+        } else {
+            $sortASCyes = '';
+            $sortASCno = ' checked';
+        }
+        $html_sortering = '
+            <input type="radio" id="sortASCyes" name="sortASC" value="y"'.$sortASCyes.' />
+            <label for="sortASCyes">Eldste først</label><br />
+            <input type="radio" id="sortASCno" name="sortASC" value="n"'.$sortASCno.' />
+            <label for="sortASCno">Nyeste først</label>';
         
-        // Submit
-        $html_submit = '<input class="edit" type="submit" />';
+        // Publisert av
+        $arPublishers = MsNyhet::getBrukereSomHarPublisertNyheter();
+        foreach($arPublishers as $publisher) {
+            $selected = (in_array($publisher['id'], (array) $data['fpublishers'])) ? ' selected' : '';
+            $pubopts .= '<option value="' . $publisher['id'] . "\"$selected>" . $publisher['navn'] . '</option>';
+        }
+        $html_publisherfilter = 
+            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple>'. $pubopts .'</select><br />
+            Hold inne ctrl for å velge flere.';
+            
+        // Handlinger
+        $html_handlinger = 
+            '<input class="edit" type="submit" name="dofilter" value="Utfør søk" />
+             <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
+             
+        // Områdefilter
+        $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_1);
+        if ($colOmrader->length() > 1) {
+            foreach($colOmrader as $objOmrade) {
+                $selected = (in_array($objOmrade->getOmrade(), (array) $data['fomrader'])) ? ' selected' : '';
+                $omradeopts .= '<option value="' . $objOmrade->getOmrade() . "\"$selected>" . $objOmrade->getVisningsnavn() . '</option>';
+            }
+            $html_omradefilter = 
+                '<select class="edit tagselect" name="fomrader[]" size="7" multiple>'. $omradeopts .'</select><br />
+                Hold inne ctrl for å velge flere.';
+        } else {
+            $html_omradefilter =
+                'Du har ikke tilgang til mer enn ett område.<br />
+                Dette filteret er derfor ikke tilgjengelig.';
+        }
         
         // "Template"
         $output = '
             <div class="arkivoptions">
-                <form method="GET">
-                <input type="hidden" name="do" value="minside" />
-                <input type="hidden" name="page" value="nyheter" />
-                <input type="hidden" name="act" value="arkiv" />
+                <form method="POST" action"'.MS_NYHETER_LINK.'&act=arkiv">
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
@@ -505,10 +568,10 @@ class NyhetGen {
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <strong>Overskrift-filter</strong>
+                            <strong>Sortering</strong>
                         </div>
                         <div class="gruppecontent">
-                            '.$html_overskriftfilter.'
+                            '.$html_sortering.'
                         </div>
                     </div>
                 </div>
@@ -535,25 +598,45 @@ class NyhetGen {
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
-                            <strong>Sortering</strong>
+                            <strong>Publisert av</strong>
                         </div>
                         <div class="gruppecontent">
-                            '.$html_sortering.'
+                            '.$html_publisherfilter.'
                         </div>
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <strong>Søk</strong>
+                            <strong>Område-filter</strong>
                         </div>
                         <div class="gruppecontent">
-                            '.$html_submit.'
+                            '.$html_omradefilter.'
                         </div>
                     </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Overskrift-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_overskriftfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Handlinger</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_handlinger.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                </form>
         ';
         
-        $output .= '</form></div>'; // arkivoptions
+        $output .= '</div>'; // arkivoptions
         return $output;
     }
 	

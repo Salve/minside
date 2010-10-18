@@ -627,4 +627,22 @@ class MsNyhet {
         
         return (bool) $msdb->exec($sql);
     }
+    
+    public static function getBrukereSomHarPublisertNyheter() {
+        global $msdb;
+        
+        $sql = "
+            SELECT
+                users.id AS id,
+                users.wikifullname AS navn
+            FROM
+                internusers AS users
+            LEFT JOIN
+                nyheter_nyhet AS nyhet ON users.id = nyhet.createby
+            WHERE nyhet.createby IS NOT NULL
+            GROUP BY users.id;";
+        
+        return $msdb->assoc($sql);
+
+    }
 }

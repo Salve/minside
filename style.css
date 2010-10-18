@@ -724,7 +724,7 @@ div.minside div.arkivoptions div.arkivbar {
     border-style: none none solid none
 }
 
-div.minside div.arkivoptions select {
+div.minside div.arkivoptions select.tagselect {
     width: 80%;
 }
 

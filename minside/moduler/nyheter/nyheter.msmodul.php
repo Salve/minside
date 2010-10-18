@@ -147,40 +147,58 @@ class msmodul_nyheter implements msmodul {
     
     public function gen_nyhet_arkiv() {
         
-        $output = NyhetGen::genArkivOptions();
-        
-        // Fradato
         $limits = array();
-        if (!empty($_GET['fdato'])) {
-            $timestamp = strtotime($_GET['fdato']);
-            if($timestamp !== false) {
-                $limits['fdato'] = date('Y-m-d', $timestamp) . ' 00:00:00';
-            }
-        }
-        // Tildato
-        if (!empty($_GET['tdato'])) {
-            $timestamp = strtotime($_GET['tdato']);
-            if($timestamp !== false) {
-                $limits['tdato'] = date('Y-m-d', $timestamp) . ' 23:59:59';
-            }
-        }
-        // Overskriftsøk
-        if (!empty($_GET['oskrift'])) {
-            $limits['oskrift'] = str_replace('*', '%', trim($_GET['oskrift']));
-        }
-        // Kategori
-        $arInputKat = (array) $_GET['fkat'];
-        if (!empty($arInputKat)) {
-            $limits['fkat'] = $arInputKat;
-        }
-        // Tags
-        $arInputTag = (array) $_GET['ftag'];
-        if (!empty($arInputTag)) {
-            $limits['ftag']['data'] = $arInputTag;
-            $limits['ftag']['mode'] = ($_GET['tagfilter'] == 'AND') ? 'AND' : 'OR';
-        }
         
+        if($_POST['dofilter'] != 'Nullstill') {
+            // Fradato
+            if (!empty($_POST['fdato'])) {
+                $timestamp = strtotime($_POST['fdato']);
+                if($timestamp !== false) {
+                    $limits['fdato'] = $timestamp;
+                }
+            }
+            // Tildato
+            if (!empty($_POST['tdato'])) {
+                $timestamp = strtotime($_POST['tdato']);
+                if($timestamp !== false) {
+                    $limits['tdato'] = $timestamp;
+                }
+            }
+            // Overskriftsøk
+            if (!empty($_POST['oskrift'])) {
+                $limits['oskrift'] = $_POST['oskrift'];
+            }
+            // Kategori
+            $arInputKat = (array) $_POST['fkat'];
+            if (!empty($arInputKat)) {
+                $limits['fkat'] = $arInputKat;
+            }
+            // Tags
+            $arInputTag = (array) $_POST['ftag'];
+            if (!empty($arInputTag)) {
+                $limits['ftag']['data'] = $arInputTag;
+                $limits['ftag']['mode'] = ($_POST['tagfilter'] == 'AND') ? 'AND' : 'OR';
+            }
+            // Sortorder
+            if($_POST['sortASC'] == 'y') {
+                $limits['sortorder'] = 'ASC';
+            } else {
+                $limits['sortorder'] = 'DESC';
+            }
+            // Publisher
+            $arInputPublishers = (array) $_POST['fpublishers'];
+            if (!empty($arInputPublishers)) {
+                $limits['fpublishers'] = $arInputPublishers;
+            }
+            // Områder
+            $arInputOmrader = (array) $_POST['fomrader'];
+            if (!empty($arInputOmrader)) {
+                $limits['fomrader'] = $arInputOmrader;
+            }
+        }
+
         $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
+        $output = NyhetGen::genArkivOptions($limits);
         
 		if ($objNyhetCol->length() === 0) {
 			return $output . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
