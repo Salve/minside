@@ -436,6 +436,243 @@ class NyhetGen {
         
         return $output;
     }
+    
+    public static function genArkivOptions(array $data) {
+        
+        // Linker
+        $selflink = MS_NYHET_LINK . '&act=arkiv' . self::genArkivLinkParams($data);
+        
+        // Datofilter
+        // Fradato
+        $infdato = $data['fdato'];
+        $objCalendarFra = new tc_calendar("fdato", true);
+        if ($infdato) {
+            $objCalendarFra->setDate(date('d', $infdato), date('m', $infdato), date('Y', $infdato));
+        }
+        $objCalendarFra->setPath('lib/plugins/minside/minside/');
+        $objCalendarFra->startMonday(true);
+        $objCalendarFra->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        ob_start(); // må ta vare på output...
+        $objCalendarFra->writeScript();
+        $html_datofra = ob_get_clean();
+        
+        // Tildato
+        $intdato = $data['tdato'];
+        $objCalendarTil = new tc_calendar("tdato", true);
+        if ($intdato) {
+            $objCalendarTil->setDate(date('d', $intdato), date('m', $intdato), date('Y', $intdato));
+        }
+        $objCalendarTil->setPath('lib/plugins/minside/minside/');
+        $objCalendarTil->startMonday(true);
+        $objCalendarTil->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        ob_start(); // må ta vare på output...
+        $objCalendarTil->writeScript();
+        $html_datotil = ob_get_clean();
+        
+        $html_datofilter = 
+            'Fradato: '.$html_datofra.'<br />
+             Tildato: '.$html_datotil.'<br />
+            ';
+        
+        // Overskriftfilter
+        $html_overskriftfilter =
+            '<input class="edit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br />
+            Støtter wildcards (* eller %)';
+        // Tagfilter
+        
+        // Kategorifilter
+        $colKat = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_KATEGORI);
+        foreach($colKat as $objKat) {
+            $selected = (in_array($objKat->getId(), (array) $data['fkat'])) ? ' selected' : '';
+            $katopts .= '<option value="' . $objKat->getId() . "\"$selected>" . $objKat->getNavn() . '</option>';
+        }
+        $html_kategorifilter = 
+            '<select class="edit tagselect" name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
+            Hold inne ctrl for å velge flere.';
+            
+        // Tagfilter
+        $colTag = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_TAG);
+        foreach($colTag as $objTag) {
+            $selected = (in_array($objTag->getId(), (array) $data['ftag']['data'])) ? ' selected' : '';
+            $tagopts .= '<option value="' . $objTag->getId() . "\"$selected>" . $objTag->getNavn() . '</option>';
+        }
+        if ($data['ftag']['mode'] == 'AND') {
+            $tfANDchecked = ' checked';
+            $tfORchecked = '';
+        } else {
+            $tfANDchecked = '';
+            $tfORchecked = ' checked';
+        }
+        $html_tagfilter = 
+            '<select class="edit tagselect" name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
+            Hold inne ctrl for å velge flere.<br />
+            <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
+            <label for="tfOR">Minst en av valgte tags</label><br />
+            <input type="radio" id="tfAND" name="tagfilter" value="AND"'.$tfANDchecked.' />
+            <label for="tfAND">Alle valgte tags</label>';
+        
+        // Sortering
+        if ($data['sortorder'] == 'ASC') {
+            $sortASCyes = ' checked';
+            $sortASCno = '';
+        } else {
+            $sortASCyes = '';
+            $sortASCno = ' checked';
+        }
+        $html_sortering = '
+            <input type="radio" id="sortASC" name="sortorder" value="ASC"'.$sortASCyes.' />
+            <label for="sortASC">Eldste først</label><br />
+            <input type="radio" id="sortDESC" name="sortorder" value="DESC"'.$sortASCno.' />
+            <label for="sortDESC">Nyeste først</label>';
+        
+        // Publisert av
+        $arPublishers = MsNyhet::getBrukereSomHarPublisertNyheter();
+        foreach($arPublishers as $publisher) {
+            $selected = (in_array($publisher['id'], (array) $data['fpublishers'])) ? ' selected' : '';
+            $pubopts .= '<option value="' . $publisher['id'] . "\"$selected>" . $publisher['navn'] . '</option>';
+        }
+        $html_publisherfilter = 
+            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple>'. $pubopts .'</select><br />
+            Hold inne ctrl for å velge flere.';
+            
+        // Handlinger
+        $html_handlinger = 
+            'Nyheter vist per side: 
+            <select class="edit" name="perside">
+                <option value="5"'.(($data['pages']['perside']==5)?' selected':'').'>5</option>
+                <option value="10"'.(($data['pages']['perside']==10)?' selected':'').'>10</option>
+                <option value="20"'.(($data['pages']['perside']==20)?' selected':'').'>20</option>
+                <option value="30"'.(($data['pages']['perside']==30)?' selected':'').'>30</option>
+                <option value="50"'.(($data['pages']['perside']==50)?' selected':'').'>50</option>
+                <option value="100"'.(($data['pages']['perside']==100)?' selected':'').'>100</option>
+            </select><br />
+            <input class="edit" type="submit" name="dofilter" value="Utfør søk" />
+            <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
+             
+        // Områdefilter
+        $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_1);
+        if ($colOmrader->length() > 1) {
+            foreach($colOmrader as $objOmrade) {
+                $selected = (in_array($objOmrade->getOmrade(), (array) $data['fomrader'])) ? ' selected' : '';
+                $omradeopts .= '<option value="' . $objOmrade->getOmrade() . "\"$selected>" . $objOmrade->getVisningsnavn() . '</option>';
+            }
+            $html_omradefilter = 
+                '<select class="edit tagselect" name="fomrader[]" size="7" multiple>'. $omradeopts .'</select><br />
+                Hold inne ctrl for å velge flere.';
+        } else {
+            $html_omradefilter =
+                'Du har ikke tilgang til mer enn ett område.<br />
+                Dette filteret er derfor ikke tilgjengelig.';
+        }
+        
+        // Pagination
+        $numhits = $data['pages']['count'];
+        $currpage = $data['pages']['currpage'];
+        $numpages = $data['pages']['numpages'];
+        $forrige = ($currpage > 1) 
+            ? '<a href="'.$selflink.'&visside='.($currpage - 1).'">Forrige</a> '
+            : '';
+        $neste = ($currpage < $numpages) 
+            ? '<a href="'.$selflink.'&visside='.($currpage + 1).'">Neste</a>'
+            : '';
+        for($i=1;$i<=$numpages;$i++) {
+            $pagelinks .= ($currpage == $i)
+                ? '<strong>' . $i . '</strong>&nbsp;'
+                : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
+        }
+        $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
+
+        // "Template"
+        $output = '
+            <div class="arkivoptions">
+                <form method="POST" action="'.MS_NYHET_LINK.'&act=arkiv">
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Dato-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_datofilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Sortering</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_sortering.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Tag-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_tagfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Kategori-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_kategorifilter.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Publisert av</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_publisherfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Område-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_omradefilter.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            <strong>Overskrift-filter</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_overskriftfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            <strong>Handlinger</strong>
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_handlinger.'
+                        </div>
+                    </div>
+                </div>
+                <div class="msclearer">&nbsp;</div>
+                </form>
+            </div>
+            <div class="pagination">
+                Antall treff: '.$numhits.'<br />
+                '.$html_pagination.'
+            </div>
+            <br />
+        ';
+
+        return $output;
+    }
 	
 	protected static function getMailLink($name, $epost) {
 		$format = '<a title="%2$s" class="mail JSnocheck" href="mailto:%2$s">%1$s</a>';
@@ -459,6 +696,53 @@ class NyhetGen {
         $output .= '</span></div>';
         
         return $output;
+    }
+    
+    protected static function genArkivLinkParams(array $data) {
+        $param = array();
+        if(array_key_exists('fdato', $data)) {
+            $param[] = 'fdato=' . date('Y-m-d', $data['fdato']);
+        }
+        if(array_key_exists('tdato', $data)) {
+            $param[] = 'tdato=' . date('Y-m-d', $data['tdato']);
+        }
+        if(array_key_exists('oskrift', $data)) {
+            $param[] = 'oskrift=' . urlencode($data['oskrift']);
+        }
+        if(array_key_exists('fkat', $data)) {
+            foreach($data['fkat'] as $fkat) {
+                $param[] = 'fkat[]=' . $fkat;
+            }
+        }
+        if(array_key_exists('ftag', $data)) {
+            if(array_key_exists('data', $data['ftag'])) {
+                foreach($data['ftag']['data'] as $ftag) {
+                    $param[] = 'ftag[]=' . $ftag;
+                }
+            }
+            if(array_key_exists('mode', $data['ftag'])) {
+                $param[] = 'tagfilter=' . $data['ftag']['mode'];
+            }
+        }
+        if(array_key_exists('sortorder', $data)) {
+            $param[] = 'sortorder=' . $data['sortorder'];
+        }
+        if(array_key_exists('fpublishers', $data)) {
+            foreach($data['fpublishers'] as $publisher) {
+                $param[] = 'fpublishers[]=' . $publisher;
+            }
+        }
+        if(array_key_exists('fomrader', $data)) {
+            foreach($data['fomrader'] as $omrade) {
+                $param[] = 'fomrader[]=' . $omrade;
+            }
+        }
+        if(array_key_exists('perside', $data['pages'])) {
+            $param[] = 'perside=' . $data['pages']['perside'];
+        }
+        
+        return '&' . implode('&', $param);
+        
     }
 	
 }

@@ -450,15 +450,23 @@ class MsNyhet {
         $sql[] = "DELETE
                 FROM nyheter_lest
                 WHERE nyhetid=$safenyhetid
-                LIMIT 1";
+                LIMIT 1;";
+        $sql[] = "DELETE
+                FROM nyheter_tag_x_nyhet
+                WHERE nyhetid=$safenyhetid;";
         $sql[] = "DELETE
                 FROM nyheter_nyhet
                 WHERE nyhetid=$safenyhetid
-                LIMIT 1";
+                LIMIT 1;";
                 
         $res = true;
-        foreach ($sql as $stmt) {
-            $res = ($res && ($msdb->exec($stmt) !== false));
+        try {
+            foreach ($sql as $stmt) {
+                $res = ($res && ($msdb->exec($stmt) !== false));
+            }
+        } catch(Exception $e) {
+            $msdb->rollBack();
+            return false;
         }
         if ($res) {
             $msdb->commit();
@@ -618,5 +626,23 @@ class MsNyhet {
         $sql .= implode(",\n", $inserts);
         
         return (bool) $msdb->exec($sql);
+    }
+    
+    public static function getBrukereSomHarPublisertNyheter() {
+        global $msdb;
+        
+        $sql = "
+            SELECT
+                users.id AS id,
+                users.wikifullname AS navn
+            FROM
+                internusers AS users
+            LEFT JOIN
+                nyheter_nyhet AS nyhet ON users.id = nyhet.createby
+            WHERE nyhet.createby IS NOT NULL
+            GROUP BY users.id;";
+        
+        return $msdb->assoc($sql);
+
     }
 }

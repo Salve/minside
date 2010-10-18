@@ -146,18 +146,89 @@ class msmodul_nyheter implements msmodul {
 	}
     
     public function gen_nyhet_arkiv() {
-    
-        $objNyhetCol = NyhetFactory::getAllePubliserteNyheter($this->_userID);
+        
+        $limits = array();
+        
+        if($_POST['dofilter'] != 'Nullstill') {
+            // Fradato
+            if (!empty($_REQUEST['fdato'])) {
+                $timestamp = strtotime($_REQUEST['fdato']);
+                if($timestamp !== false) {
+                    $limits['fdato'] = $timestamp;
+                }
+            }
+            // Tildato
+            if (!empty($_REQUEST['tdato'])) {
+                $timestamp = strtotime($_REQUEST['tdato']);
+                if($timestamp !== false) {
+                    $limits['tdato'] = $timestamp;
+                }
+            }
+            // Overskriftsøk
+            if (!empty($_REQUEST['oskrift'])) {
+                $limits['oskrift'] = $_REQUEST['oskrift'];
+            }
+            // Kategori
+            $arInputKat = (array) $_REQUEST['fkat'];
+            if (!empty($arInputKat)) {
+                $limits['fkat'] = $arInputKat;
+            }
+            // Tags
+            $arInputTag = (array) $_REQUEST['ftag'];
+            if (!empty($arInputTag)) {
+                $limits['ftag']['data'] = $arInputTag;
+                $limits['ftag']['mode'] = ($_REQUEST['tagfilter'] == 'AND') ? 'AND' : 'OR';
+            }
+            // Sortorder
+            if($_REQUEST['sortorder'] == 'ASC') {
+                $limits['sortorder'] = 'ASC';
+            } else {
+                $limits['sortorder'] = 'DESC';
+            }
+            // Publisher
+            $arInputPublishers = (array) $_REQUEST['fpublishers'];
+            if (!empty($arInputPublishers)) {
+                $limits['fpublishers'] = $arInputPublishers;
+            }
+            // Områder
+            $arInputOmrader = (array) $_REQUEST['fomrader'];
+            if (!empty($arInputOmrader)) {
+                $limits['fomrader'] = $arInputOmrader;
+            }
+        }
+        
+        // Pagination
+        $limits['pages']['count'] = NyhetFactory::getNyheterMedLimits($limits, true);
+
+        // Nyheter vist per side
+        $perside = (int) $_REQUEST['perside'];
+        if(!empty($perside)) {
+            $validperside = array(5, 10, 20, 30, 50, 100);
+            $limits['pages']['perside'] = (in_array($perside, $validperside)) ? $perside : 10;
+        } else {
+            $limits['pages']['perside'] = 10;
+        }
+        // Antall sider (ingen integer division i php, slapp av)
+        $limits['pages']['numpages'] = ceil($limits['pages']['count'] / $limits['pages']['perside']);
+        // Current page
+        $currpage = (int) $_GET['visside'];
+        if($currpage > 1 && !($currpage > $limits['pages']['numpages'])) {
+            $limits['pages']['currpage'] = $currpage;
+        } else {
+            $limits['pages']['currpage'] = 1;
+        }
+
+        $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
+        $output = NyhetGen::genArkivOptions($limits);
         
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return $output . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
 		}
-		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv');
         }
                 
-		return '<strong>DETTE ER EN MIDLERTIDIG LISTE OVER ALLE NYHETER!<br />Arkiv kommer...</strong><br /><br />' . $output;
+		return $output;
         
     }
     
