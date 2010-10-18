@@ -206,7 +206,7 @@ class NyhetFactory {
         
     }
     
-    public static function getNyheterMedLimits(array $limits=array()) {
+    public static function getNyheterMedLimits(array $limits=array(), $getcount = false) {
         global $msdb;
         
         $where = array();
@@ -254,6 +254,14 @@ class NyhetFactory {
         if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace('*', '%', $limits['oskrift']));
         // Sortorder
         $safesortorder = ($limits['sortorder']) ?: 'DESC';
+        // Limit
+        if ($getcount) {
+            $sql_limit = '';
+        } else {
+            $sql_limit = 'LIMIT ' . 
+                (($limits['pages']['currpage'] - 1) * $limits['pages']['perside']) . ', ' .
+                $limits['pages']['perside'];
+        }
         // Områder
         if (array_key_exists('fomrader', $limits)) {
             $wantedomrader = $limits['fomrader'];
@@ -265,7 +273,7 @@ class NyhetFactory {
         $sql_where = implode(' AND ', $where);
         $sql_join = implode(" \n", $join);
         
-        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+        $sql = "SELECT " . (($getcount) ? 'count(*) AS antall' : self::SQL_NYHET_FIELDS) . 
 			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
             (($sql_join) ?: '' ) .
 			" WHERE pubtime < NOW()
@@ -273,10 +281,10 @@ class NyhetFactory {
 				" AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
 			ORDER BY pubtime $safesortorder
-            LIMIT 10000;";
+            $sql_limit;";
         $res = $msdb->assoc($sql);
-        
-        return self::createNyhetCollectionFromDbResult($res);
+
+        return ($getcount) ? $res[0]['antall'] : self::createNyhetCollectionFromDbResult($res);
         
     }
     

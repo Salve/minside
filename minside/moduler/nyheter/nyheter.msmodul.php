@@ -151,50 +151,71 @@ class msmodul_nyheter implements msmodul {
         
         if($_POST['dofilter'] != 'Nullstill') {
             // Fradato
-            if (!empty($_POST['fdato'])) {
-                $timestamp = strtotime($_POST['fdato']);
+            if (!empty($_REQUEST['fdato'])) {
+                $timestamp = strtotime($_REQUEST['fdato']);
                 if($timestamp !== false) {
                     $limits['fdato'] = $timestamp;
                 }
             }
             // Tildato
-            if (!empty($_POST['tdato'])) {
-                $timestamp = strtotime($_POST['tdato']);
+            if (!empty($_REQUEST['tdato'])) {
+                $timestamp = strtotime($_REQUEST['tdato']);
                 if($timestamp !== false) {
                     $limits['tdato'] = $timestamp;
                 }
             }
             // Overskriftsøk
-            if (!empty($_POST['oskrift'])) {
-                $limits['oskrift'] = $_POST['oskrift'];
+            if (!empty($_REQUEST['oskrift'])) {
+                $limits['oskrift'] = $_REQUEST['oskrift'];
             }
             // Kategori
-            $arInputKat = (array) $_POST['fkat'];
+            $arInputKat = (array) $_REQUEST['fkat'];
             if (!empty($arInputKat)) {
                 $limits['fkat'] = $arInputKat;
             }
             // Tags
-            $arInputTag = (array) $_POST['ftag'];
+            $arInputTag = (array) $_REQUEST['ftag'];
             if (!empty($arInputTag)) {
                 $limits['ftag']['data'] = $arInputTag;
-                $limits['ftag']['mode'] = ($_POST['tagfilter'] == 'AND') ? 'AND' : 'OR';
+                $limits['ftag']['mode'] = ($_REQUEST['tagfilter'] == 'AND') ? 'AND' : 'OR';
             }
             // Sortorder
-            if($_POST['sortASC'] == 'y') {
+            if($_REQUEST['sortorder'] == 'ASC') {
                 $limits['sortorder'] = 'ASC';
             } else {
                 $limits['sortorder'] = 'DESC';
             }
             // Publisher
-            $arInputPublishers = (array) $_POST['fpublishers'];
+            $arInputPublishers = (array) $_REQUEST['fpublishers'];
             if (!empty($arInputPublishers)) {
                 $limits['fpublishers'] = $arInputPublishers;
             }
             // Områder
-            $arInputOmrader = (array) $_POST['fomrader'];
+            $arInputOmrader = (array) $_REQUEST['fomrader'];
             if (!empty($arInputOmrader)) {
                 $limits['fomrader'] = $arInputOmrader;
             }
+        }
+        
+        // Pagination
+        $limits['pages']['count'] = NyhetFactory::getNyheterMedLimits($limits, true);
+
+        // Nyheter vist per side
+        $perside = (int) $_REQUEST['perside'];
+        if(!empty($perside)) {
+            $validperside = array(5, 10, 20, 30, 50, 100);
+            $limits['pages']['perside'] = (in_array($perside, $validperside)) ? $perside : 10;
+        } else {
+            $limits['pages']['perside'] = 10;
+        }
+        // Antall sider (ingen integer division i php, slapp av)
+        $limits['pages']['numpages'] = ceil($limits['pages']['count'] / $limits['pages']['perside']);
+        // Current page
+        $currpage = (int) $_GET['visside'];
+        if($currpage > 1 && !($currpage > $limits['pages']['numpages'])) {
+            $limits['pages']['currpage'] = $currpage;
+        } else {
+            $limits['pages']['currpage'] = 1;
         }
 
         $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);

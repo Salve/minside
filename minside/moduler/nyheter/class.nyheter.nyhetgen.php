@@ -437,8 +437,11 @@ class NyhetGen {
         return $output;
     }
     
-    public static function genArkivOptions(array $data=array()) {
-    
+    public static function genArkivOptions(array $data) {
+        
+        // Linker
+        $selflink = MS_NYHET_LINK . '&act=arkiv' . self::genArkivLinkParams($data);
+        
         // Datofilter
         // Fradato
         $infdato = $data['fdato'];
@@ -517,10 +520,10 @@ class NyhetGen {
             $sortASCno = ' checked';
         }
         $html_sortering = '
-            <input type="radio" id="sortASCyes" name="sortASC" value="y"'.$sortASCyes.' />
-            <label for="sortASCyes">Eldste først</label><br />
-            <input type="radio" id="sortASCno" name="sortASC" value="n"'.$sortASCno.' />
-            <label for="sortASCno">Nyeste først</label>';
+            <input type="radio" id="sortASC" name="sortorder" value="ASC"'.$sortASCyes.' />
+            <label for="sortASC">Eldste først</label><br />
+            <input type="radio" id="sortDESC" name="sortorder" value="DESC"'.$sortASCno.' />
+            <label for="sortDESC">Nyeste først</label>';
         
         // Publisert av
         $arPublishers = MsNyhet::getBrukereSomHarPublisertNyheter();
@@ -534,8 +537,17 @@ class NyhetGen {
             
         // Handlinger
         $html_handlinger = 
-            '<input class="edit" type="submit" name="dofilter" value="Utfør søk" />
-             <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
+            'Nyheter vist per side: 
+            <select class="edit" name="perside">
+                <option value="5"'.(($data['pages']['perside']==5)?' selected':'').'>5</option>
+                <option value="10"'.(($data['pages']['perside']==10)?' selected':'').'>10</option>
+                <option value="20"'.(($data['pages']['perside']==20)?' selected':'').'>20</option>
+                <option value="30"'.(($data['pages']['perside']==30)?' selected':'').'>30</option>
+                <option value="50"'.(($data['pages']['perside']==50)?' selected':'').'>50</option>
+                <option value="100"'.(($data['pages']['perside']==100)?' selected':'').'>100</option>
+            </select><br />
+            <input class="edit" type="submit" name="dofilter" value="Utfør søk" />
+            <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
              
         // Områdefilter
         $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_1);
@@ -553,10 +565,27 @@ class NyhetGen {
                 Dette filteret er derfor ikke tilgjengelig.';
         }
         
+        // Pagination
+        $numhits = $data['pages']['count'];
+        $currpage = $data['pages']['currpage'];
+        $numpages = $data['pages']['numpages'];
+        $forrige = ($currpage > 1) 
+            ? '<a href="'.$selflink.'&visside='.($currpage - 1).'">Forrige</a> '
+            : '';
+        $neste = ($currpage < $numpages) 
+            ? '<a href="'.$selflink.'&visside='.($currpage + 1).'">Neste</a>'
+            : '';
+        for($i=1;$i<=$numpages;$i++) {
+            $pagelinks .= ($currpage == $i)
+                ? '<strong>' . $i . '</strong>&nbsp;'
+                : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
+        }
+        $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
+
         // "Template"
         $output = '
             <div class="arkivoptions">
-                <form method="POST" action"'.MS_NYHETER_LINK.'&act=arkiv">
+                <form method="POST" action="'.MS_NYHET_LINK.'&act=arkiv">
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
@@ -634,9 +663,14 @@ class NyhetGen {
                 </div>
                 <div class="msclearer">&nbsp;</div>
                 </form>
+            </div>
+            <div class="pagination">
+                Antall treff: '.$numhits.'<br />
+                '.$html_pagination.'
+            </div>
+            <br />
         ';
-        
-        $output .= '</div>'; // arkivoptions
+
         return $output;
     }
 	
@@ -662,6 +696,53 @@ class NyhetGen {
         $output .= '</span></div>';
         
         return $output;
+    }
+    
+    protected static function genArkivLinkParams(array $data) {
+        $param = array();
+        if(array_key_exists('fdato', $data)) {
+            $param[] = 'fdato=' . date('Y-m-d', $data['fdato']);
+        }
+        if(array_key_exists('tdato', $data)) {
+            $param[] = 'tdato=' . date('Y-m-d', $data['tdato']);
+        }
+        if(array_key_exists('oskrift', $data)) {
+            $param[] = 'oskrift=' . urlencode($data['oskrift']);
+        }
+        if(array_key_exists('fkat', $data)) {
+            foreach($data['fkat'] as $fkat) {
+                $param[] = 'fkat[]=' . $fkat;
+            }
+        }
+        if(array_key_exists('ftag', $data)) {
+            if(array_key_exists('data', $data['ftag'])) {
+                foreach($data['ftag']['data'] as $ftag) {
+                    $param[] = 'ftag[]=' . $ftag;
+                }
+            }
+            if(array_key_exists('mode', $data['ftag'])) {
+                $param[] = 'tagfilter=' . $data['ftag']['mode'];
+            }
+        }
+        if(array_key_exists('sortorder', $data)) {
+            $param[] = 'sortorder=' . $data['sortorder'];
+        }
+        if(array_key_exists('fpublishers', $data)) {
+            foreach($data['fpublishers'] as $publisher) {
+                $param[] = 'fpublishers[]=' . $publisher;
+            }
+        }
+        if(array_key_exists('fomrader', $data)) {
+            foreach($data['fomrader'] as $omrade) {
+                $param[] = 'fomrader[]=' . $omrade;
+            }
+        }
+        if(array_key_exists('perside', $data['pages'])) {
+            $param[] = 'perside=' . $data['pages']['perside'];
+        }
+        
+        return '&' . implode('&', $param);
+        
     }
 	
 }
