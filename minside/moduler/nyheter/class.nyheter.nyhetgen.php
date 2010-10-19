@@ -193,14 +193,20 @@ class NyhetGen {
         $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
 		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
         $i = 0;
+        $tagnr = 1;
+        $html_tags .= '<table>';
         foreach ($colTags as $objTag) {
             $i++;
             $checked = ($objNyhet->hasTag($objTag)) ? 'checked="checked"' : '';
-            $html_tags .= '<input type="checkbox" class="edit" id="tag' . $i . 
+            if ($tagnr == 1) $html_tags .= '<tr>';
+            $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . $i . 
                 '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
-                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label> \n";
+                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label></td> \n";
+            if ($tagnr == 8) $html_tags .= '</tr>';
+            $tagnr ++;
+            if ($tagnr > 8) $tagnr = 1;
         }
-        $html_tags .= '</div>'; // nyhettagvelger
+        $html_tags .= '</table></div>'; // nyhettagvelger
         
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';

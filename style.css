@@ -637,6 +637,11 @@ div.nyhetimgleft img.nyhetimg {
     margin-right:1em;
 }
 
+div.minside .tagtable {
+    border: 1px #8cacdb;
+    border-style: dashed;
+}
+
 /*Nyhet editor*/
 
 div.minside div.editnyhet {
