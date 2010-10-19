@@ -143,6 +143,7 @@ class NyhetGen {
                         <div class=\"nyhetinfoleft\">
                             $publish$lastmod$delete
                         </div>
+                        <div class=\"msclearer\"></div>
                     </div>
                     <div class=\"msclearer\"></div>
 				</div>
