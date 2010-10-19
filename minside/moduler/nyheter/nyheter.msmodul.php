@@ -195,19 +195,21 @@ class msmodul_nyheter implements msmodul {
             if (!empty($arInputOmrader)) {
                 $limits['fomrader'] = $arInputOmrader;
             }
+            // Nyheter vist per side
+            $perside = (int) $_REQUEST['perside'];
+            if(!empty($perside)) {
+                $validperside = array(5, 10, 20, 30, 50, 100);
+                $limits['pages']['perside'] = (in_array($perside, $validperside)) ? $perside : 10;
+            }
+        } 
+        
+        if(empty($limits['pages']['perside'])) {
+            $limits['pages']['perside'] = 10;
         }
         
         // Pagination
         $limits['pages']['count'] = NyhetFactory::getNyheterMedLimits($limits, true);
 
-        // Nyheter vist per side
-        $perside = (int) $_REQUEST['perside'];
-        if(!empty($perside)) {
-            $validperside = array(5, 10, 20, 30, 50, 100);
-            $limits['pages']['perside'] = (in_array($perside, $validperside)) ? $perside : 10;
-        } else {
-            $limits['pages']['perside'] = 10;
-        }
         // Antall sider (ingen integer division i php, slapp av)
         $limits['pages']['numpages'] = ceil($limits['pages']['count'] / $limits['pages']['perside']);
         // Current page
