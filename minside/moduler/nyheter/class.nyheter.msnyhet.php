@@ -3,8 +3,8 @@ if(!defined('MS_INC')) die();
 
 class MsNyhet {
 	
-	const PATH_MAX_LEN = 50; // Maks lengde på nyhetsoverskift del av wikipath etter cleanID er kjørt
-    const TITLE_MAX_LEN = 255;
+	const PATH_MAX_LEN = 40; // Maks lengde på nyhetsoverskift del av wikipath før cleanID kjøres
+    const TITLE_MAX_LEN = 140;
     
     public $under_construction = false;
 	
@@ -312,11 +312,11 @@ class MsNyhet {
 	public function setWikiPath($input) {
         if (empty($input)) return false;
         if ($input == 'auto') {
-            $title = str_replace(array(':', ';', '/', '\\'), '_' , $this->getTitle());
-            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $title;
+            $input = str_replace(array(':', ';', '/', '\\'), '_' , $this->getTitle());
+            if (strlen($input) > self::PATH_MAX_LEN) $input = substr($input, 0, self::PATH_MAX_LEN);
+            $input = 'msnyheter:'.$this->getOmrade().':' . date('YmdHis ') . $input;
             $input = cleanID($input, true);
         }
-        if (strlen($input) > self::PATH_MAX_LEN) $title = substr($input, 0, self::PATH_MAX_LEN);
         return $this->set_var($this->_wikipath, $input);
 	}
 	
@@ -324,7 +324,7 @@ class MsNyhet {
 		return ($safe) ? htmlspecialchars($this->_title) : $this->_title;
 	}	
 	public function setTitle($input) {
-        if (strlen($input) > self::TITLE_MAX_LEN) $title = substr($input, 0, self::TITLE_MAX_LEN);
+        if (strlen($input) > self::TITLE_MAX_LEN) $input = substr($input, 0, self::TITLE_MAX_LEN);
         return $this->set_var($this->_title, $input);
 	}
 	
@@ -515,7 +515,8 @@ class MsNyhet {
 		$minor = false;
         
         if (empty($id) || empty($text)) throw new Exception('Logic error: Kan ikke lagre nyhet i wiki uten både wikipath og tekst.');
-		
+		if(strlen($text) > 100000) throw new Exception('Nyhet body for lang. Maks 50 000 tegn.');
+        
         $GLOBALS['ms_writing_to_dw'] = true;
 		$resultat = saveWikiText($id, $text, $summary, $minor);
         $GLOBALS['ms_writing_to_dw'] = false;
@@ -556,7 +557,8 @@ class MsNyhet {
         $safehtmlbody = $msdb->quote($this->getHtmlBody());
         $safewikihash = $msdb->quote($this->getWikiHash());
 		$safepubtime = ($this->getPublishTime()) ? $msdb->quote($this->getPublishTime()) : 'NULL';
- 
+        
+        if(strlen($safehtmlbody) > 100000) throw new Exception('Nyhet body for lang. Maks 50 000 tegn.');
         
         $midsql = "omrade = $safeomrade,
                 nyhetstype = $safetype,

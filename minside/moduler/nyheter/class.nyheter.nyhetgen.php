@@ -132,9 +132,19 @@ class NyhetGen {
 			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\"$omrade_farge>
-					<div class=\"nyhettitle\">$sticky$title</div>
-					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade_html<br />$kategori_html$publish$lastmod$delete</div>
+                    <div class=\"seksjontopp\">
+                        <div class=\"nyhetoptions\">$valg</div>
+                        <div class=\"nyhettitle\">$sticky$title</div>
+                    </div>
+					<div class=\"nyhetinfo\">
+                        <div class=\"nyhetinforight\">
+                            $omrade_html$kategori_html
+                        </div>
+                        <div class=\"nyhetinfoleft\">
+                            $publish$lastmod$delete
+                        </div>
+                        <div class=\"msclearer\"></div>
+                    </div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -183,8 +193,14 @@ class NyhetGen {
         $html_kategori = '<div class="nyhetkategorivelger">Kategori: <select name="nyhetkategori" tabindex="5" class="edit">';
         $html_kategori .= '<option value="0">Velg: </option>';
         foreach ($colKategorier as $objKategori) {
-            $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' .
-            (($objKategori == $objNyhet->getKategori()) ? ' selected="selected"' : '') .
+            if($objKategori == $objNyhet->getKategori()) {
+                $selected = ' selected="selected"';
+            } else {
+                // Kategorier som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
+                if($objKategori->noSelect()) continue;
+                $selected = '';
+            }
+            $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' . $selected .
             '>' . $objKategori->getNavn() . '</option>';
         }
         $html_kategori .= '</select></div>'; // nyhetkategorivelger
@@ -196,10 +212,15 @@ class NyhetGen {
         $tagnr = 1;
         $html_tags .= '<table>';
         foreach ($colTags as $objTag) {
-            $i++;
-            $checked = ($objNyhet->hasTag($objTag)) ? 'checked="checked"' : '';
+            if($objNyhet->hasTag($objTag)) {
+                $checked = 'checked="checked"';
+            } else {
+                // Tags som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
+                if($objTag->noSelect()) continue;
+                $checked = '';
+            }
             if ($tagnr == 1) $html_tags .= '<tr>';
-            $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . $i . 
+            $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . ++$i . 
                 '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
                 '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label></td> \n";
             if ($tagnr == 8) $html_tags .= '</tr>';
@@ -287,7 +308,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle() . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
