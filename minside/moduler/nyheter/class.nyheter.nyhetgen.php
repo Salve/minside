@@ -183,8 +183,14 @@ class NyhetGen {
         $html_kategori = '<div class="nyhetkategorivelger">Kategori: <select name="nyhetkategori" tabindex="5" class="edit">';
         $html_kategori .= '<option value="0">Velg: </option>';
         foreach ($colKategorier as $objKategori) {
-            $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' .
-            (($objKategori == $objNyhet->getKategori()) ? ' selected="selected"' : '') .
+            if($objKategori == $objNyhet->getKategori()) {
+                $selected = ' selected="selected"';
+            } else {
+                // Kategorier som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
+                if($objKategori->noSelect()) continue;
+                $selected = '';
+            }
+            $html_kategori .= '<option value="' . $objKategori->getNavn() . '"' . $selected .
             '>' . $objKategori->getNavn() . '</option>';
         }
         $html_kategori .= '</select></div>'; // nyhetkategorivelger
@@ -194,9 +200,14 @@ class NyhetGen {
 		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
         $i = 0;
         foreach ($colTags as $objTag) {
-            $i++;
-            $checked = ($objNyhet->hasTag($objTag)) ? 'checked="checked"' : '';
-            $html_tags .= '<input type="checkbox" class="edit" id="tag' . $i . 
+            if($objNyhet->hasTag($objTag)) {
+                $checked = 'checked="checked"';
+            } else {
+                // Tags som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
+                if($objTag->noSelect()) continue;
+                $checked = '';
+            }
+            $html_tags .= '<input type="checkbox" class="edit" id="tag' . ++$i . 
                 '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
                 '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label> \n";
         }

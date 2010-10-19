@@ -358,7 +358,10 @@ class msmodul_nyheter implements msmodul {
         // Kategori
         $colKategorier = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_KATEGORI);
         foreach($colKategorier as $objKategori) {
-            if ($objKategori->getNavn() === $inputkategori) {
+            // Valg av kategori som er merket "noselect" er kun gyldig dersom nyheten allerede har denne kategorien.
+            if (($objKategori->getNavn() === $inputkategori) &&
+                ( (!$objKategori->noSelect()) || ($objNyhet->getKategori() == $objKategori) ) ) 
+            {
                 $objFoundKategori = $objKategori;
                 break;
             }
@@ -375,10 +378,13 @@ class msmodul_nyheter implements msmodul {
         $arSelectedTags = (array) $_POST['nyhettags'];
         foreach($arSelectedTags as $k => $v) {
             $objTag = $colTags->getItem($k);
-            if($objTag instanceof NyhetTag) {
+            // Valg av tag som er merket "noselect" er kun gyldig dersom nyheten allerede er tagget med denne tagen.
+            if( ($objTag instanceof NyhetTag) &&
+                ( (!$objTag->noSelect()) || ($objNyhet->hasTag($objTag)) ) )
+            {
                 $colSelectedTags->additem($objTag, $objTag->getId());
             } else {
-                msg('Tag med id: ' . htmlspecialchars($k) . ' er ikke kjent og kan ikke knyttes til nyhet!', -1);
+                msg('Tag med id: ' . htmlspecialchars($k) . ' er ukjent eller ugyldig for denne nyheten!', -1);
                 continue;
             }
         }
