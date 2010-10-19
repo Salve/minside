@@ -132,9 +132,18 @@ class NyhetGen {
 			<div class=\"nyhet $omrade\">
 				<!-- NyhetsID: $id -->
 				<div class=\"nyhettopbar\"$omrade_farge>
-					<div class=\"nyhettitle\">$sticky$title</div>
-					<div class=\"nyhetoptions\">$valg</div>
-					<div class=\"nyhetinfo\">$omrade_html<br />$kategori_html$publish$lastmod$delete</div>
+                    <div class=\"seksjontopp\">
+                        <div class=\"nyhetoptions\">$valg</div>
+                        <div class=\"nyhettitle\">$sticky$title</div>
+                    </div>
+					<div class=\"nyhetinfo\">
+                        <div class=\"nyhetinforight\">
+                            $omrade_html$kategori_html
+                        </div>
+                        <div class=\"nyhetinfoleft\">
+                            $publish$lastmod$delete
+                        </div>
+                    </div>
                     <div class=\"msclearer\"></div>
 				</div>
 				<div class=\"nyhetcontent\">
@@ -292,7 +301,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle() . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'

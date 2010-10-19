@@ -4,7 +4,10 @@ div.minside {
 	width:90%;
 	text-align:left;
 	position:relative;
-	padding-left:20px;
+	margin-left:1em;
+    padding-left:1.5em;
+    padding-right:1.5em;
+    padding-bottom:3em;
 	font: normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
 }
 
@@ -541,10 +544,12 @@ div.minside div.nyhet {
     margin-left: 3em;
     margin-bottom: 3em;
     margin-right:3em;
+    padding-top: 1em;
     padding-left: 1em;
     padding-right: 1em;
+    background-color: white;
     border: 1px #C9D4DF;
-    border-style: none solid solid;
+    border-style: solid;
 }
 
 div.minside div.nyhettopbar {
@@ -558,8 +563,15 @@ div.minside div.nyhetcontent {
     margin-top:1em;
 }
 
+div.minside div.nyhetcontainer {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    background-color: #F5F5F5;
+}
+
 div.minside div.nyhetbody {
     overflow: hidden;
+    min-height: 5em;
 }
 
 div.minside img.sticky {
@@ -575,22 +587,51 @@ div.minside div.nyhet.ks  > div.nyhettopbar{
 }
 
 div.minside div.nyhettitle {
-    float: left;
     font-size: 1.5em;
     color: #426973;
     font-weight: bold;
-    margin: 0.5em 0.5em 0 0.5em;
-    width: 96%;
     overflow: hidden;
 }
 
 div.minside div.nyhetinfo {
-    float: left;
     font-size: 80%;
     width:98%;
     color: #426973;
+    overflow: hidden;
+    position: relative;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+div.minside div.nyhetinfo div.nyhetinforight {
+    float: right;
+}
+
+div.minside div.nyhetinfo div.nyhetinfoleft {
+
+    position: absolute;
+    bottom: 0.5em;
+    float: left;
+}
+
+div.minside div.nyhettopbar div.seksjontopp {
+    padding-top: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    margin-bottom: 0.75em;
+}
+
+div.minside div.nyhetomrade, div.nyhetkategori {
+    float:right;
+    clear:right;
+    vertical-align:bottom;
+}
+
+div.minside div.nyhetinfo div.nyhetpub, div.nyhetmod, div.nyhetdel {
+    float: left;
     clear: left;
-    padding: 0 0 0.5em 0.5em;
+    vertical-align:bottom;
 }
 
 div.minside div.nyhetinfo div.nyhetdel {
@@ -603,8 +644,10 @@ div.minside div.nyhetinfo div.nyhetdel a{
 
 div.minside div.nyhetoptions {
     float: right;
-    margin-top: 1em;
+    margin-top: 0.5em;
     margin-right: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 1em;
 }
 
 div.minside div.nyhetcontent div.tags {
@@ -623,14 +666,6 @@ div.minside div.nyhetcontent div.tags span {
 div.minside div.nyhetimgleft {
 	float: left;
     border-style:none;
-}
-
-div.minside div.nyhetomrade {
-    float:right;
-}
-
-div.minside div.nyhetkategori {
-    float:right;
 }
 
 div.nyhetimgleft img.nyhetimg {

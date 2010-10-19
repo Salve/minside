@@ -4,7 +4,7 @@ if(!defined('MS_INC')) die();
 class MsNyhet {
 	
 	const PATH_MAX_LEN = 40; // Maks lengde på nyhetsoverskift del av wikipath før cleanID kjøres
-    const TITLE_MAX_LEN = 100;
+    const TITLE_MAX_LEN = 140;
     
     public $under_construction = false;
 	
