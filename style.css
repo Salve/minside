@@ -576,11 +576,12 @@ div.minside div.nyhet.ks  > div.nyhettopbar{
 
 div.minside div.nyhettitle {
     float: left;
-    height:1.5em;
     font-size: 1.5em;
     color: #426973;
     font-weight: bold;
-    padding: 0.5em 0 0.5em 0.5em;
+    margin: 0.5em 0.5em 0 0.5em;
+    width: 96%;
+    overflow: hidden;
 }
 
 div.minside div.nyhetinfo {
