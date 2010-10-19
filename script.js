@@ -23,7 +23,7 @@ function cleartxt(txtid) {
 
 function submitFormImgSub() {
 	var img_input = $('wiki__text').value;
-	var re = new RegExp('\{\{\:([a-z.:_0-9]*)\|\}\}');
+	var re = new RegExp('\{\{\:([a-z\-\.:_0-9]*)\|\}\}');
 	var m = re.exec(img_input);
 	if (m == null) {
 		var resultat = '';
