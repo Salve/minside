@@ -16,6 +16,10 @@ function openNyhetImgForm(nyhetid) {
 	return false;
 }
 
+function heltSikker() {
+    msg = 'Er du helt sikker på at du vil slette elementet?';
+    return confirm(msg);
+}
 //clearer txtfelt som blir gitt til funksjonen
 function cleartxt(txtid) {
     document.getElementById(txtid).value = "";

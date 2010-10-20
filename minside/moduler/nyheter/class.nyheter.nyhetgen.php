@@ -420,7 +420,7 @@ class NyhetGen {
                         <td>$navn</td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
-                        ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                        ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"  onClick="return heltSikker()"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
                     </tr>
                 ";
             }
