@@ -814,7 +814,7 @@ class NyhetGen {
         }
 
         // Tildel tags til collections (rader i tabell)
-        $j = 0; // Antall rader for øyeblikket
+        $j = 0; // Hvilken rad vi skriver til for øyeblikket
         foreach($arIndexed as $key => $objTag) {
             $arCollections[$j]->addItem($objTag, $objTag->getId());
             $maxrow = ($key > $siste_item_i_siste_row) ? $antall_full_rows - 1 : $antall_full_rows; // - 1 pga 0indeksering i $arCollections
