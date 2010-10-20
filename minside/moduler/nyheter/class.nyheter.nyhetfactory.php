@@ -43,8 +43,16 @@ class NyhetFactory {
                 tagbind.nyhetid AS nyhetid
             FROM 
                 nyheter_tag_x_nyhet AS tagbind
+            LEFT JOIN
+                nyheter_tag AS tag ON tagbind.tagid = tag.tagid
             WHERE 
                 tagbind.tagid IN(%1$s)
+            AND
+                tag.is_deleted = 0
+            AND
+                tag.no_view = 0
+            AND
+                tag.tagtype = 3
             GROUP BY 
                 tagbind.nyhetid
             HAVING 
@@ -59,8 +67,16 @@ class NyhetFactory {
                 DISTINCT tagbind.nyhetid AS nyhetid
             FROM 
                 nyheter_tag_x_nyhet AS tagbind
+            LEFT JOIN
+                nyheter_tag AS tag ON tagbind.tagid = tag.tagid
             WHERE 
                 tagbind.tagid IN(%1$s)
+            AND
+                tag.is_deleted = 0
+            AND
+                tag.no_view = 0
+            AND
+                tag.tagtype = 3
         ) AS taghits ON taghits.nyhetid = nyheter_nyhet.nyhetid
         ';
     
@@ -71,8 +87,16 @@ class NyhetFactory {
                 DISTINCT katbind.nyhetid AS nyhetid
             FROM
                 nyheter_tag_x_nyhet AS katbind
+            LEFT JOIN
+                nyheter_tag AS kat ON katbind.tagid = kat.tagid
             WHERE
                 katbind.tagid IN(%1$s)
+            AND
+                kat.is_deleted = 0
+            AND
+                kat.no_view = 0
+            AND
+                kat.tagtype = 2
         ) AS kathits ON kathits.nyhetid = nyheter_nyhet.nyhetid
         ';
 	
