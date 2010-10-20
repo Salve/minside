@@ -672,9 +672,8 @@ div.nyhetimgleft img.nyhetimg {
     margin-right:1em;
 }
 
+
 div.minside .tagtable {
-    border: 1px #8cacdb;
-    /*border-style: dashed;*/
     white-space: nowrap;
 }
 
@@ -725,6 +724,11 @@ div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, d
     padding-bottom:0.25em;
     padding-left:0.5em;
     padding-right:0.5em;
+}
+
+div.minside div.nyhettagvelger {
+    border: 1px #8cacdb;
+    border-style: solid none none none;
 }
 
 div.minside div.nyhetsettext {
