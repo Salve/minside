@@ -107,7 +107,7 @@ class NyhetGen {
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\">" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\" onClick='return heltSikker()'>" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
 		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
