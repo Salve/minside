@@ -675,6 +675,7 @@ div.nyhetimgleft img.nyhetimg {
 div.minside .tagtable {
     border: 1px #8cacdb;
     border-style: dashed;
+    white-space: nowrap;
 }
 
 /*Nyhet editor*/

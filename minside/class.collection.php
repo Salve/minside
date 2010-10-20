@@ -87,4 +87,9 @@ class Collection implements IteratorAggregate {
 		$this->_checkCallback;
 		return new CollectionIterator($this);
 	}
+    
+    public function uasort($callback) {
+        // Returnerer success/fail bool
+        return uasort($this->_members, $callback);
+    }
 }

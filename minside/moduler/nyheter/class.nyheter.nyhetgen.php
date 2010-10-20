@@ -206,26 +206,28 @@ class NyhetGen {
         $html_kategori .= '</select></div>'; // nyhetkategorivelger
         
         // Tags
-        $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
+        $colAllTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
+        $colTagsSomSkalVises = new NyhetTagCollection();
+        foreach($colAllTags as $objTag) {
+            // Tags som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
+            if(!$objTag->noSelect() || $objNyhet->hasTag($objTag)) {
+                $colTagsSomSkalVises->addItem($objTag, $objTag->getId());
+            }
+        }
+        // Returnerer array med tag-collections, parameter 2 er bredde på radene, en collection per rad
+        $arTagCollections = self::tableSortColTags($colTagsSomSkalVises, 6);
 		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
         $i = 0;
-        $tagnr = 1;
-        $html_tags .= '<table>';
-        foreach ($colTags as $objTag) {
-            if($objNyhet->hasTag($objTag)) {
-                $checked = 'checked="checked"';
-            } else {
-                // Tags som ikke skal kunne velges vises bare dersom de allerede er aktive på nyheten
-                if($objTag->noSelect()) continue;
-                $checked = '';
+        $html_tags .= "<table>\n";
+        foreach ($arTagCollections as $colTagRow) {
+            $html_tags .= "<tr>\n";
+            foreach ($colTagRow as $objTag) {
+                $checked = ($objNyhet->hasTag($objTag)) ? 'checked="checked"' : '';
+                $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . ++$i . 
+                    '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
+                    '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label></td> \n";
             }
-            if ($tagnr == 1) $html_tags .= '<tr>';
-            $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . ++$i . 
-                '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
-                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label></td> \n";
-            if ($tagnr == 8) $html_tags .= '</tr>';
-            $tagnr ++;
-            if ($tagnr > 8) $tagnr = 1;
+            $html_tags .= "</tr>\n";
         }
         $html_tags .= '</table></div>'; // nyhettagvelger
         
@@ -769,6 +771,52 @@ class NyhetGen {
         }
         
         return '&' . implode('&', $param);
+        
+    }
+    
+    protected static function tableSortColTags(NyhetTagCollection $inputcol, $items_per_row) {
+        // Tar i mot en collection tags, returnerer en tabell (array med en NyhetTagCollection per rad)
+        // med gitt bredde hvor korte navn er fordelt mot venstre side av tabellen, 
+        // slik at hver kolonne har mest mulig uniform bredde.
+        
+        // Calculationz and validationz
+        $items_per_row = (int) $items_per_row;
+        $antall_items = $inputcol->length();
+        if($items_per_row < 1 || $antall_items < 1) return array();
+        $antall_full_rows = floor($antall_items / $items_per_row);
+        if($antall_full_rows === 0) return array($inputcol);
+        $antall_i_siste_row = $antall_items % $items_per_row;
+        $siste_item_i_siste_row = ($antall_i_siste_row * ($antall_full_rows + 1)) - 1; // - 1 pga 0indeksering i $arIndexed
+        
+        // Opprett collections - en mer enn antall_full_rows
+        // Hver collection holder en rad med tags
+        $arCollections = array();
+        for($i=0;$i<=$antall_full_rows;$i++) {
+            $arCollections[$i] = new NyhetTagCollection();
+        }
+        
+        // Sorter etter streng-lengde på tagnavn
+        if (!$inputcol->uasort(array('NyhetTag', 'compare_strlen_navn'))) throw new Exception('Sortering av tags feilet.');
+        
+        // Opprett array hvor tags er indeksert i henhold til sortering
+        $arIndexed = array();
+        foreach($inputcol as $objTag) {
+            $arIndexed[] =  $objTag;
+        }
+
+        // Tildel tags til collections (rader i tabell)
+        $j = 0; // Antall rader for øyeblikket
+        foreach($arIndexed as $key => $objTag) {
+            $arCollections[$j]->addItem($objTag, $objTag->getId());
+            $maxrow = ($key > $siste_item_i_siste_row) ? $antall_full_rows - 1 : $antall_full_rows; // - 1 pga 0indeksering i $arCollections
+            if($j == $maxrow) {
+                $j = 0;
+            } else {
+                $j++;
+            }
+        }
+
+        return $arCollections;
         
     }
 	

@@ -152,6 +152,13 @@ class NyhetTag {
         return (bool) $msdb->exec($sql);
     }
     
+    public static function compare_strlen_navn(NyhetTag $a, NyhetTag $b) {
+        $lenA = strlen($a->getNavn());
+        $lenB = strlen($b->getNavn());
+        if($lenA == $lenB) return 0;
+        return ($lenA > $lenB) ? +1 : -1;
+    }
+    
     public function getKategoriUpdateFunction() {
         if (!$this->isSaved()) throw new Exception('Kan ikke generere DB-update funksjon for kategori som ikke er lagret.');
         if ($this->getType() !== self::TYPE_KATEGORI) throw new Exception('Kan ikke generere DB-update funksjon for tags som ikke er av type kategori.');
