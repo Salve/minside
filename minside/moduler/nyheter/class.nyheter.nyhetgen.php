@@ -5,6 +5,7 @@ class NyhetGen {
 
 	const THUMB_BREDDE = 100;
 	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
+    const TAGSELECTOR_TAGS_PER_ROW = 6;
 
 	private function __construct() { }
 	
@@ -215,7 +216,7 @@ class NyhetGen {
             }
         }
         // Returnerer array med tag-collections, parameter 2 er bredde på radene, en collection per rad
-        $arTagCollections = self::tableSortColTags($colTagsSomSkalVises, 6);
+        $arTagCollections = self::tableSortColTags($colTagsSomSkalVises, self::TAGSELECTOR_TAGS_PER_ROW);
 		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
         $i = 0;
         $html_tags .= "<table>\n";
@@ -610,7 +611,10 @@ class NyhetGen {
                 : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
         }
         $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
-
+        
+        // Selflink
+        $html_selflink = '<a href="'.$selflink.'&visside='.$currpage.'">Link til dette søket</a>';
+        
         // "Template"
         $output = '
             <div class="arkivoptions">
@@ -694,6 +698,7 @@ class NyhetGen {
                 </form>
             </div>
             <div class="pagination">
+                '.$html_selflink.'<br />
                 Antall treff: '.$numhits.'<br />
                 '.$html_pagination.'
             </div>
@@ -717,8 +722,7 @@ class NyhetGen {
         if ($colTags->length() === 0) return '';
         $output = "\n".'<div class="tags"><span>';
         foreach($colTags as $objTag) {
-            // TODO: Fiks url når arkiv er implementert
-            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv" class="wikilink1" ' .
+            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv&ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
                 'title="tag:' . $objTag->getNavn() . '">' . $objTag->getNavn() . '</a>';
         }
         $output .= implode(', ', $arOutput);
@@ -786,7 +790,12 @@ class NyhetGen {
         $antall_full_rows = floor($antall_items / $items_per_row);
         if($antall_full_rows === 0) return array($inputcol);
         $antall_i_siste_row = $antall_items % $items_per_row;
-        $siste_item_i_siste_row = ($antall_i_siste_row * ($antall_full_rows + 1)) - 1; // - 1 pga 0indeksering i $arIndexed
+        if($antall_i_siste_row > 0) {
+            $siste_item_i_siste_row = ($antall_i_siste_row * ($antall_full_rows + 1)) - 1; // - 1 pga 0indeksering i $arIndexed
+        } else {
+            $siste_item_i_siste_row = $antall_items - 1; // - 1 pga 0indeksering i $arIndexed
+            $antall_full_rows--;
+        }
         
         // Opprett collections - en mer enn antall_full_rows
         // Hver collection holder en rad med tags
