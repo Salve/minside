@@ -209,6 +209,8 @@ class NyhetGen {
         $colTags = NyhetTagFactory::getAlleNyhetTags(true, true, false, NyhetTag::TYPE_TAG);
 		$html_tags = '<div class="nyhettagvelger">Tags:&nbsp;';
         $i = 0;
+        $tagnr = 1;
+        $html_tags .= '<table>';
         foreach ($colTags as $objTag) {
             if($objNyhet->hasTag($objTag)) {
                 $checked = 'checked="checked"';
@@ -217,11 +219,15 @@ class NyhetGen {
                 if($objTag->noSelect()) continue;
                 $checked = '';
             }
-            $html_tags .= '<input type="checkbox" class="edit" id="tag' . ++$i . 
+            if ($tagnr == 1) $html_tags .= '<tr>';
+            $html_tags .= '<td class="tagtable"><input type="checkbox" class="edit" id="tag' . ++$i . 
                 '" name="nyhettags[' . $objTag->getId() . ']" '.$checked.' />&nbsp;' . 
-                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label> \n";
+                '<label for="tag' . $i . '">' . $objTag->getNavn() . "</label></td> \n";
+            if ($tagnr == 8) $html_tags .= '</tr>';
+            $tagnr ++;
+            if ($tagnr > 8) $tagnr = 1;
         }
-        $html_tags .= '</div>'; // nyhettagvelger
+        $html_tags .= '</table></div>'; // nyhettagvelger
         
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
@@ -264,7 +270,7 @@ class NyhetGen {
             $html_calendar = '<div class="nyhetpubdatovelger">Publiseringsdato: ' . ob_get_clean();
             $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
             $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
-            $html_calendar .= '<img alt="Send nyhet til topp ved å sette dagens dato" align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
+            $html_calendar .= '<img alt="Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen." align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
