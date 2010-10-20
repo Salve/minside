@@ -611,7 +611,10 @@ class NyhetGen {
                 : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
         }
         $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
-
+        
+        // Selflink
+        $html_selflink = '<a href="'.$selflink.'&visside='.$currpage.'">Link til dette søket</a>';
+        
         // "Template"
         $output = '
             <div class="arkivoptions">
@@ -695,6 +698,7 @@ class NyhetGen {
                 </form>
             </div>
             <div class="pagination">
+                '.$html_selflink.'<br />
                 Antall treff: '.$numhits.'<br />
                 '.$html_pagination.'
             </div>
@@ -718,8 +722,7 @@ class NyhetGen {
         if ($colTags->length() === 0) return '';
         $output = "\n".'<div class="tags"><span>';
         foreach($colTags as $objTag) {
-            // TODO: Fiks url når arkiv er implementert
-            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv" class="wikilink1" ' .
+            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv&ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
                 'title="tag:' . $objTag->getNavn() . '">' . $objTag->getNavn() . '</a>';
         }
         $output .= implode(', ', $arOutput);
