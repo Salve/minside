@@ -63,7 +63,7 @@ class NyhetGen {
 		}
         
         // HTML
-        $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
+        $returnto_html = ($returnto) ? '&amp;returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
@@ -102,19 +102,19 @@ class NyhetGen {
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
-		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
+		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&amp;act=lest&amp;nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
-		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
+		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\" onClick='return heltSikker()'>" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=slett&amp;nyhetid=$id\"  onClick='return heltSikker()'>" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\" onClick='return heltSikker()'>" .
+		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&amp;act=permslett&amp;nyhetid=$id\"  onClick='return heltSikker()'>" .
             '<img alt="permslett" title="Slett nyhet permanent" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&act=restore&nyhetid=$id\">" .
+		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&amp;act=restore&amp;nyhetid=$id\">" .
             '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		
@@ -234,17 +234,17 @@ class NyhetGen {
         
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
-		$html_sticky = '<div class="nyhetvelgsticky">Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
-			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
-			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
+		$html_sticky = '<div class="nyhetvelgsticky"><label for="stickycheckbox">Skal nyheten være <acronym title="' .
+			'Sticky nyheter vises øverst i listen med siste nyheter, og blir liggende der til sticky-merking manuellt fjernes.">sticky</acronym>?</label>' .
+			' <input id="stickycheckbox" class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
 		
 		// Bilde
 		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" tabindex="4" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
-			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
+			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="Velg bilde" ' .
 			'title="Legg til bilde" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'image.png" /><img alt="Slett felt" title="Slett felt" class="" src="' .
-				MS_IMG_PATH . 'trash.png" onClick="cleartxt(\'nyhet__imgpath\');" /></div>';
+            'height="16" src="' . MS_IMG_PATH . 'image.png" />&nbsp;<img alt="Slett" title="Tøm felt" class="" src="' .
+				MS_IMG_PATH . 'trash.png" height="16" width="16" onClick="cleartxt(\'nyhet__imgpath\');" /></div>';
 		
 		// Publiseringsdato
         // Vises kun dersom bruker har create rigths på nyhetområdet
@@ -271,9 +271,12 @@ class NyhetGen {
             ob_start(); // må ta vare på output...
             $objCalendar->writeScript();
             $html_calendar = '<div class="nyhetpubdatovelger">Publiseringsdato: ' . ob_get_clean();
-            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
-            $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
-            $html_calendar .= '<img alt="Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen." align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. 
+                $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. 
+                $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
+            $html_calendar .= '&nbsp;<img alt="Sett dags dato" align="absmiddle" onClick="setTodaysdate();" title="'.
+                'Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen over siste nyheter." src="' . MS_IMG_PATH . 'up.png" /></div>';
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
@@ -302,7 +305,7 @@ class NyhetGen {
                                 <!--//--><![CDATA[//><!-- textChanged = false; //--><!]]>
                             </script>
                         </div> <!-- toolbar -->
-                        <form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">
+                        <form action="' . MS_NYHET_LINK . '&amp;act=subedit" method="POST">
                             <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
                             <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
                             <input type="hidden" name="rev" value="" />
@@ -342,14 +345,14 @@ class NyhetGen {
 	
 	public static function genIngenNyheter($ekstratekst='') {
         if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
-		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
+		return '<div class="mswarningbar"><strong>Ingen nyheter her!</strong><br /><br />'.$ekstratekst.'</div>';
 	}
     
     public static function genOmradeAdmin($colOmrader) {
         $output .= "<h2>Områdeadministrasjon</h2>\n";
         
-        $output .= '<div class="omradeadmwrap">
-            <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
+        $output .= '<div class="omradeadmwrap level3">
+            <form action="' . MS_NYHET_LINK . '&amp;act=subomradeadm" method="POST">
             <table class="omradeadmtbl">
                 <tr>
                     <th>Område </th>
@@ -372,7 +375,7 @@ class NyhetGen {
                 </tr>
             ";
         }
-        $output .= '</table></div><input type="submit" value="Lagre" class="button" /></form>';
+        $output .= '</table><input type="submit" value="Lagre" class="button" /></form></div>';
         
         return $output;
     }
@@ -386,7 +389,7 @@ class NyhetGen {
         if ($colTags->length() === 0)  {
             $output .= '<div class="mswarningbar">Ingen tags / kategorier her!</div>';
         } else {
-            $output .= '<form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+            $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=subtagadm" method="POST">
                 <input type="hidden" name="tagact" value="edit" />
                 <table class="tagadmtbl">
                     <tr>
@@ -411,8 +414,8 @@ class NyhetGen {
                         break;
                 }
                 $navn = $objTag->getNavn();
-                $noview = ($objTag->noView()) ? 'checked' : '';
-                $noselect = ($objTag->noSelect()) ? 'checked' : '';
+                $noview = ($objTag->noView()) ? 'checked="checked"' : '';
+                $noselect = ($objTag->noSelect()) ? 'checked="checked"' : '';
                 $id = $objTag->getId();
                 $output .= "
                     <input type=\"hidden\" name=\"tagadmdata[$id][tagid]\" value=\"$id\" />
@@ -421,7 +424,7 @@ class NyhetGen {
                         <td>$navn</td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
-                        ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"  onClick="return heltSikker()"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                        ".'<td><a href="'. MS_NYHET_LINK .'&amp;act=sletttag&amp;tagid='.$id.'"  onClick="return heltSikker()"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
                     </tr>
                 ";
             }
@@ -434,7 +437,7 @@ class NyhetGen {
         $output .= '<div class="tagadmnytag">
                         <h2>Ny kategori / tag</h2>
                         <div class="level3">
-                            <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+                            <form action="' . MS_NYHET_LINK . '&amp;act=subtagadm" method="POST">
                             <input type="hidden" name="tagact" value="new" />
                             <table class="tagadmnytagtbl">
                                 <tr>
@@ -470,7 +473,7 @@ class NyhetGen {
     public static function genArkivOptions(array $data) {
         
         // Linker
-        $selflink = MS_NYHET_LINK . '&act=arkiv' . self::genArkivLinkParams($data);
+        $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . self::genArkivLinkParams($data);
         
         // Datofilter
         // Fradato
@@ -517,7 +520,7 @@ class NyhetGen {
             $katopts .= '<option value="' . $objKat->getId() . "\"$selected>" . $objKat->getNavn() . '</option>';
         }
         $html_kategorifilter = 
-            '<select class="edit tagselect" name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
+            '<select class="edit tagselect" name="fkat[]" size="7" multiple="multiple">'. $katopts .'</select><br />
             Hold inne ctrl for å velge flere.';
             
         // Tagfilter
@@ -527,14 +530,14 @@ class NyhetGen {
             $tagopts .= '<option value="' . $objTag->getId() . "\"$selected>" . $objTag->getNavn() . '</option>';
         }
         if ($data['ftag']['mode'] == 'AND') {
-            $tfANDchecked = ' checked';
+            $tfANDchecked = ' checked="checked"';
             $tfORchecked = '';
         } else {
             $tfANDchecked = '';
-            $tfORchecked = ' checked';
+            $tfORchecked = ' checked="checked"';
         }
         $html_tagfilter = 
-            '<select class="edit tagselect" name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
+            '<select class="edit tagselect" name="ftag[]" size="7" multiple="multiple">'. $tagopts .'</select><br />
             Hold inne ctrl for å velge flere.<br />
             <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
             <label for="tfOR">Minst en av valgte tags</label><br />
@@ -543,11 +546,11 @@ class NyhetGen {
         
         // Sortering
         if ($data['sortorder'] == 'ASC') {
-            $sortASCyes = ' checked';
+            $sortASCyes = ' checked="checked"';
             $sortASCno = '';
         } else {
             $sortASCyes = '';
-            $sortASCno = ' checked';
+            $sortASCno = ' checked="checked"';
         }
         $html_sortering = '
             <input type="radio" id="sortASC" name="sortorder" value="ASC"'.$sortASCyes.' />
@@ -562,7 +565,7 @@ class NyhetGen {
             $pubopts .= '<option value="' . $publisher['id'] . "\"$selected>" . $publisher['navn'] . '</option>';
         }
         $html_publisherfilter = 
-            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple>'. $pubopts .'</select><br />
+            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple="multiple">'. $pubopts .'</select><br />
             Hold inne ctrl for å velge flere.';
             
         // Handlinger
@@ -587,7 +590,7 @@ class NyhetGen {
                 $omradeopts .= '<option value="' . $objOmrade->getOmrade() . "\"$selected>" . $objOmrade->getVisningsnavn() . '</option>';
             }
             $html_omradefilter = 
-                '<select class="edit tagselect" name="fomrader[]" size="7" multiple>'. $omradeopts .'</select><br />
+                '<select class="edit tagselect" name="fomrader[]" size="7" multiple="multiple">'. $omradeopts .'</select><br />
                 Hold inne ctrl for å velge flere.';
         } else {
             $html_omradefilter =
@@ -600,25 +603,25 @@ class NyhetGen {
         $currpage = $data['pages']['currpage'];
         $numpages = $data['pages']['numpages'];
         $forrige = ($currpage > 1) 
-            ? '<a href="'.$selflink.'&visside='.($currpage - 1).'">Forrige</a> '
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage - 1).'">Forrige</a> '
             : '';
         $neste = ($currpage < $numpages) 
-            ? '<a href="'.$selflink.'&visside='.($currpage + 1).'">Neste</a>'
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage + 1).'">Neste</a>'
             : '';
         for($i=1;$i<=$numpages;$i++) {
             $pagelinks .= ($currpage == $i)
                 ? '<strong>' . $i . '</strong>&nbsp;'
-                : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
+                : '<a href="'.$selflink.'&amp;visside='.$i.'">'.$i.'</a>&nbsp;';
         }
         $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
         
         // Selflink
-        $html_selflink = '<a href="'.$selflink.'&visside='.$currpage.'">Link til dette søket</a>';
+        $html_selflink = '<a href="'.$selflink.'&amp;visside='.$currpage.'">Link til dette søket</a>';
         
         // "Template"
         $output = '
             <div class="arkivoptions">
-                <form method="POST" action="'.MS_NYHET_LINK.'&act=arkiv">
+                <form method="POST" action="'.MS_NYHET_LINK.'&amp;act=arkiv">
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
@@ -726,7 +729,7 @@ class NyhetGen {
         if ($colTags->length() === 0) return '';
         $output = "\n".'<div class="tags"><span>';
         foreach($colTags as $objTag) {
-            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv&ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
+            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
                 'title="tag:' . $objTag->getNavn() . '">' . $objTag->getNavn() . '</a>';
         }
         $output .= implode(', ', $arOutput);
@@ -778,7 +781,7 @@ class NyhetGen {
             $param[] = 'perside=' . $data['pages']['perside'];
         }
         
-        return '&' . implode('&', $param);
+        return '&amp;' . implode('&amp;', $param);
         
     }
     
@@ -818,7 +821,7 @@ class NyhetGen {
         }
 
         // Tildel tags til collections (rader i tabell)
-        $j = 0; // Antall rader for øyeblikket
+        $j = 0; // Hvilken rad vi skriver til for øyeblikket
         foreach($arIndexed as $key => $objTag) {
             $arCollections[$j]->addItem($objTag, $objTag->getId());
             $maxrow = ($key > $siste_item_i_siste_row) ? $antall_full_rows - 1 : $antall_full_rows; // - 1 pga 0indeksering i $arCollections

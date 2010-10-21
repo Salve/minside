@@ -46,7 +46,7 @@ class msmodul_tips implements msmodul{
 					$this->getSettings();
 					$this->_tipsOut .= '
 					<fieldset style="width:350px;"><legend>WikiTips Admin</legend>
-					<form action"'. MS_LINK . '"&page=tips" method="POST">
+					<form action"'. MS_LINK . '"&amp;page=tips" method="POST">
 						<textarea name="admepost" class="edit">';
 					$this->_tipsOut .= $this->_cfg['epost'];
 					$this->_tipsOut .= '</textarea>
@@ -59,7 +59,7 @@ class msmodul_tips implements msmodul{
 			default:
 				$this->_tipsOut .= '
 					<fieldset style="width:250px;"><legend>Tips til wiki</legend>
-					<form action="' . MS_LINK . '&page=tips" method="POST">
+					<form action="' . MS_LINK . '&amp;page=tips" method="POST">
 						<textarea name="tipsbody" class="edit" style="width:245px;"></textarea>
 						<br>
 						<input type="hidden" name="act" value="sendtips">
@@ -92,9 +92,17 @@ class msmodul_tips implements msmodul{
 	
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_adgang;
-		
-		$toppmeny = new Menyitem('WikiTips','&page=tips');
-		$tipsadmin = new Menyitem('Admin','&page=tips&act=tipsadmshw');
+        
+        $menynavn = 'WikiTips';
+        $adminnavn = 'Admin';
+        if ($this->_msmodulAct == 'tipsadmshw') {
+            $adminnavn = '<span class="selected">'.$adminnavn.'</span>';
+        } elseif (isset($this->_msmodulAct)) {
+            $menynavn = '<span class="selected">'.$menynavn.'</span>';
+        }
+        
+		$toppmeny = new Menyitem($menynavn,'&amp;page=tips');
+		$tipsadmin = new Menyitem($adminnavn,'&amp;page=tips&amp;act=tipsadmshw');
 		
 		if ($lvl > MSAUTH_NONE) { 
 			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulAct)) {

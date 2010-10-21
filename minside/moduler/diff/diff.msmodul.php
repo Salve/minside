@@ -42,7 +42,7 @@ class msmodul_diff implements msmodul{
 				$this->_diffOut .= '<pre>' . $renderer->render($diff) . '</pre>';
 			}
 			
-			$this->_diffOut .= '<form action="' . MS_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<form action="' . MS_LINK . '&amp;page=diff" method="POST">';
 			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="44">';
 			$this->_diffOut .= implode($text1);
 			$this->_diffOut .= '</textarea>';
@@ -50,7 +50,7 @@ class msmodul_diff implements msmodul{
 			$this->_diffOut .= implode($text2);
 			$this->_diffOut .= '</textarea>';
 		} else {
-			$this->_diffOut .= '<form action="' . MS_LINK . '&page=diff" method="POST">';
+			$this->_diffOut .= '<form action="' . MS_LINK . '&amp;page=diff" method="POST">';
 			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="40"></textarea>';
 			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="40"></textarea>';
 		}
@@ -67,7 +67,13 @@ class msmodul_diff implements msmodul{
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MSAUTH_NONE) { $meny->addItem(new Menyitem('Diff','&page=diff')); }
+		if ($this->_adgang > MSAUTH_NONE) { 
+            $menynavn = 'Diff';
+            if (isset($this->_msmodulAct)) {
+                $menynavn = '<span class="selected">'.$menynavn.'</span>';
+            }
+            $meny->addItem(new Menyitem($menynavn,'&amp;page=diff')); 
+        }
 	}
 	
 	

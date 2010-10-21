@@ -27,13 +27,13 @@ class msmodul_sidebar implements msmodul{
 			case 'show':
 				return $this->getSidebar();
 				break;
-			case 'rem':
+			case 'sidebarrem':
 				if ($this->_adgangsNiva >= MSAUTH_2) {
 					$this->_doRem();
 					return $this->_genAdmin();
 				}
 				break;
-			case 'InsOrMov':
+			case 'sidebarInsOrMov':
 				if ($this->_adgangsNiva >= MSAUTH_2) {
 					if (isset($_REQUEST['addaction'])) {
 						$this->_doAdd();
@@ -43,7 +43,7 @@ class msmodul_sidebar implements msmodul{
 					return $this->_genAdmin();
 				}
 				break;
-			case 'admin':
+			case 'sidebaradmin':
 				if ($this->_adgangsNiva >= MSAUTH_2) 
 					return $this->_genAdmin();
 				break;
@@ -144,11 +144,22 @@ class msmodul_sidebar implements msmodul{
 	}
     
     public function registrer_meny(MenyitemCollection &$meny){ 
+        $act = $_REQUEST['act']; // kan ikkje bruge msact, overskrives når sidebarmodul lastes i template for å vise sidebar
         $lvl = $this->_adgangsNiva;
-    
+        
         if ($lvl >= MSAUTH_2) {
-            $toppmeny = new Menyitem('Sidebar','&page=sidebar&act=admin');
-            $meny->addItem($toppmeny);
+            switch($act) {
+                case 'sidebarrem':
+                case 'sidebarInsOrMov':
+                case 'sidebaradmin':
+                    $menytekst = '<span class="selected">Sidebar</span>';
+                    break;
+                default:
+                    $menytekst = 'Sidebar';
+                    break;
+            }
+            
+            $meny->addItem(new Menyitem($menytekst,'&amp;page=sidebar&amp;act=sidebaradmin'));
         }
     
     }

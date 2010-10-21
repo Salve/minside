@@ -1,6 +1,6 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
+define('MS_NYHET_LINK', MS_LINK . "&amp;page=nyheter");
 require_once('class.nyheter.nyhetcollection.php');
 require_once('class.nyheter.msnyhet.php');
 require_once('class.nyheter.omrade.php');
@@ -41,60 +41,116 @@ class msmodul_nyheter implements msmodul {
 	}
 	
 	private function _setHandlers(&$dispatcher) {
+        // Siste nyheter
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
+        // Uleste nyheter / merk lest
 		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
-		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
-		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
-		$dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
-        $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
-		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
-		$dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
-		$dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
-		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
-		$dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
+        $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
-		$dispatcher->addActHandler('tagadm', 'gen_tag_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
+        // Rediger / opprett
+		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
+        $dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
+        $dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
+        // Arkiv
+		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
+        // Upubliserte
+		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
+        // Slett nyhet (bruker returnto, dispatcher direkte) og slettede nyheter
+		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
+        // Admin
+        $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
+        $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
+        // System / interne
 		$dispatcher->addActHandler('checkpublished', 'check_published', MSAUTH_NONE);
-		
+        $dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
+		$dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
 		$lvl = $this->_adgangsNiva;
-	
+        
 		if ($lvl > MSAUTH_NONE) { 
-			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
-			if (isset($this->_msmodulact)) { // Modul er lastet/vises
-				$toppmeny->addChild(new Menyitem('Uleste nyheter','&page=nyheter&act=ulest'));
-				$toppmeny->addChild(new Menyitem('Arkiverte nyheter','&page=nyheter&act=arkiv'));
-				if ($lvl >= MSAUTH_2) {
-					$toppmeny->addChild(new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub'));
+			$toppmeny = new Menyitem('Nyheter','&amp;page=nyheter');
+			if ($_REQUEST['page'] == 'nyheter') { // Modul er lastet/vises
+                
+                $menyitem_opprett = new Menyitem('Opprett','&amp;page=nyheter&amp;act=addnyhet');
+                $menyitem_list = new Menyitem('Siste','&amp;page=nyheter&amp;act=list');
+                $menyitem_ulest = new Menyitem('Uleste','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_upub = new Menyitem('Upubliserte','&amp;page=nyheter&amp;act=upub');
+                $menyitem_showdel = new Menyitem('Slettede','&amp;page=nyheter&amp;act=showdel');
+                $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
+                $menyitem_admin = new Menyitem('Admin','&amp;page=nyheter&amp;act=admin');
+                
+                switch($this->_msmodulact) {
+                    case 'show':
+                    case 'list':
+                        $objStrong = $menyitem_list;
+                        break;
+                    case 'lest':
+                    case 'allelest':
+                    case 'ulest':
+                        $objStrong = $menyitem_ulest;
+                        break;
+                    case 'arkiv':
+                        $objStrong = $menyitem_arkiv;
+                        break;
+                    case 'upub':
+                        $objStrong = $menyitem_upub;
+                        break;
+                    case 'addnyhet':
+                        $objStrong = $menyitem_opprett;
+                        break;
+                    case 'subtagadm':
+                    case 'sletttag':
+                    case 'subomradeadm':
+                    case 'admin':
+                        $objStrong = $menyitem_admin;
+                        break;
+                    case 'restore':
+                    case 'permslett':
+                    case 'showdel':
+                        $objStrong = $menyitem_showdel;
+                        break;
+                    default:
+                        $objStrong = null;
+                        break;
+                }
+                if($objStrong instanceof Menyitem) {
+                    $strongtekst = '<span class="selected">' . $objStrong->getTekst() . '</span>';
+                    $objStrong->setTekst($strongtekst);
+                }
+                
+                if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild($menyitem_opprett);
+				}
+                $toppmeny->addChild($menyitem_ulest);
+                $toppmeny->addChild($menyitem_list);
+                if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild($menyitem_upub);
 				}
 				if ($lvl >= MSAUTH_5) {
-					$toppmeny->addChild(new Menyitem('Slettede nyheter','&page=nyheter&act=showdel'));
+					$toppmeny->addChild($menyitem_showdel);
 				}
-                if ($lvl >= MSAUTH_3) {
-					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
-				}
+                $toppmeny->addChild($menyitem_arkiv);
                 if ($lvl >= MSAUTH_5) {
-					$toppmeny->addChild(new Menyitem('Områdeadmin','&page=nyheter&act=omradeadm'));
-				}
-                if ($lvl >= MSAUTH_5) {
-					$toppmeny->addChild(new Menyitem('Tag-/kategori-admin','&page=nyheter&act=tagadm'));
+					$toppmeny->addChild($menyitem_admin);
 				}
 			}
 			$meny->addItem($toppmeny);
@@ -111,7 +167,8 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
 		
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Her vises kun nyheter publisert de siste syv dagene. '.
+                'Se <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
@@ -132,14 +189,15 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest. '.
+                'Se <a href="'.MS_NYHET_LINK.'&amp;act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), 'ulest');
         }
         
-        $output = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>' . $output;
+        $output = '<p><a href="'.MS_NYHET_LINK.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
                 
 		return $output;
 		

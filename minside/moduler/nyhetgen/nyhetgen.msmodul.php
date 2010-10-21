@@ -39,7 +39,7 @@ class msmodul_nyhetgen implements msmodul{
 				<legend>
 					Nyhetsgenerator
 				</legend>
-				<form name="nyhetsgenerator" action="' . MS_LINK . '&page=nyhetgen" method="POST">
+				<form name="nyhetsgenerator" action="' . MS_LINK . '&amp;page=nyhetgen" method="POST">
 					Overskrift: <input type="text" name="overskrift" value="'.$overskrift.'"><br>
 					Ingress: <br><textarea name="ingress" cols="50" class="edit">'.$bread.'</textarea><br>
 					Tekst: <br><textarea name="tekst" class="edit" cols="50" rows="20">'.$tekst.'</textarea><br>
@@ -55,7 +55,13 @@ class msmodul_nyhetgen implements msmodul{
 	
 	
 	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MSAUTH_NONE) { $meny->addItem(new Menyitem('Nyhetsgenerator','&page=nyhetgen')); }
+		if ($this->_adgang > MSAUTH_NONE) { 
+            $menynavn = 'Nyhetsgenerator';
+            if (isset($this->_msmodulAct)) {
+                $menynavn = '<span class="selected">'.$menynavn.'</span>';
+            }
+            $meny->addItem(new Menyitem($menynavn,'&amp;page=nyhetgen')); 
+        }
 	}
 	
 	

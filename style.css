@@ -206,6 +206,10 @@ div.mstoc {
 	width:200px;*/
 }
 
+div.mstoc span.selected {
+    font-weight: bold;
+}
+
 div.dokuwiki ul.mstoc {
 	color:#638C9C;
 	line-height:1.5em;
@@ -812,4 +816,9 @@ div.sidebaradmin_right input.edit {
 div#main_page > div.left_sidebar {
 	width: 140px;
 	overflow: hidden;
+}
+
+div#main_page > div.left_sidebar table{
+    width: 140px;
+    overflow: hidden;
 }
