@@ -773,6 +773,10 @@ div.minside div.arkivoptions select.tagselect {
     width: 80%;
 }
 
+div.minside div.hidesearch {
+    display:none;
+}
+
 /* Område ADM */
 
 div.minside div.omradeadmwrap {

@@ -111,7 +111,7 @@ class NyhetGen {
 		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\" onClick='return heltSikker()'>" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
+		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\" onClick='return heltSikker()'>" .
             '<img alt="permslett" title="Slett nyhet permanent" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
 		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&act=restore&nyhetid=$id\">" .
@@ -575,7 +575,7 @@ class NyhetGen {
                 <option value="30"'.(($data['pages']['perside']==30)?' selected':'').'>30</option>
                 <option value="50"'.(($data['pages']['perside']==50)?' selected':'').'>50</option>
                 <option value="100"'.(($data['pages']['perside']==100)?' selected':'').'>100</option>
-            </select><br />
+            </select>
             <input class="edit" type="submit" name="dofilter" value="Utfør søk" />
             <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
              
@@ -641,17 +641,17 @@ class NyhetGen {
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
-                            <strong>Tag-filter</strong>
+                            <a href="javascript:;" onClick="showFilter(\'tagfilter\')"><strong>Tag-filter</strong></a>
                         </div>
-                        <div class="gruppecontent">
+                        <div class="gruppecontent hidesearch"  id="tagfilter">
                             '.$html_tagfilter.'
                         </div>
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <strong>Kategori-filter</strong>
+                            <a href="javascript:;" onClick="showFilter(\'kategorifilter\')"><strong>Kategori-filter</strong></a>
                         </div>
-                        <div class="gruppecontent">
+                        <div class="gruppecontent hidesearch" id="kategorifilter">
                             '.$html_kategorifilter.'
                         </div>
                     </div>
@@ -660,17 +660,17 @@ class NyhetGen {
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
-                            <strong>Publisert av</strong>
+                            <a href="javascript:;" onClick="showFilter(\'publisherfilter\')"><strong>Publisert av</strong></a>
                         </div>
-                        <div class="gruppecontent">
+                        <div class="gruppecontent hidesearch" id="publisherfilter">
                             '.$html_publisherfilter.'
                         </div>
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <strong>Område-filter</strong>
+                            <a href="javascript:;" onClick="showFilter(\'omradefilter\')"><strong>Område-filter</strong></a>
                         </div>
-                        <div class="gruppecontent">
+                        <div class="gruppecontent hidesearch" id="omradefilter">
                             '.$html_omradefilter.'
                         </div>
                     </div>
@@ -695,8 +695,12 @@ class NyhetGen {
                     </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
+            </div> 
+                       <div class="gruppecontent">
+                            '.$html_handlinger.'
+                        </div>
                 </form>
-            </div>
+
             <div class="pagination">
                 '.$html_selflink.'<br />
                 Antall treff: '.$numhits.'<br />
