@@ -111,7 +111,8 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
 		
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Her vises kun nyheter publisert de siste syv dagene. '.
+                'Se <a href="'.MS_NYHET_LINK.'&act=arkiv">arkivet</a> for eldre nyheter.');
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
@@ -132,7 +133,8 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest. '.
+                'Se <a href="'.MS_NYHET_LINK.'&act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&act=arkiv">arkivet</a> for eldre nyheter.');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {

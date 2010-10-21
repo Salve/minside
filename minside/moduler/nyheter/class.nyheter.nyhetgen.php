@@ -342,7 +342,7 @@ class NyhetGen {
 	
 	public static function genIngenNyheter($ekstratekst='') {
         if ($ekstratekst) $ekstratekst = '<p>' . $ekstratekst . '</p>';
-		return '<div class="mswarningbar">Ingen nyheter her!'.$ekstratekst.'</div>';
+		return '<div class="mswarningbar"><strong>Ingen nyheter her!</strong><br /><br />'.$ekstratekst.'</div>';
 	}
     
     public static function genOmradeAdmin($colOmrader) {
