@@ -206,6 +206,10 @@ div.mstoc {
 	width:200px;*/
 }
 
+div.mstoc span.selected {
+    font-weight: bold;
+}
+
 div.dokuwiki ul.mstoc {
 	color:#638C9C;
 	line-height:1.5em;
