@@ -56,14 +56,17 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
-		$dispatcher->addActHandler('tagadm', 'gen_tag_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('omradeadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
+        $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
@@ -91,10 +94,7 @@ class msmodul_nyheter implements msmodul {
 					$toppmeny->addChild(new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet'));
 				}
                 if ($lvl >= MSAUTH_5) {
-					$toppmeny->addChild(new Menyitem('Områdeadmin','&page=nyheter&act=omradeadm'));
-				}
-                if ($lvl >= MSAUTH_5) {
-					$toppmeny->addChild(new Menyitem('Tag-/kategori-admin','&page=nyheter&act=tagadm'));
+					$toppmeny->addChild(new Menyitem('Admin','&page=nyheter&act=admin'));
 				}
 			}
 			$meny->addItem($toppmeny);
