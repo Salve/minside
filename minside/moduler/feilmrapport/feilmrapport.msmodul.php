@@ -1,6 +1,6 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_FMR_LINK', MS_LINK . "&page=feilmrapport");
+define('MS_FMR_LINK', MS_LINK . "&amp;page=feilmrapport");
 require_once('class.feilmrapport.skift.php');
 require_once('class.feilmrapport.teller.php');
 require_once('class.feilmrapport.notat.php');
@@ -184,8 +184,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '</p>';
 		} else {
 			if ($objNotat instanceof Notat) {
-				$stredit = ' <a href="' . MS_FMR_LINK . '&act=modnotat&notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png"></a>';
-				$strslett = ' <a href="' . MS_FMR_LINK . '&act=delnotat&notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png"></a>';
+				$stredit = ' <a href="' . MS_FMR_LINK . '&amp;act=modnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png"></a>';
+				$strslett = ' <a href="' . MS_FMR_LINK . '&amp;act=delnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png"></a>';
 			}
 			$output .= '<li>' . $objNotat . $stredit . $strslett . '</li>';
 		}		
@@ -336,7 +336,7 @@ class msmodul_feilmrapport implements msmodul{
 				$rapportcounter++;
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 				
-				$output .= '<span class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= '<span class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
 				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a></span><br />' . "\n";
 				
@@ -346,7 +346,7 @@ class msmodul_feilmrapport implements msmodul{
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 	
 				$output .= '<span style="font-size:1em;" class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '">';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=visrapport&rapportid=' . $objRapport->getId() . '">';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
 				$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a>';
 				$output .= '</span><br />';
@@ -382,7 +382,7 @@ class msmodul_feilmrapport implements msmodul{
 				$year = $datum['YEAR'];
 				$monthlist = '';
 				foreach ($arMonths as $month) {
-					$monthlist .= '<a href="' . MS_FMR_LINK . '&act=rapportarkiv&arkivmnd=' . $year . '-' . $month . '">' . substr(self::$monthnames["$month"], 0, 3) . '</a> ' . "\n";
+					$monthlist .= '<a href="' . MS_FMR_LINK . '&amp;act=rapportarkiv&amp;arkivmnd=' . $year . '-' . $month . '">' . substr(self::$monthnames["$month"], 0, 3) . '</a> ' . "\n";
 				}
 			
 				$output .= '<span class="yearlist">' . "\n";
@@ -761,7 +761,7 @@ class msmodul_feilmrapport implements msmodul{
 			} else {
 				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" disabled />';
                 $output .= '&nbsp;' . '<span class="skift'. $ageclass .'">' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; Ikke avsluttet! '; 
-				$output .= '(<a href="' . MS_FMR_LINK . '&act=stengskift&skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . $agewarning . "<br />\n";
+				$output .= '(<a href="' . MS_FMR_LINK . '&amp;act=stengskift&amp;skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . $agewarning . "<br />\n";
 			}
             $output .= '</span>';
 		}			
@@ -940,7 +940,7 @@ class msmodul_feilmrapport implements msmodul{
                         $skiftout .= str_replace(' ', '&nbsp;', $arAkt['teller']) . "\n";
                         $skiftout .= '</div>'; // tellerakttekst
                         $skiftout .= '<div class="telleraktbilde">';
-                        $skiftout .= '<a href="' . MS_FMR_LINK . '&act=undoakt&aktid=' . $arAkt['id'] . '">' .
+                        $skiftout .= '<a href="' . MS_FMR_LINK . '&amp;act=undoakt&amp;aktid=' . $arAkt['id'] . '">' .
                     '<img style="float:right;margin-top:3px;margin-right:3px;" src="' . MS_IMG_PATH . 'trash.png"></a>';
                         $skiftout .= '</div>'; // telleraktbilde
                         $skiftout .= '</div>'; // tellerakt
@@ -1039,10 +1039,10 @@ class msmodul_feilmrapport implements msmodul{
 			$telleroutput .= '<td style="width:15%">' . $objTeller->getTellerType() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:30%">' . $objTeller->getTellerName() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:40%">' . $objTeller->getTellerDesc() . '</td>' . "\n";
-			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&act=flipteller&tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" title="Deaktiver teller" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" title="Aktiver teller" alt="aktiver">' ) . '</a>' . "\n";
+			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&amp;act=flipteller&amp;tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" title="Deaktiver teller" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" title="Aktiver teller" alt="aktiver">' ) . '</a>' . "\n";
 			if ($objTeller->isActive()) {
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorderopp&tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'up.png" alt="opp" Title="Flytt oppover"></a>';
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&act=modtellerorderned&tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'down.png" alt="ned" title="Flytt nedover"></a>';
+				$telleroutput .= '<a href="'. MS_FMR_LINK.'&amp;act=modtellerorderopp&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'up.png" alt="opp" Title="Flytt oppover"></a>';
+				$telleroutput .= '<a href="'. MS_FMR_LINK.'&amp;act=modtellerorderned&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'down.png" alt="ned" title="Flytt nedover"></a>';
 			}
 			$telleroutput .= '</td></tr>' . "\n";
 			
@@ -1088,7 +1088,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		$output .= "<p><strong>Legg til teller:</strong></p>\n";
 		$output .= '
-			<form action="' . MS_FMR_LINK . '&act=nyteller" method="POST">
+			<form action="' . MS_FMR_LINK . '&amp;act=nyteller" method="POST">
 			<table>
 				<tr>
 					<td>
@@ -1484,8 +1484,8 @@ class msmodul_feilmrapport implements msmodul{
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getLiveDate()) . '</td>' . "\n";
 				$output .= '<td>' . $objTemplate->getNumRapporter() . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . MS_FMR_LINK . '&act=showtplmarkup&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=showtplpreview&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
 				$output .= '</td>' . "\n"; // handlinger slutt
 				$output .= '</tr>' . "\n";
 			}
@@ -1509,11 +1509,11 @@ class msmodul_feilmrapport implements msmodul{
 				$output .= '<td>' . $objTemplate->getId() . '</td>' . "\n";
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getCreateDate()) . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . MS_FMR_LINK . '&act=showtplmarkup&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=showtplpreview&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=genmodtpl&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png" height="16" width="16" alt="Rediger" title="Rediger template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=sletttpl&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png" height="16" width="16" alt="Slett" title="Slett template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&act=modtpllive&templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'success.png" height="16" width="16" alt="Live" title="Go Live! Denne templaten vil bli brukt på nye rapporter" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=genmodtpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png" height="16" width="16" alt="Rediger" title="Rediger template" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=sletttpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png" height="16" width="16" alt="Slett" title="Slett template" /></a>';
+				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=modtpllive&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'success.png" height="16" width="16" alt="Live" title="Go Live! Denne templaten vil bli brukt på nye rapporter" /></a>';
 				$output .= '</td>' . "\n"; // handlinger slutt
 				$output .= '</tr>' . "\n";
 			}
@@ -1671,13 +1671,13 @@ class msmodul_feilmrapport implements msmodul{
         
 		if ($lvl > MSAUTH_NONE) { 
 		
-			$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
+			$toppmeny = new Menyitem('FeilM Rapport','&amp;page=feilmrapport');
             
             if (isset($act)) {
-                $telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
-                $genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
-                $rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
-                $tpladmin = new Menyitem('Rapporttemplates','&page=feilmrapport&act=genmodraptpl');
+                $telleradmin = new Menyitem('Rediger tellere','&amp;page=feilmrapport&amp;act=telleradm');
+                $genrapport = new Menyitem('Lag rapport','&amp;page=feilmrapport&amp;act=genrapportsel');
+                $rapportarkiv = new Menyitem('Rapportarkiv','&amp;page=feilmrapport&amp;act=rapportarkiv');
+                $tpladmin = new Menyitem('Rapporttemplates','&amp;page=feilmrapport&amp;act=genmodraptpl');
                 
                 switch($act) {
                     case 'stengskift':

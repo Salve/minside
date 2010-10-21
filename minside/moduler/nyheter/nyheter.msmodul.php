@@ -1,6 +1,6 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_NYHET_LINK', MS_LINK . "&page=nyheter");
+define('MS_NYHET_LINK', MS_LINK . "&amp;page=nyheter");
 require_once('class.nyheter.nyhetcollection.php');
 require_once('class.nyheter.msnyhet.php');
 require_once('class.nyheter.omrade.php');
@@ -87,16 +87,16 @@ class msmodul_nyheter implements msmodul {
 		$lvl = $this->_adgangsNiva;
         
 		if ($lvl > MSAUTH_NONE) { 
-			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
+			$toppmeny = new Menyitem('Nyheter','&amp;page=nyheter');
 			if ($_REQUEST['page'] == 'nyheter') { // Modul er lastet/vises
                 
-                $menyitem_opprett = new Menyitem('Opprett','&page=nyheter&act=addnyhet');
-                $menyitem_list = new Menyitem('Siste','&page=nyheter&act=list');
-                $menyitem_ulest = new Menyitem('Uleste','&page=nyheter&act=ulest');
-                $menyitem_upub = new Menyitem('Upubliserte','&page=nyheter&act=upub');
-                $menyitem_showdel = new Menyitem('Slettede','&page=nyheter&act=showdel');
-                $menyitem_arkiv = new Menyitem('Arkiv','&page=nyheter&act=arkiv');
-                $menyitem_admin = new Menyitem('Admin','&page=nyheter&act=admin');
+                $menyitem_opprett = new Menyitem('Opprett','&amp;page=nyheter&amp;act=addnyhet');
+                $menyitem_list = new Menyitem('Siste','&amp;page=nyheter&amp;act=list');
+                $menyitem_ulest = new Menyitem('Uleste','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_upub = new Menyitem('Upubliserte','&amp;page=nyheter&amp;act=upub');
+                $menyitem_showdel = new Menyitem('Slettede','&amp;page=nyheter&amp;act=showdel');
+                $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
+                $menyitem_admin = new Menyitem('Admin','&amp;page=nyheter&amp;act=admin');
                 
                 switch($this->_msmodulact) {
                     case 'show':
@@ -168,7 +168,7 @@ class msmodul_nyheter implements msmodul {
 		
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter('Her vises kun nyheter publisert de siste syv dagene. '.
-                'Se <a href="'.MS_NYHET_LINK.'&act=arkiv">arkivet</a> for eldre nyheter.');
+                'Se <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
@@ -190,14 +190,14 @@ class msmodul_nyheter implements msmodul {
         
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest. '.
-                'Se <a href="'.MS_NYHET_LINK.'&act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&act=arkiv">arkivet</a> for eldre nyheter.');
+                'Se <a href="'.MS_NYHET_LINK.'&amp;act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), 'ulest');
         }
         
-        $output = '<p><a href="'.MS_NYHET_LINK.'&act=allelest">Merk alle nyheter lest</a></p>' . $output;
+        $output = '<p><a href="'.MS_NYHET_LINK.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
                 
 		return $output;
 		

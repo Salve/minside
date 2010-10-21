@@ -64,7 +64,7 @@ class SidebarGen {
 	public static function GenAdmin(MenyitemCollection $objSidebar) {
 		
 		$output .= '<div class="sidebaradmin">';
-		$output .= '<form action="' . MS_LINK . '&page=sidebar&act=sidebarInsOrMov" method="POST">';
+		$output .= '<form action="' . MS_LINK . '&amp;page=sidebar&amp;act=sidebarInsOrMov" method="POST">';
 		$output .= '<div class="sidebaradmin_left" style="float: left;">';
 		
 		if ($objSidebar->length() === 0) {
@@ -122,7 +122,7 @@ class SidebarGen {
 		
 		$opt['move'] = '<input type="image" src="'.MS_IMG_PATH.'insert.gif" width=16 height=16 alt="flytt" ' .
 					'title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . $objMenyitem->getId() . '">';
-		$opt['trash'] = '<a href="'. MS_LINK.'&page=sidebar&act=sidebarrem&blokkid='. $objMenyitem->getId() .
+		$opt['trash'] = '<a href="'. MS_LINK.'&amp;page=sidebar&amp;act=sidebarrem&amp;blokkid='. $objMenyitem->getId() .
 					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" title="Slett blokk"></a>';
 		
 		switch ($objMenyitem->getType()) {
@@ -168,7 +168,7 @@ class SidebarGen {
             $objSpacer = new Menyitem('Spacer', '', '', Menyitem::TYPE_SPACER);
             $objAdmin = new Menyitem(
                 'Administrer sidebar',
-                'doku.php?do=minside&page=sidebar&act=sidebaradmin',
+                'doku.php?do=minside&amp;page=sidebar&amp;act=sidebaradmin',
                 '',
                 Menyitem::TYPE_NORMAL
             );

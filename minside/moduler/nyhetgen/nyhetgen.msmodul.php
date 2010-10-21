@@ -39,7 +39,7 @@ class msmodul_nyhetgen implements msmodul{
 				<legend>
 					Nyhetsgenerator
 				</legend>
-				<form name="nyhetsgenerator" action="' . MS_LINK . '&page=nyhetgen" method="POST">
+				<form name="nyhetsgenerator" action="' . MS_LINK . '&amp;page=nyhetgen" method="POST">
 					Overskrift: <input type="text" name="overskrift" value="'.$overskrift.'"><br>
 					Ingress: <br><textarea name="ingress" cols="50" class="edit">'.$bread.'</textarea><br>
 					Tekst: <br><textarea name="tekst" class="edit" cols="50" rows="20">'.$tekst.'</textarea><br>
@@ -60,7 +60,7 @@ class msmodul_nyhetgen implements msmodul{
             if (isset($this->_msmodulAct)) {
                 $menynavn = '<span class="selected">'.$menynavn.'</span>';
             }
-            $meny->addItem(new Menyitem($menynavn,'&page=nyhetgen')); 
+            $meny->addItem(new Menyitem($menynavn,'&amp;page=nyhetgen')); 
         }
 	}
 	

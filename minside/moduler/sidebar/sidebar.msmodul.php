@@ -159,7 +159,7 @@ class msmodul_sidebar implements msmodul{
                     break;
             }
             
-            $meny->addItem(new Menyitem($menytekst,'&page=sidebar&act=sidebaradmin'));
+            $meny->addItem(new Menyitem($menytekst,'&amp;page=sidebar&amp;act=sidebaradmin'));
         }
     
     }

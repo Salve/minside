@@ -63,7 +63,7 @@ class NyhetGen {
 		}
         
         // HTML
-        $returnto_html = ($returnto) ? '&returnto='.$returnto : '';
+        $returnto_html = ($returnto) ? '&amp;returnto='.$returnto : '';
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
@@ -102,19 +102,19 @@ class NyhetGen {
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
-		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&act=lest&nyhetid=$id\">" .
+		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&amp;act=lest&amp;nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
-		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&act=edit&nyhetid=$id\">" .
+		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&act=slett&nyhetid=$id\">" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=slett&amp;nyhetid=$id\">" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&act=permslett&nyhetid=$id\">" .
+		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&amp;act=permslett&amp;nyhetid=$id\">" .
             '<img alt="permslett" title="Slett nyhet permanent" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
-		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&act=restore&nyhetid=$id\">" .
+		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&amp;act=restore&amp;nyhetid=$id\">" .
             '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		
@@ -305,7 +305,7 @@ class NyhetGen {
                                 <!--//--><![CDATA[//><!-- textChanged = false; //--><!]]>
                             </script>
                         </div> <!-- toolbar -->
-                        <form action="' . MS_NYHET_LINK . '&act=subedit" method="POST">
+                        <form action="' . MS_NYHET_LINK . '&amp;act=subedit" method="POST">
                             <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
                             <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
                             <input type="hidden" name="rev" value="" />
@@ -352,7 +352,7 @@ class NyhetGen {
         $output .= "<h2>Områdeadministrasjon</h2>\n";
         
         $output .= '<div class="omradeadmwrap level3">
-            <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
+            <form action="' . MS_NYHET_LINK . '&amp;act=subomradeadm" method="POST">
             <table class="omradeadmtbl">
                 <tr>
                     <th>Område </th>
@@ -389,7 +389,7 @@ class NyhetGen {
         if ($colTags->length() === 0)  {
             $output .= '<div class="mswarningbar">Ingen tags / kategorier her!</div>';
         } else {
-            $output .= '<form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+            $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=subtagadm" method="POST">
                 <input type="hidden" name="tagact" value="edit" />
                 <table class="tagadmtbl">
                     <tr>
@@ -424,7 +424,7 @@ class NyhetGen {
                         <td>$navn</td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noselect]\" $noselect /></td>
                         <td><input type=\"checkbox\" class=\"edit\" name=\"tagadmdata[$id][noview]\" $noview /></td>
-                        ".'<td><a href="'. MS_NYHET_LINK .'&act=sletttag&tagid='.$id.'"  onClick="return heltSikker()"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
+                        ".'<td><a href="'. MS_NYHET_LINK .'&amp;act=sletttag&amp;tagid='.$id.'"  onClick="return heltSikker()"><img src="'.MS_IMG_PATH.'trash.png" alt="slett" Title="Slett tag permanent"></a></td>'."
                     </tr>
                 ";
             }
@@ -437,7 +437,7 @@ class NyhetGen {
         $output .= '<div class="tagadmnytag">
                         <h2>Ny kategori / tag</h2>
                         <div class="level3">
-                            <form action="' . MS_NYHET_LINK . '&act=subtagadm" method="POST">
+                            <form action="' . MS_NYHET_LINK . '&amp;act=subtagadm" method="POST">
                             <input type="hidden" name="tagact" value="new" />
                             <table class="tagadmnytagtbl">
                                 <tr>
@@ -473,7 +473,7 @@ class NyhetGen {
     public static function genArkivOptions(array $data) {
         
         // Linker
-        $selflink = MS_NYHET_LINK . '&act=arkiv' . self::genArkivLinkParams($data);
+        $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . self::genArkivLinkParams($data);
         
         // Datofilter
         // Fradato
@@ -603,25 +603,25 @@ class NyhetGen {
         $currpage = $data['pages']['currpage'];
         $numpages = $data['pages']['numpages'];
         $forrige = ($currpage > 1) 
-            ? '<a href="'.$selflink.'&visside='.($currpage - 1).'">Forrige</a> '
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage - 1).'">Forrige</a> '
             : '';
         $neste = ($currpage < $numpages) 
-            ? '<a href="'.$selflink.'&visside='.($currpage + 1).'">Neste</a>'
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage + 1).'">Neste</a>'
             : '';
         for($i=1;$i<=$numpages;$i++) {
             $pagelinks .= ($currpage == $i)
                 ? '<strong>' . $i . '</strong>&nbsp;'
-                : '<a href="'.$selflink.'&visside='.$i.'">'.$i.'</a>&nbsp;';
+                : '<a href="'.$selflink.'&amp;visside='.$i.'">'.$i.'</a>&nbsp;';
         }
         $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
         
         // Selflink
-        $html_selflink = '<a href="'.$selflink.'&visside='.$currpage.'">Link til dette søket</a>';
+        $html_selflink = '<a href="'.$selflink.'&amp;visside='.$currpage.'">Link til dette søket</a>';
         
         // "Template"
         $output = '
             <div class="arkivoptions">
-                <form method="POST" action="'.MS_NYHET_LINK.'&act=arkiv">
+                <form method="POST" action="'.MS_NYHET_LINK.'&amp;act=arkiv">
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
@@ -725,7 +725,7 @@ class NyhetGen {
         if ($colTags->length() === 0) return '';
         $output = "\n".'<div class="tags"><span>';
         foreach($colTags as $objTag) {
-            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&act=arkiv&ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
+            $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
                 'title="tag:' . $objTag->getNavn() . '">' . $objTag->getNavn() . '</a>';
         }
         $output .= implode(', ', $arOutput);
@@ -777,7 +777,7 @@ class NyhetGen {
             $param[] = 'perside=' . $data['pages']['perside'];
         }
         
-        return '&' . implode('&', $param);
+        return '&amp;' . implode('&amp;', $param);
         
     }
     
