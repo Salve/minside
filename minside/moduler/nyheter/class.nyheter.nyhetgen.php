@@ -414,8 +414,8 @@ class NyhetGen {
                         break;
                 }
                 $navn = $objTag->getNavn();
-                $noview = ($objTag->noView()) ? 'checked' : '';
-                $noselect = ($objTag->noSelect()) ? 'checked' : '';
+                $noview = ($objTag->noView()) ? 'checked="checked"' : '';
+                $noselect = ($objTag->noSelect()) ? 'checked="checked"' : '';
                 $id = $objTag->getId();
                 $output .= "
                     <input type=\"hidden\" name=\"tagadmdata[$id][tagid]\" value=\"$id\" />
@@ -520,7 +520,7 @@ class NyhetGen {
             $katopts .= '<option value="' . $objKat->getId() . "\"$selected>" . $objKat->getNavn() . '</option>';
         }
         $html_kategorifilter = 
-            '<select class="edit tagselect" name="fkat[]" size="7" multiple>'. $katopts .'</select><br />
+            '<select class="edit tagselect" name="fkat[]" size="7" multiple="multiple">'. $katopts .'</select><br />
             Hold inne ctrl for å velge flere.';
             
         // Tagfilter
@@ -530,14 +530,14 @@ class NyhetGen {
             $tagopts .= '<option value="' . $objTag->getId() . "\"$selected>" . $objTag->getNavn() . '</option>';
         }
         if ($data['ftag']['mode'] == 'AND') {
-            $tfANDchecked = ' checked';
+            $tfANDchecked = ' checked="checked"';
             $tfORchecked = '';
         } else {
             $tfANDchecked = '';
-            $tfORchecked = ' checked';
+            $tfORchecked = ' checked="checked"';
         }
         $html_tagfilter = 
-            '<select class="edit tagselect" name="ftag[]" size="7" multiple>'. $tagopts .'</select><br />
+            '<select class="edit tagselect" name="ftag[]" size="7" multiple="multiple">'. $tagopts .'</select><br />
             Hold inne ctrl for å velge flere.<br />
             <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
             <label for="tfOR">Minst en av valgte tags</label><br />
@@ -546,11 +546,11 @@ class NyhetGen {
         
         // Sortering
         if ($data['sortorder'] == 'ASC') {
-            $sortASCyes = ' checked';
+            $sortASCyes = ' checked="checked"';
             $sortASCno = '';
         } else {
             $sortASCyes = '';
-            $sortASCno = ' checked';
+            $sortASCno = ' checked="checked"';
         }
         $html_sortering = '
             <input type="radio" id="sortASC" name="sortorder" value="ASC"'.$sortASCyes.' />
@@ -565,7 +565,7 @@ class NyhetGen {
             $pubopts .= '<option value="' . $publisher['id'] . "\"$selected>" . $publisher['navn'] . '</option>';
         }
         $html_publisherfilter = 
-            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple>'. $pubopts .'</select><br />
+            '<select class="edit tagselect" name="fpublishers[]" size="7" multiple="multiple">'. $pubopts .'</select><br />
             Hold inne ctrl for å velge flere.';
             
         // Handlinger
@@ -590,7 +590,7 @@ class NyhetGen {
                 $omradeopts .= '<option value="' . $objOmrade->getOmrade() . "\"$selected>" . $objOmrade->getVisningsnavn() . '</option>';
             }
             $html_omradefilter = 
-                '<select class="edit tagselect" name="fomrader[]" size="7" multiple>'. $omradeopts .'</select><br />
+                '<select class="edit tagselect" name="fomrader[]" size="7" multiple="multiple">'. $omradeopts .'</select><br />
                 Hold inne ctrl for å velge flere.';
         } else {
             $html_omradefilter =
