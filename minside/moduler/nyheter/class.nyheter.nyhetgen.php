@@ -348,7 +348,7 @@ class NyhetGen {
     public static function genOmradeAdmin($colOmrader) {
         $output .= "<h2>Områdeadministrasjon</h2>\n";
         
-        $output .= '<div class="omradeadmwrap">
+        $output .= '<div class="omradeadmwrap level3">
             <form action="' . MS_NYHET_LINK . '&act=subomradeadm" method="POST">
             <table class="omradeadmtbl">
                 <tr>
@@ -372,7 +372,7 @@ class NyhetGen {
                 </tr>
             ";
         }
-        $output .= '</table></div><input type="submit" value="Lagre" class="button" /></form>';
+        $output .= '</table><input type="submit" value="Lagre" class="button" /></form></div>';
         
         return $output;
     }
