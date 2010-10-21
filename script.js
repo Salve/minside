@@ -1,3 +1,9 @@
+// Generelle funksjoner
+function heltSikker() {
+    msg = 'Er du helt sikker på at du vil slette elementet?';
+    return confirm(msg);
+}
+
 // Nyheter
 
 function openNyhetImgSelect() {
@@ -16,10 +22,6 @@ function openNyhetImgForm(nyhetid) {
 	return false;
 }
 
-function heltSikker() {
-    msg = 'Er du helt sikker på at du vil slette elementet?';
-    return confirm(msg);
-}
 //clearer txtfelt som blir gitt til funksjonen
 function cleartxt(txtid) {
     document.getElementById(txtid).value = "";
@@ -42,6 +44,19 @@ function submitFormImgSub() {
 	
 }
 
+// Nyhetsarkiv
+
+function showFilter(filterId) {
+    var elm = document.getElementById(filterId);
+    var disStyle = elm.style.display;
+    if( disStyle == 'none') {
+        elm.style.display = 'inline';
+    }
+    else {
+        elm.style.display = 'none';
+    }
+    
+}
 
 // Calendar
 
