@@ -234,17 +234,17 @@ class NyhetGen {
         
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
-		$html_sticky = '<div class="nyhetvelgsticky">Skal nyheten være <acronym title="Sticky nyheter vises øverst, ' .
-			'og blir liggende til de merkes som &quot;ikke sticky&quot;.">sticky</acronym>?' .
-			' <input class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
+		$html_sticky = '<div class="nyhetvelgsticky"><label for="stickycheckbox">Skal nyheten være <acronym title="' .
+			'Sticky nyheter vises øverst i listen med siste nyheter, og blir liggende der til sticky-merking manuellt fjernes.">sticky</acronym>?</label>' .
+			' <input id="stickycheckbox" class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
 		
 		// Bilde
 		$html_bilde = '<div class="nyhetbildevelger"><div class="nyhetsettext">Bilde:</div> <input class="edit" type="text" tabindex="4" name="nyhetbilde" id="nyhet__imgpath"' .
 			'value="' . $objNyhet->getImagePath() . '" /> ' .
-			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="img" ' .
+			'<img onClick="openNyhetImgForm('.$objNyhet->getId().')" class="ms_imgselect_nyhet" alt="Velg bilde" ' .
 			'title="Legg til bilde" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'image.png" /><img alt="Slett felt" title="Slett felt" class="" src="' .
-				MS_IMG_PATH . 'trash.png" onClick="cleartxt(\'nyhet__imgpath\');" /></div>';
+            'height="16" src="' . MS_IMG_PATH . 'image.png" />&nbsp;<img alt="Slett" title="Tøm felt" class="" src="' .
+				MS_IMG_PATH . 'trash.png" height="16" width="16" onClick="cleartxt(\'nyhet__imgpath\');" /></div>';
 		
 		// Publiseringsdato
         // Vises kun dersom bruker har create rigths på nyhetområdet
@@ -271,9 +271,12 @@ class NyhetGen {
             ob_start(); // må ta vare på output...
             $objCalendar->writeScript();
             $html_calendar = '<div class="nyhetpubdatovelger">Publiseringsdato: ' . ob_get_clean();
-            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
-            $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
-            $html_calendar .= '<img alt="Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen." align="absmiddle" onClick="setTodaysdate();" title="Send nyhet til topp ved å sette dagens dato" src="' . MS_IMG_PATH . 'up.png" /></div>';
+            $html_calendar .= '&nbsp;&nbsp;kl. <input type="text" size="1" maxlength="2" onChange="checkHour(this.id);" value="'. 
+                $hour .'" name="nyhetpubdato_hour" id="nyhetpubdato_hour" class="tchour msedit">';
+            $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. 
+                $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
+            $html_calendar .= '&nbsp;<img alt="Sett dags dato" align="absmiddle" onClick="setTodaysdate();" title="'.
+                'Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen over siste nyheter." src="' . MS_IMG_PATH . 'up.png" /></div>';
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
