@@ -92,9 +92,17 @@ class msmodul_tips implements msmodul{
 	
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_adgang;
-		
-		$toppmeny = new Menyitem('WikiTips','&page=tips');
-		$tipsadmin = new Menyitem('Admin','&page=tips&act=tipsadmshw');
+        
+        $menynavn = 'WikiTips';
+        $adminnavn = 'Admin';
+        if ($this->_msmodulAct == 'tipsadmshw') {
+            $adminnavn = '<span class="selected">'.$adminnavn.'</span>';
+        } elseif (isset($this->_msmodulAct)) {
+            $menynavn = '<span class="selected">'.$menynavn.'</span>';
+        }
+        
+		$toppmeny = new Menyitem($menynavn,'&page=tips');
+		$tipsadmin = new Menyitem($adminnavn,'&page=tips&act=tipsadmshw');
 		
 		if ($lvl > MSAUTH_NONE) { 
 			if (($lvl == MSAUTH_ADMIN) && isset($this->_msmodulAct)) {

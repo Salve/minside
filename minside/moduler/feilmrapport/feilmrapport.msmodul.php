@@ -1667,27 +1667,71 @@ class msmodul_feilmrapport implements msmodul{
 
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_accessLvl;
-		
+		$act = $this->getMsmodulact();
+        
 		if ($lvl > MSAUTH_NONE) { 
 		
 			$toppmeny = new Menyitem('FeilM Rapport','&page=feilmrapport');
-			$telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
-			$genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
-			$rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
-			$tpladmin = new Menyitem('Rapporttemplates','&page=feilmrapport&act=genmodraptpl');
-				
-			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
-				$toppmeny->addChild($genrapport);
-			}
-			if (($lvl >= MSAUTH_2) && isset($this->_msmodulact)) {
-				$toppmeny->addChild($rapportarkiv);
-			}
-			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
-				$toppmeny->addChild($telleradmin);
-			}
-			if (($lvl >= MSAUTH_5) && isset($this->_msmodulact)) {
-				$toppmeny->addChild($tpladmin);
-			}
+            
+            if (isset($act)) {
+                $telleradmin = new Menyitem('Rediger tellere','&page=feilmrapport&act=telleradm');
+                $genrapport = new Menyitem('Lag rapport','&page=feilmrapport&act=genrapportsel');
+                $rapportarkiv = new Menyitem('Rapportarkiv','&page=feilmrapport&act=rapportarkiv');
+                $tpladmin = new Menyitem('Rapporttemplates','&page=feilmrapport&act=genmodraptpl');
+                
+                switch($act) {
+                    case 'stengskift':
+                    case 'genrapportsel':
+                    case 'gensaverapport':
+                    case 'genrapportmod':
+                        $objSelected = $genrapport;
+                        break;
+                    case 'rapportarkiv':
+                    case 'visrapport':
+                        $objSelected = $rapportarkiv;
+                        break;
+                    case 'nyteller':
+                    case 'flipteller':
+                    case 'modtellerorderned':
+                    case 'modtellerorderopp':
+                    case 'telleradm':
+                        $objSelected = $telleradmin;
+                        break;
+                    case 'modtpllive':
+                    case 'sletttpl':
+                    case 'showtplmarkup':
+                    case 'showtplpreview':
+                    case 'genmodtpl':
+                    case 'nyraptpl':
+                    case 'genmodraptpl':
+                    case 'modraptpl':
+                        $objSelected = $tpladmin;
+                        break;
+                    case 'stengegetskift':
+                    case 'nyttskift':
+                    case 'savenotat':
+                    case 'delnotat':
+                    case 'undoakt':
+                    case 'mod_teller':
+                    case 'show':
+                    default:                    
+                        $objSelected = $toppmeny;
+                        break;
+                }
+                if($objSelected instanceof Menyitem) {
+                    $selectedtekst = '<span class="selected">' . $objSelected->getTekst() . '</span>';
+                    $objSelected->setTekst($selectedtekst);
+                }
+            
+                if ($lvl >= MSAUTH_2) {
+                    $toppmeny->addChild($genrapport);
+                    $toppmeny->addChild($rapportarkiv);
+                }
+                if ($lvl >= MSAUTH_5) {
+                    $toppmeny->addChild($telleradmin);
+                    $toppmeny->addChild($tpladmin);
+                }
+            }
 			
 			$meny->addItem($toppmeny); 
 			

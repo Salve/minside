@@ -67,7 +67,13 @@ class msmodul_diff implements msmodul{
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MSAUTH_NONE) { $meny->addItem(new Menyitem('Diff','&page=diff')); }
+		if ($this->_adgang > MSAUTH_NONE) { 
+            $menynavn = 'Diff';
+            if (isset($this->_msmodulAct)) {
+                $menynavn = '<span class="selected">'.$menynavn.'</span>';
+            }
+            $meny->addItem(new Menyitem($menynavn,'&page=diff')); 
+        }
 	}
 	
 	

@@ -55,7 +55,13 @@ class msmodul_nyhetgen implements msmodul{
 	
 	
 	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MSAUTH_NONE) { $meny->addItem(new Menyitem('Nyhetsgenerator','&page=nyhetgen')); }
+		if ($this->_adgang > MSAUTH_NONE) { 
+            $menynavn = 'Nyhetsgenerator';
+            if (isset($this->_msmodulAct)) {
+                $menynavn = '<span class="selected">'.$menynavn.'</span>';
+            }
+            $meny->addItem(new Menyitem($menynavn,'&page=nyhetgen')); 
+        }
 	}
 	
 	
