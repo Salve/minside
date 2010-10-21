@@ -192,7 +192,6 @@ class NyhetFactory {
                     AND pubtime > bruker.createtime
 					AND deletetime IS NULL
                 ORDER BY nyheter_nyhet.nyhetid ASC
-                LIMIT 10
             ;";
             
         $res = $msdb->assoc($sql);
