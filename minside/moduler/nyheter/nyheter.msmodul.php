@@ -90,12 +90,12 @@ class msmodul_nyheter implements msmodul {
 			$toppmeny = new Menyitem('Nyheter','&page=nyheter');
 			if ($_REQUEST['page'] == 'nyheter') { // Modul er lastet/vises
                 
-                $menyitem_list = new Menyitem('Siste nyheter','&page=nyheter&act=list');
-                $menyitem_ulest = new Menyitem('Uleste nyheter','&page=nyheter&act=ulest');
+                $menyitem_opprett = new Menyitem('Opprett','&page=nyheter&act=addnyhet');
+                $menyitem_list = new Menyitem('Siste','&page=nyheter&act=list');
+                $menyitem_ulest = new Menyitem('Uleste','&page=nyheter&act=ulest');
+                $menyitem_upub = new Menyitem('Upubliserte','&page=nyheter&act=upub');
+                $menyitem_showdel = new Menyitem('Slettede','&page=nyheter&act=showdel');
                 $menyitem_arkiv = new Menyitem('Arkiv','&page=nyheter&act=arkiv');
-                $menyitem_opprett = new Menyitem('Opprett nyhet','&page=nyheter&act=addnyhet');
-                $menyitem_upub = new Menyitem('Upubliserte nyheter','&page=nyheter&act=upub');
-                $menyitem_showdel = new Menyitem('Slettede nyheter','&page=nyheter&act=showdel');
                 $menyitem_admin = new Menyitem('Admin','&page=nyheter&act=admin');
                 
                 switch($this->_msmodulact) {
@@ -137,18 +137,18 @@ class msmodul_nyheter implements msmodul {
                     $objStrong->setTekst($strongtekst);
                 }
                 
-                $toppmeny->addChild($menyitem_list);
-				$toppmeny->addChild($menyitem_ulest);
-				$toppmeny->addChild($menyitem_arkiv);
-				if ($lvl >= MSAUTH_3) {
+                if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild($menyitem_opprett);
 				}
+                $toppmeny->addChild($menyitem_ulest);
+                $toppmeny->addChild($menyitem_list);
                 if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild($menyitem_upub);
 				}
 				if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild($menyitem_showdel);
 				}
+                $toppmeny->addChild($menyitem_arkiv);
                 if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild($menyitem_admin);
 				}

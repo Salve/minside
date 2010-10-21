@@ -813,3 +813,8 @@ div#main_page > div.left_sidebar {
 	width: 140px;
 	overflow: hidden;
 }
+
+div#main_page > div.left_sidebar table{
+    width: 140px;
+    overflow: hidden;
+}
