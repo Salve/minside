@@ -91,10 +91,10 @@ class msmodul_nyheter implements msmodul {
 			if ($_REQUEST['page'] == 'nyheter') { // Modul er lastet/vises
                 
                 $menyitem_opprett = new Menyitem('Opprett','&amp;page=nyheter&amp;act=addnyhet');
-                $menyitem_list = new Menyitem('Siste','&amp;page=nyheter&amp;act=list');
-                $menyitem_ulest = new Menyitem('Uleste','&amp;page=nyheter&amp;act=ulest');
-                $menyitem_upub = new Menyitem('Upubliserte','&amp;page=nyheter&amp;act=upub');
-                $menyitem_showdel = new Menyitem('Slettede','&amp;page=nyheter&amp;act=showdel');
+                $menyitem_list = new Menyitem('Aktuelle nyheter','&amp;page=nyheter&amp;act=list');
+                $menyitem_ulest = new Menyitem('Uleste nyheter','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_upub = new Menyitem('Upublisert','&amp;page=nyheter&amp;act=upub');
+                $menyitem_showdel = new Menyitem('Slettet','&amp;page=nyheter&amp;act=showdel');
                 $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
                 $menyitem_admin = new Menyitem('Admin','&amp;page=nyheter&amp;act=admin');
                 
