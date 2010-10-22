@@ -726,7 +726,7 @@ class NyhetGen {
 	}
     
     protected static function genTagList(NyhetTagCollection $colTags) {
-        if ($colTags->length() === 0) return '';
+        if ($colTags->length() === 0) return '<div class="tags">&nbsp;</div>';
         $output = "\n".'<div class="tags"><span>';
         foreach($colTags as $objTag) {
             $arOutput[] .= '    <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;ftag[]='. $objTag->getId() .'" class="wikilink1" ' .
