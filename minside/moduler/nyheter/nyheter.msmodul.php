@@ -90,11 +90,11 @@ class msmodul_nyheter implements msmodul {
 			$toppmeny = new Menyitem('Nyheter','&amp;page=nyheter');
 			if ($_REQUEST['page'] == 'nyheter') { // Modul er lastet/vises
                 
-                $menyitem_opprett = new Menyitem('Opprett','&amp;page=nyheter&amp;act=addnyhet');
-                $menyitem_list = new Menyitem('Siste','&amp;page=nyheter&amp;act=list');
-                $menyitem_ulest = new Menyitem('Uleste','&amp;page=nyheter&amp;act=ulest');
-                $menyitem_upub = new Menyitem('Upubliserte','&amp;page=nyheter&amp;act=upub');
-                $menyitem_showdel = new Menyitem('Slettede','&amp;page=nyheter&amp;act=showdel');
+                $menyitem_opprett = new Menyitem('Opprett nyhet','&amp;page=nyheter&amp;act=addnyhet');
+                $menyitem_list = new Menyitem('Aktuelle nyheter','&amp;page=nyheter&amp;act=list');
+                $menyitem_ulest = new Menyitem('Uleste nyheter','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_upub = new Menyitem('Upublisert','&amp;page=nyheter&amp;act=upub');
+                $menyitem_showdel = new Menyitem('Slettet','&amp;page=nyheter&amp;act=showdel');
                 $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
                 $menyitem_admin = new Menyitem('Admin','&amp;page=nyheter&amp;act=admin');
                 
@@ -140,15 +140,15 @@ class msmodul_nyheter implements msmodul {
                 $toppmeny->addChild($menyitem_ulest);
                 $toppmeny->addChild($menyitem_list);
                 if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild($menyitem_opprett);
+				}
+                if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild($menyitem_upub);
 				}
 				if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild($menyitem_showdel);
 				}
                 $toppmeny->addChild($menyitem_arkiv);
-                if ($lvl >= MSAUTH_3) {
-					$toppmeny->addChild($menyitem_opprett);
-				}
                 if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild($menyitem_admin);
 				}
