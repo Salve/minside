@@ -457,6 +457,7 @@ class msmodul_nyheter implements msmodul {
             if (!$objNyhet->isSaved()) {
                 $timestamp = strtotime($indato . ' ' . $inhour . ':' . $inmin);
                 if ($timestamp < time()) {
+                    $indato = date('Y-m-d');
                     $inhour = date('H');
                     $inmin = date('i');
                 }
