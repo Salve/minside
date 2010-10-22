@@ -137,9 +137,6 @@ class msmodul_nyheter implements msmodul {
                     $objStrong->setTekst($strongtekst);
                 }
                 
-                if ($lvl >= MSAUTH_3) {
-					$toppmeny->addChild($menyitem_opprett);
-				}
                 $toppmeny->addChild($menyitem_ulest);
                 $toppmeny->addChild($menyitem_list);
                 if ($lvl >= MSAUTH_3) {
@@ -149,6 +146,9 @@ class msmodul_nyheter implements msmodul {
 					$toppmeny->addChild($menyitem_showdel);
 				}
                 $toppmeny->addChild($menyitem_arkiv);
+                if ($lvl >= MSAUTH_3) {
+					$toppmeny->addChild($menyitem_opprett);
+				}
                 if ($lvl >= MSAUTH_5) {
 					$toppmeny->addChild($menyitem_admin);
 				}
@@ -498,6 +498,8 @@ class msmodul_nyheter implements msmodul {
 			msg('Klarte ikke å slette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
 			return false;
 		}
+        
+        if ($objNyhet->getAcl() < MSAUTH_2) throw new Exception('Du har ikke adgang til å slette denne nyheten!');
 		
 		($objNyhet->slett())
 			? msg('Slettet nyhet: ' . $objNyhet->getTitle(true), 1)
@@ -519,6 +521,8 @@ class msmodul_nyheter implements msmodul {
 			msg('Klarte ikke å gjenopprette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
 			return false;
 		}
+        
+        if ($objNyhet->getAcl() < MSAUTH_5) throw new Exception('Du har ikke adgang til å gjenopprette denne nyheten!');
 		
 		($objNyhet->restore())
 			? msg('Gjenopprettet nyhet: ' . $objNyhet->getTitle(true), 1)
@@ -534,6 +538,8 @@ class msmodul_nyheter implements msmodul {
 			msg('Klarte ikke å perm-slette nyhet med id: ' . htmlspecialchars($nyhetid), -1);
 			return false;
 		}
+        
+        if ($objNyhet->getAcl() < MSAUTH_5) throw new Exception('Du har ikke adgang til å permanent slette denne nyheten!');
 		
 		($objNyhet->permslett())
 			? msg('Slettet nyhet: "' . $objNyhet->getTitle(true) . '" permanent.', 1)

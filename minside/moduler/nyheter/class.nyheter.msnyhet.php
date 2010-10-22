@@ -449,8 +449,7 @@ class MsNyhet {
         $msdb->startTrans();
         $sql[] = "DELETE
                 FROM nyheter_lest
-                WHERE nyhetid=$safenyhetid
-                LIMIT 1;";
+                WHERE nyhetid=$safenyhetid;";
         $sql[] = "DELETE
                 FROM nyheter_tag_x_nyhet
                 WHERE nyhetid=$safenyhetid;";
