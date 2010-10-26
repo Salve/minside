@@ -50,7 +50,7 @@ function showFilter(filterId) {
     var elm = document.getElementById(filterId);
     var disStyle = elm.style.display;
     if( disStyle == 'none') {
-        elm.style.display = 'inline';
+        elm.style.display = '';
     }
     else {
         elm.style.display = 'none';
