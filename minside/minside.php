@@ -67,7 +67,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		
 		$this->_lastmoduler(); // alle moduler definert i msconfig.php instansieres, se funksjonen
 		
-		// Kode under er midlertidig hack for å vise "et eller annet" på forsiden
+		// Kode under er hack for å vise "et eller annet" på forsiden
 		
 		$msoutput .= '<div class="minside">'; 
 		

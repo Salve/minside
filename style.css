@@ -745,9 +745,10 @@ div.minside div.nyhetsettext {
 
 div.minside div.arkivoptions {
     width: 80%;
-    margin-left: 3em;
-    margin-bottom: 5em;
-    margin-right:3em;
+    /*margin-left: 3em;*/
+    margin-bottom: 1em;
+    /*margin-right:3em;*/
+    margin:auto;
     padding: 1em 1em 0 1em;
     border: 1px #C9D4DF;
     border-style: solid;    
@@ -765,7 +766,7 @@ div.minside div.arkivoptions div.rightgroup {
 }
 div.minside div.arkivoptions div.gruppeheader {
     text-align: center;
-    font-size: 130%;
+    font-size: 110%;
 }
 
 div.minside div.arkivoptions div.arkivbar {
@@ -773,12 +774,37 @@ div.minside div.arkivoptions div.arkivbar {
     border-style: none none solid none
 }
 
+div.minside div.arkivoptions #overskriftedit {
+    width:100%;
+    padding:0.2em 0em;
+}
+
 div.minside div.arkivoptions select.tagselect {
     width: 80%;
 }
 
+div.minside div.arkivsearch {
+    position:relative;
+    float:right;
+}
+
+div.minside div.antallsearch {
+    position:relative;
+    float:left;
+}
+
 div.minside div.hidesearch {
     display:none;
+}
+
+div.minside div.pagination {
+    width:80%;
+    margin:auto;
+}
+
+div.minside div.arkivunder {
+    width:80%;
+    margin:auto;
 }
 
 /* Område ADM */

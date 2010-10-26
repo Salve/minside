@@ -503,13 +503,28 @@ class NyhetGen {
         $html_datotil = ob_get_clean();
         
         $html_datofilter = 
-            'Fradato: '.$html_datofra.'<br />
-             Tildato: '.$html_datotil.'<br />
-            ';
+            '<table>
+                <tr>
+                    <td>
+                         Fradato:
+                    </td>
+                    <td>'
+                        .$html_datofra.'
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Tildato:
+                    </td>
+                    <td>'
+                        .$html_datotil.'
+                    </td>
+                </tr>
+             </table>';
         
         // Overskriftfilter
         $html_overskriftfilter =
-            '<input class="edit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br />
+            '<input class="edit" id="overskriftedit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br />
             Støtter wildcards (* eller %)';
         // Tagfilter
         
@@ -569,7 +584,7 @@ class NyhetGen {
             Hold inne ctrl for å velge flere.';
             
         // Handlinger
-        $html_handlinger = 
+        $html_antall = 
             'Nyheter vist per side: 
             <select class="edit" name="perside">
                 <option value="5"'.(($data['pages']['perside']==5)?' selected':'').'>5</option>
@@ -578,8 +593,10 @@ class NyhetGen {
                 <option value="30"'.(($data['pages']['perside']==30)?' selected':'').'>30</option>
                 <option value="50"'.(($data['pages']['perside']==50)?' selected':'').'>50</option>
                 <option value="100"'.(($data['pages']['perside']==100)?' selected':'').'>100</option>
-            </select>
-            <input class="edit" type="submit" name="dofilter" value="Utfør søk" />
+            </select>';
+
+            $html_search = 
+            '<input class="edit" type="submit" name="dofilter" value="Utfør søk" />
             <input class="edit" type="submit" name="dofilter" value="Nullstill" />';
              
         // Områdefilter
@@ -623,9 +640,38 @@ class NyhetGen {
             <div class="arkivoptions">
                 <form method="POST" action="'.MS_NYHET_LINK.'&amp;act=arkiv">
                 <div class="arkivbar">
+                    <div class="topgroup">
+                        <div class="gruppeheader">
+                            Overskrift:
+                        </div>
+                        <div class="gruppecontent">
+                            '.$html_overskriftfilter.'
+                        </div>
+                    </div>
                     <div class="leftgroup">
                         <div class="gruppeheader">
-                            <strong>Dato-filter</strong>
+                            Tag-filter
+                        </div>
+                        <div class="gruppecontent"  id="tagfilter">
+                            '.$html_tagfilter.'
+                        </div>
+                    </div>
+                    <div class="rightgroup">
+                        <div class="gruppeheader">
+                            Kategori-filter
+                        </div>
+                        <div class="gruppecontent" id="kategorifilter">
+                            '.$html_kategorifilter.'
+                        </div>'
+//Tør ikke sette kode på linje 666
+                    .'</div>
+                </div>
+                <div class="msclearer">&nbsp;</div><a href="javascript:void(0);" onClick="showFilter(\'avansertgroup\')">Avansert</a>
+                <div class="avansertgroup" style="display:none;" "id="avansertgroup">
+                <div class="arkivbar">
+                    <div class="leftgroup">
+                        <div class="gruppeheader">
+                            Dato-filter
                         </div>
                         <div class="gruppecontent">
                             '.$html_datofilter.'
@@ -633,7 +679,7 @@ class NyhetGen {
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <strong>Sortering</strong>
+                            Sortering
                         </div>
                         <div class="gruppecontent">
                             '.$html_sortering.'
@@ -644,64 +690,34 @@ class NyhetGen {
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">
-                            <a href="javascript:;" onClick="showFilter(\'tagfilter\')"><strong>Tag-filter</strong></a>
+                            Publisert av
                         </div>
-                        <div class="gruppecontent hidesearch"  id="tagfilter">
-                            '.$html_tagfilter.'
-                        </div>
-                    </div>
-                    <div class="rightgroup">
-                        <div class="gruppeheader">
-                            <a href="javascript:;" onClick="showFilter(\'kategorifilter\')"><strong>Kategori-filter</strong></a>
-                        </div>
-                        <div class="gruppecontent hidesearch" id="kategorifilter">
-                            '.$html_kategorifilter.'
-                        </div>
-                    </div>
-                </div>
-                <div class="msclearer">&nbsp;</div>
-                <div class="arkivbar">
-                    <div class="leftgroup">
-                        <div class="gruppeheader">
-                            <a href="javascript:;" onClick="showFilter(\'publisherfilter\')"><strong>Publisert av</strong></a>
-                        </div>
-                        <div class="gruppecontent hidesearch" id="publisherfilter">
+                        <div class="gruppecontent" id="publisherfilter">
                             '.$html_publisherfilter.'
                         </div>
                     </div>
                     <div class="rightgroup">
                         <div class="gruppeheader">
-                            <a href="javascript:;" onClick="showFilter(\'omradefilter\')"><strong>Område-filter</strong></a>
+                            Område-filter
                         </div>
-                        <div class="gruppecontent hidesearch" id="omradefilter">
+                        <div class="gruppecontent" id="omradefilter">
                             '.$html_omradefilter.'
                         </div>
                     </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
-                <div class="arkivbar">
-                    <div class="leftgroup">
-                        <div class="gruppeheader">
-                            <strong>Overskrift-filter</strong>
-                        </div>
-                        <div class="gruppecontent">
-                            '.$html_overskriftfilter.'
-                        </div>
-                    </div>
-                    <div class="rightgroup">
-                        <div class="gruppeheader">
-                            <strong>Handlinger</strong>
-                        </div>
-                        <div class="gruppecontent">
-                            '.$html_handlinger.'
-                        </div>
-                    </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
-            </div> 
-                       <div class="gruppecontent">
-                            '.$html_handlinger.'
-                        </div>
+            </div>
+            <div class="arkivunder"> 
+                <div class="antallsearch">
+                    '.$html_antall.'
+                </div>
+                <div class="arkivsearch">
+                    '.$html_search.'
+                </div>
+            </div>
+                <div class="msclearer"></div>
                 </form>
 
             <div class="pagination">
