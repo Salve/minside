@@ -13,7 +13,7 @@ class NyhetGen {
 		return self::_genFullNyhet($nyhet);
 	}
 	
-	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array(), $returnto = NULL) {
+	public static function genFullNyhet(msnyhet &$nyhet, array $extraoptions = array(), $returnto = NULL, $extra_url_params='') {
         $acl = $nyhet->getAcl();
         $arOptions = array();
         
@@ -33,19 +33,19 @@ class NyhetGen {
         }
         
         $arOptions = array_merge($arOptions, $extraoptions);
-		return self::_genFullNyhet($nyhet, $arOptions, $returnto);
+		return self::_genFullNyhet($nyhet, $arOptions, $returnto, $extra_url_params);
 	}
 	
-	public static function genFullNyhetDeleted(msnyhet &$nyhet, $returnto = NULL) {
+	public static function genFullNyhetDeleted(msnyhet &$nyhet, $returnto = NULL, $extra_url_params='') {
 		$arOptions = array(
 			'restore',
 			'permslett'
 		);
 		
-		return self::_genFullNyhet($nyhet, $arOptions, $returnto);
+		return self::_genFullNyhet($nyhet, $arOptions, $returnto, $extra_url_params);
 	}
 	
-	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions = array(), $returnto = NULL) {
+	private static function _genFullNyhet(msnyhet &$nyhet, array $inoptions=array(), $returnto=NULL, $extra_url_params='') {
 		// Data
         $type = $nyhet->getType();
 		$id = $nyhet->getId();
@@ -63,7 +63,7 @@ class NyhetGen {
 		}
         
         // HTML
-        $returnto_html = ($returnto) ? '&amp;returnto='.$returnto : '';
+        $returnto_html = ($returnto) ? '&amp;returnto='.$returnto.$extra_url_params : $extra_url_params;
         $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
         $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
@@ -102,7 +102,7 @@ class NyhetGen {
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
-		$opt['lest'] = '<a href="' . MS_NYHET_LINK . "&amp;act=lest&amp;nyhetid=$id\">" .
+		$opt['lest'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
@@ -470,10 +470,10 @@ class NyhetGen {
         return $output;
     }
     
-    public static function genArkivOptions(array $data) {
+    public static function genArkivOptions(array $data, $arkivlinkparams='') {
         
         // Linker
-        $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . self::genArkivLinkParams($data);
+        $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . $arkivlinkparams;
         
         // Datofilter
         // Fradato
@@ -754,7 +754,7 @@ class NyhetGen {
         return $output;
     }
     
-    protected static function genArkivLinkParams(array $data) {
+    public static function genArkivLinkParams(array $data) {
         $param = array();
         if(array_key_exists('fdato', $data)) {
             $param[] = 'fdato=' . date('Y-m-d', $data['fdato']);

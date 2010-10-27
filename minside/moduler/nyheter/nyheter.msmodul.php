@@ -45,11 +45,11 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
 		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
         // Uleste nyheter / merk lest
+		$dispatcher->addActHandler('forside', 'gen_nyheter_ulest', MSAUTH_1, 'redirforside');
+		$dispatcher->addActHandler('redirforside', 'gen_redirect_forside', MSAUTH_1);
 		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
         $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
-		$dispatcher->addActHandler('lest', 'gen_nyheter_ulest', MSAUTH_1);
 		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
-		$dispatcher->addActHandler('allelest', 'gen_nyheter_ulest', MSAUTH_1);
         // Rediger / opprett
 		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
         $dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
@@ -184,7 +184,7 @@ class msmodul_nyheter implements msmodul {
 		
 	}
     
-	public function gen_nyheter_ulest() {
+	public function gen_nyheter_ulest($returnto='ulest') {
 		
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
@@ -194,10 +194,10 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), 'ulest');
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), $returnto);
         }
         
-        $output = '<p><a href="'.MS_NYHET_LINK.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
+        $output = '<p><a href="'.MS_NYHET_LINK.'&amp;returnto='.$returnto.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
                 
 		return $output;
 		
@@ -279,13 +279,14 @@ class msmodul_nyheter implements msmodul {
         }
 
         $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
-        $output = NyhetGen::genArkivOptions($limits);
+        $arkiv_selflink_params = NyhetGen::genArkivLinkParams($limits);
+        $output = NyhetGen::genArkivOptions($limits, $arkiv_selflink_params);
         
 		if ($objNyhetCol->length() === 0) {
 			return $output . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
 		}
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv');
+            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv', $arkiv_selflink_params);
         }
                 
 		return $output;
@@ -507,9 +508,11 @@ class msmodul_nyheter implements msmodul {
 			: msg('Klarte ikke å slette nyhet med id: ' . $objNyhet->getId(), -1);
             
         if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
             return self::$dispatcher->dispatch($_REQUEST['returnto']);
         } else {
-            throw new Exception('Sletting utført, men vet ikke hva som skal vises nå! (returnto ikke satt)');
+            $this->_msmodulact = 'show';
+            return self::$dispatcher->dispatch('show');
         }
 		
 	}
@@ -590,6 +593,14 @@ class msmodul_nyheter implements msmodul {
                 msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
             }
         }
+        
+        if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            $this->_msmodulact = 'ulest';
+            return self::$dispatcher->dispatch('ulest');
+        }
     }
     
     public function merk_alle_lest() {
@@ -604,6 +615,13 @@ class msmodul_nyheter implements msmodul {
             msg('Merket alle nyheter lest', 1):
             msg('Klarte ikke å merke alle nyheter lest', -1);
         
+        if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            $this->_msmodulact = 'ulest';
+            return self::$dispatcher->dispatch('ulest');
+        }
     }
     
     public function check_published() {
@@ -730,6 +748,17 @@ class msmodul_nyheter implements msmodul {
             if(MinSide::DEBUG) msg('Ingen endringer å lagre i områdeadmin.');
         }
         
+    }
+    
+    public function gen_redirect_forside() {
+        $output = '
+            Sender deg tilbake til forsiden...<br />
+            Trykk <a href="'.DOKU_BASE.'doku.php">her</a> dersom du ikke blir tatt videre innen få sekunder.
+            <script type="text/javascript"><!--//--><![CDATA[//><!--
+                window.location="'.DOKU_BASE.'doku.php"
+            //--><!]]></script>
+            ';
+        return $output;
     }
 
 }
