@@ -180,7 +180,10 @@ class msmodul_nyheter implements msmodul {
             }
         }
         
-		return $sticky . $normal;
+        $pre = '<h1>Aktuelle nyheter</h1><div class="level2">';
+        $post = '</div>';
+        
+		return $pre . $sticky . $normal . $post;
 		
 	}
     
@@ -188,9 +191,16 @@ class msmodul_nyheter implements msmodul {
 		
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         
+        if ($returnto == 'redirforside') {
+            $pre = $post = '';
+        } else {
+            $pre = '<h1>Uleste nyheter</h1><div class="level2">';
+            $post = '</div>';
+        }
+        
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest. '.
-                'Se <a href="'.MS_NYHET_LINK.'&amp;act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
+			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest. '.
+                'Se <a href="'.MS_NYHET_LINK.'&amp;act=show">siste nyheter</a> eller <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.') . $post;
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
@@ -198,8 +208,8 @@ class msmodul_nyheter implements msmodul {
         }
         
         $output = '<p><a href="'.MS_NYHET_LINK.'&amp;returnto='.$returnto.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
-                
-		return $output;
+        
+		return $pre . $output . $post;
 		
 	}
     
@@ -293,8 +303,11 @@ class msmodul_nyheter implements msmodul {
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv', $arkiv_selflink_params);
         }
-                
-		return $output;
+        
+        $pre = '<h1>Nyhetsarkiv</h1><div class="level2">';
+        $post = '</div>';
+        
+		return $pre . $output . $post;
         
     }
     
@@ -322,32 +335,35 @@ class msmodul_nyheter implements msmodul {
     
     public function gen_nyheter_upub() {
         $objNyhetCol = NyhetFactory::getUpubliserteNyheter();
+        $pre = '<h1>Upubliserte nyheter</h1><div class="level2">';
+        $post = '</div>';
         
         if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter('Upubliserte nyheter vises kun for områder hvor du har rett til å opprette nye nyheter.');
+			return $pre . NyhetGen::genIngenNyheter('Upubliserte nyheter vises kun for områder hvor du har rett til å opprette nye nyheter.') . $post;
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'upub');
         }
         
-		return $output;        
+		return $pre . $output . $post;
     }
 	
 	public function gen_nyheter_del() {
 		
         $objNyhetCol = NyhetFactory::getDeletedNyheter();
+        $pre = '<h1>Slettede nyheter</h1><div class="level2">';
+        $post = '</div>';
       
 		if ($objNyhetCol->length() === 0) {
-			return NyhetGen::genIngenNyheter();
+			return $pre . NyhetGen::genIngenNyheter() . $post;
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhetDeleted($objNyhet);
         }
         
-		return $output;
-		
+		return $pre . $output . $post;
 	}
     
     public function gen_edit_nyhet() {
@@ -360,7 +376,10 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        return NyhetGen::genEdit($objNyhet);
+        $pre = '<h1>Rediger nyhet</h1><div class="level2">';
+        $post = '</div>';
+        
+        return $pre . NyhetGen::genEdit($objNyhet) . $post;
     
     }
     
@@ -368,8 +387,10 @@ class msmodul_nyheter implements msmodul {
     
         $objNyhet = new MsNyhet();
         
-        return NyhetGen::genEdit($objNyhet);
-    
+        $pre = '<h1>Opprett nyhet</h1><div class="level2">';
+        $post = '</div>';
+        
+        return $pre . NyhetGen::genEdit($objNyhet) . $post;
     }
     
     public function save_nyhet_changes() {
@@ -487,8 +508,9 @@ class msmodul_nyheter implements msmodul {
             } else {
                 if(MinSide::DEBUG) msg('Lagring av nyhet: nyhet ikke endret.');
             }
-            
-            return NyhetGen::genFullNyhet($objNyhet);
+            $pre = '<h1>Visning av enkeltnyhet</h1><div class="level2">';
+            $post = '</div>';
+            return $pre . NyhetGen::genFullNyhet($objNyhet) . $post;
         } else {
             // Preview
             return NyhetGen::genEdit($objNyhet, true);

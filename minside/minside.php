@@ -63,33 +63,24 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 			return '<h1>Ingen adgang</h1><p>Brukeren ' . self::$username . ' har ikke tilgang til å vise Min Side. ' . 
 				'Kontakt en teamleder dersom du har spørsmål til dette.</p>';
 		}
+        
 		$this->updateUserInfo();
+		$this->_lastmoduler();
 		
-		$this->_lastmoduler(); // alle moduler definert i msconfig.php instansieres, se funksjonen
+        $page = ($_REQUEST['page']) ?: 'nyheter';
+        $act = ($_REQUEST['act']) ?: 'show';
 		
-		// Kode under er hack for å vise "et eller annet" på forsiden
-		
-		$msoutput .= '<div class="minside">'; 
-		
-		if(array_key_exists('page', $_REQUEST)) {
-			$page = $_REQUEST['page'];
-		} else {
-			$page = 'nyheter';
-		}
-		
-		if(array_key_exists('act', $_REQUEST)) {
-			$act = $_REQUEST['act'];
-		} else {
-			$act = 'show';
-		}
-		
-		$msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
-		$msoutput .= '<h1>' . ucfirst($page) . '</h1>';
-		$msoutput .= $msdisp->dispatch();
-
-		$msoutput .= '<div class="msclearer"></div></div>';
+        try {
+            $msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
+            $msoutput = $msdisp->dispatch();
+        } catch (Exception $e) {
+            $msoutput =
+                '<div class="mswarningbar"><strong>En feil har oppstått:</strong>
+                <br /><br /><em>'. $e->getMessage() . '</em>
+                <br /><br />Feil oppstod under generering av modulen: ' . $page . '</div><br />';
+        }
 											
-		return $msoutput;
+		return '<div class="minside">' . $msoutput . '<div class="msclearer"></div></div>';
 		
 		
 	}

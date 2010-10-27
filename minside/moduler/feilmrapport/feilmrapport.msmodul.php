@@ -195,8 +195,7 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genRapportArkiv() {
 		
-		$output .= '<span class="actheader">Rapportarkiv</span><br /><br />';
-		$output .= "\n\n" . '<div class="rapportarkiv">';
+		$output .= '<br /><br />';
 				
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
@@ -234,9 +233,11 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
 		
-		$output .= '</div> <!-- rapportarkiv -->' . "\n"; // rapportarkiv
 		
-		return $output;
+        $pre = '<h1>Rapportarkiv</h1><div class="rapportarkiv level2">';
+        $post = '</div>';
+        
+		return $pre . $output . $post;
 	
 	}
 	
@@ -718,6 +719,7 @@ class msmodul_feilmrapport implements msmodul{
 		$skiftcol = SkiftFactory::getMuligeSkiftForRapport();
 	
 		$output .= '
+            <h1>Lag rapport</h1><div class="level2">
 			<div style="margin-left:0px; width:600px;">
 			<fieldset style="width: 600px;text-align:left;">
 				<legend>
@@ -774,7 +776,7 @@ class msmodul_feilmrapport implements msmodul{
 					<input type="submit" class="msbutton" name="subvelgskift" value="Tilbake" />
 				</form>
 			</fieldset>
-			</div>';
+			</div></div>';
 		
 		
 		
@@ -997,8 +999,9 @@ class msmodul_feilmrapport implements msmodul{
         
 		$skiftout .= '</div>' . "\n"; // skift_full
 		
-		
-		return $skiftout;
+		$pre = '<h1>Rapport - Feilmeldingstjenesten</h1><div class="level2">';
+        $post = '</div>';
+		return $pre . $skiftout . $post;
 	
 	}
 	
@@ -1065,8 +1068,8 @@ class msmodul_feilmrapport implements msmodul{
 			
 		$notellere = '<div class="mswarningbar warningentemplates" id="ingenlivetemplates">Ingen tellere her.</div>';
 		
-		$output .= '<p><span class="actheader">Telleradministrasjon</span></p>';
-		$output .= '<p><span class="subactheader">Aktive tellere:</span></p>';
+		$output .= '<h1>Telleradministrasjon</h2><div class="level2">';
+		$output .= '<h2>Aktive tellere:</h2><div class="level3">';
 		if ($numAktiveTellere == 0) {
 			$output .= $notellere;
 		} else {
@@ -1076,7 +1079,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= "</table>\n";
 		}
 		
-		$output .= '<p><span class="subactheader">Inaktive tellere:</span></p>';
+		$output .= '</div><h2>Inaktive tellere:</h2><div class="level3">';
 		if ($numInaktiveTellere == 0) {
 			$output .= $notellere;
 		} else {
@@ -1086,7 +1089,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= "</table>\n";
 		}
 		
-		$output .= "<p><strong>Legg til teller:</strong></p>\n";
+		$output .= "</div><h2>Legg til teller:</h2><div class=\"level3\">";
 		$output .= '
 			<form action="' . MS_FMR_LINK . '&amp;act=nyteller" method="POST">
 			<table>
@@ -1113,7 +1116,7 @@ class msmodul_feilmrapport implements msmodul{
 			</form>
 		';
 	
-		return $output;
+		return $output . '</div></div>'; // close level2 og 3
 	}
 	
 	private function _nyTeller() {
@@ -1356,8 +1359,9 @@ class msmodul_feilmrapport implements msmodul{
 		$output .= '</form>';
 		$output .= '</div>';
 		
-	
-		return $output;
+        $pre = '<h1>Rapport - Feilmeldingstjenesten</h1><div class="level2">';
+        $post = '</div>';
+		return $pre . $output . $post;
 	
 	}
 	
@@ -1458,7 +1462,7 @@ class msmodul_feilmrapport implements msmodul{
 	
 	private function _genModRapportTemplates() {
 	
-		$output .= '<span class="actheader">Templateadministrasjon</span><br />';
+		$output .= '<h1>Templateadministrasjon</h1><div class="level2">';
 		
 		$colTemplates = RapportTemplateFactory::getTemplates();
 		$colActiveTemplates = new RapportTemplateCollection();
@@ -1474,7 +1478,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		// LIVE
 		
-		$output .= '<br /><span class="subactheader">Live templates:</span><br /><br />' . "\n";
+		$output .= '<h2>Live templates:</h2><div class="level3">';
 		if ($colActiveTemplates->length() > 0) {
 			$output .= '<table class="mstemplatelist">' . "\n";
 			$output .= '<tr><th>ID:</th><th>Live siden:</th><th>Ant. rapp.:</th><th>Handlinger:</th></tr>' . "\n";
@@ -1500,7 +1504,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 		// DRAFT
 		
-		$output .= '<br /><span class="subactheader">Draft templates:</span><br /><br />' . "\n";
+		$output .= '</div><h2>Draft templates:</h2><div class="level3">';
 		if ($colInactiveTemplates->length() > 0) {
 			$output .= '<table class="mstemplatelist">' . "\n";
 			$output .= '<tr><th>ID:</th><th>Opprettet:</th><th>Handlinger:</th></tr>' . "\n";
@@ -1525,14 +1529,14 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '</div>'; // mswarningbar
 		}
 		
-		$output .= '' . "\n";
+		$output .= '</div>' . "\n";
 	
 		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
 		$output .= '<input type="hidden" name="act" value="nyraptpl" />';
 		$output .= '<input type="submit" class="msbutton" name="savetpl" value="Opprett nytt template" />';
 		$output .= '</form>';
 		
-		return $output;
+		return $output . '</div>';
 	}
 	
 	private function _modTemplateLive() {

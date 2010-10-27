@@ -52,8 +52,10 @@ class msmodul_sidebar implements msmodul{
     }
 	
 	private function _genAdmin() {
-		$objSidebar = SidebarFactory::getSidebar();		
-		return SidebarGen::genAdmin($objSidebar);
+		$objSidebar = SidebarFactory::getSidebar();	
+        $pre = '<h1>Sidebar administrasjon</h1><div class="level2">';
+        $post = '</div>';
+		return $pre . SidebarGen::genAdmin($objSidebar) . $post;
 	}
 	
 	private function _doMov() {

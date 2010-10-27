@@ -292,7 +292,6 @@ class NyhetGen {
         // "Template"
         $output .= '
                     <div class="editnyhet">
-                        <p class="editnyhetoverskrift"><strong>Rediger nyhet</strong></p>
                         <div class="toolbar">
                             <div id="draft__status"></div>
                             <div id="tool__bar">
@@ -665,51 +664,51 @@ class NyhetGen {
                         </div>
                         <div class="gruppecontent" id="kategorifilter">
                             '.$html_kategorifilter.'
-                        </div>'
-//Tør ikke sette kode på linje 666
-                    .'</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="msclearer">&nbsp;</div><a href="javascript:void(0);" onClick="showFilter(\'avansertgroup\')">Avansert</a>
+                <div class="msclearer">&nbsp;</div>
                 <div class="avansertgroup" style="display:'.$html_display_adv.';" "id="avansertgroup">
-                <div class="arkivbar">
-                    <div class="leftgroup">
-                        <div class="gruppeheader">
-                            Dato-filter
+                    <div class="arkivbar">
+                        <div class="leftgroup">
+                            <div class="gruppeheader">
+                                Dato-filter
+                            </div>
+                            <div class="gruppecontent">
+                                '.$html_datofilter.'
+                            </div>
                         </div>
-                        <div class="gruppecontent">
-                            '.$html_datofilter.'
+                        <div class="rightgroup">
+                            <div class="gruppeheader">
+                                Sortering
+                            </div>
+                            <div class="gruppecontent">
+                                '.$html_sortering.'
+                            </div>
                         </div>
                     </div>
-                    <div class="rightgroup">
-                        <div class="gruppeheader">
-                            Sortering
+                    <div class="msclearer">&nbsp;</div>
+                    <div class="arkivbar">
+                        <div class="leftgroup">
+                            <div class="gruppeheader">
+                                Publisert av
+                            </div>
+                            <div class="gruppecontent" id="publisherfilter">
+                                '.$html_publisherfilter.'
+                            </div>
                         </div>
-                        <div class="gruppecontent">
-                            '.$html_sortering.'
+                        <div class="rightgroup">
+                            <div class="gruppeheader">
+                                Område-filter
+                            </div>
+                            <div class="gruppecontent" id="omradefilter">
+                                '.$html_omradefilter.'
+                            </div>
                         </div>
                     </div>
+                    <div class="msclearer">&nbsp;</div>
                 </div>
-                <div class="msclearer">&nbsp;</div>
-                <div class="arkivbar">
-                    <div class="leftgroup">
-                        <div class="gruppeheader">
-                            Publisert av
-                        </div>
-                        <div class="gruppecontent" id="publisherfilter">
-                            '.$html_publisherfilter.'
-                        </div>
-                    </div>
-                    <div class="rightgroup">
-                        <div class="gruppeheader">
-                            Område-filter
-                        </div>
-                        <div class="gruppecontent" id="omradefilter">
-                            '.$html_omradefilter.'
-                        </div>
-                    </div>
-                </div>
-                <div class="msclearer">&nbsp;</div>
-                </div>
+                <a href="javascript:void(0);" onClick="showFilter(\'avansertgroup\')">Trykk her for å vise/skjule avanserte valg</a>
                 <div class="msclearer">&nbsp;</div>
             </div>
             <div class="arkivunder"> 
@@ -719,13 +718,13 @@ class NyhetGen {
                 <div class="arkivsearch">
                     '.$html_search.'
                 </div>
+                <div class="msclearer">&nbsp;</div>
             </div>
-                <div class="msclearer"></div>
+            <div class="msclearer"></div>
                 </form>
-
+                
             <div class="pagination">
-                '.$html_selflink.'<br />
-                Antall treff: '.$numhits.'<br />
+                Antall treff: <strong>'.$numhits.'</strong> &mdash; ('.$html_selflink.')<br />
                 '.$html_pagination.'
             </div>
             <br />

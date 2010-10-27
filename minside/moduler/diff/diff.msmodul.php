@@ -43,16 +43,16 @@ class msmodul_diff implements msmodul{
 			}
 			
 			$this->_diffOut .= '<form action="' . MS_LINK . '&amp;page=diff" method="POST">';
-			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="44">';
+			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="35">';
 			$this->_diffOut .= implode($text1);
 			$this->_diffOut .= '</textarea>';
-			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="44">';
+			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="35">';
 			$this->_diffOut .= implode($text2);
 			$this->_diffOut .= '</textarea>';
 		} else {
 			$this->_diffOut .= '<form action="' . MS_LINK . '&amp;page=diff" method="POST">';
-			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="40"></textarea>';
-			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="40"></textarea>';
+			$this->_diffOut .= '<textarea name="difftext1" rows="20" cols="35"></textarea>';
+			$this->_diffOut .= '<textarea name="difftext2" rows="20" cols="35"></textarea>';
 		}
 		
 		$this->_diffOut .= '<input type="hidden" name="act" value="dispdiff" />';
@@ -62,7 +62,10 @@ class msmodul_diff implements msmodul{
 			$this->_diffOut .= '<input type="radio" ' . (($_POST['diffver'] == 'pear') ? 'checked="checked"' : '')  . ' name="diffver" value="pear" />PEAR';
 		}
 		$this->_diffOut .= '</form>';
-		return $this->_diffOut;
+		
+        $pre = '<h1>Diff</h1><div class="level2">';
+        $post = '</div>';
+        return $pre . $this->_diffOut . $post;
 	
 	}
 	
