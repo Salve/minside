@@ -635,6 +635,9 @@ class NyhetGen {
         // Selflink
         $html_selflink = '<a href="'.$selflink.'&amp;visside='.$currpage.'">Link til dette søket</a>';
         
+        // Display avansert
+        $html_display_adv = ($data['advanced']) ? 'block' : 'none';
+        
         // "Template"
         $output = '
             <div class="arkivoptions">
@@ -667,7 +670,7 @@ class NyhetGen {
                     .'</div>
                 </div>
                 <div class="msclearer">&nbsp;</div><a href="javascript:void(0);" onClick="showFilter(\'avansertgroup\')">Avansert</a>
-                <div class="avansertgroup" style="display:none;" "id="avansertgroup">
+                <div class="avansertgroup" style="display:'.$html_display_adv.';" "id="avansertgroup">
                 <div class="arkivbar">
                     <div class="leftgroup">
                         <div class="gruppeheader">

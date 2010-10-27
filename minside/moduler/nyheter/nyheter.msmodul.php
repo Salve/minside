@@ -206,6 +206,7 @@ class msmodul_nyheter implements msmodul {
     public function gen_nyhet_arkiv() {
         
         $limits = array();
+        $limits['advanced'] = false;
         
         if($_POST['dofilter'] != 'Nullstill') {
             // Fradato
@@ -213,6 +214,7 @@ class msmodul_nyheter implements msmodul {
                 $timestamp = strtotime($_REQUEST['fdato']);
                 if($timestamp !== false) {
                     $limits['fdato'] = $timestamp;
+                    $limits['advanced'] = true;
                 }
             }
             // Tildato
@@ -220,6 +222,7 @@ class msmodul_nyheter implements msmodul {
                 $timestamp = strtotime($_REQUEST['tdato']);
                 if($timestamp !== false) {
                     $limits['tdato'] = $timestamp;
+                    $limits['advanced'] = true;
                 }
             }
             // Overskriftsøk
@@ -237,21 +240,22 @@ class msmodul_nyheter implements msmodul {
                 $limits['ftag']['data'] = $arInputTag;
                 $limits['ftag']['mode'] = ($_REQUEST['tagfilter'] == 'AND') ? 'AND' : 'OR';
             }
-            // Sortorder
+            // Sortorder - DESC er default
             if($_REQUEST['sortorder'] == 'ASC') {
                 $limits['sortorder'] = 'ASC';
-            } else {
-                $limits['sortorder'] = 'DESC';
+                $limits['advanced'] = true;
             }
             // Publisher
             $arInputPublishers = (array) $_REQUEST['fpublishers'];
             if (!empty($arInputPublishers)) {
                 $limits['fpublishers'] = $arInputPublishers;
+                $limits['advanced'] = true;
             }
             // Områder
             $arInputOmrader = (array) $_REQUEST['fomrader'];
             if (!empty($arInputOmrader)) {
                 $limits['fomrader'] = $arInputOmrader;
+                $limits['advanced'] = true;
             }
             // Nyheter vist per side
             $perside = (int) $_REQUEST['perside'];
@@ -261,6 +265,7 @@ class msmodul_nyheter implements msmodul {
             }
         } 
         
+        // Default ved bruk av nullstill
         if(empty($limits['pages']['perside'])) {
             $limits['pages']['perside'] = 10;
         }
