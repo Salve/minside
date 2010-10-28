@@ -702,4 +702,43 @@ class MsNyhet {
         return $msdb->assoc($sql);
 
     }
+    
+    public static function getGraphDataset($inputdata, $resolution, $innfratid=null, $inntiltid=null) {
+        // Inputdata er array med brukere og tidspunkt de har lest en nyhet
+        // Resolution er antall sekunder per datapunkt
+        // Fra og til tid er timestamps som setter limits for periode som skal vises
+        
+        $resolution = (int) $resolution;
+        if($resolution < 1) throw new Exception('Ugyldig resolution gitt til graph-data generator.');
+        
+        $total_users = count($inputdata);
+        foreach($inputdata as $datum) {
+            if($datum['ikkelest'] == 0) {
+                $sorteddata[] = strtotime($datum['readtime']);
+            }
+        }
+        sort($sorteddata);
+        // Bruker første og siste timestamp som fra/til tid hvis de ikke er gitt
+        $fratid = ($innfratid==null) ? $sorteddata[0] : $innfratid;
+        $tiltid = ($inntiltid==null) ? $sorteddata[count($sorteddata)-1] : $inntiltid;
+      
+        // Fordele data på datapunkter
+        $fordeltdata = array();
+        foreach($sorteddata as $datum) {
+            $sekunderfrastart = $datum - $fratid;
+            $index = ceil($sekunderfrastart / $resolution);
+            if($index < 1) $index = 1;
+            $fordeltdata[$index]++;
+        }
+        $num_datapoints = floor(($tiltid - $fratid) / $resolution);
+        if($num_datapoints < 1) $num_datapoints = 1;
+        $counter_lest = 0;
+        $utdata = array();
+        for($i=1;$i<=$num_datapoints;$i++) {
+            $counter_lest += $fordeltdata[$i];
+            $utdata[] = round(($counter_lest / $total_users) * 100);
+        }
+        
+        return $utdata;
+    }
 }

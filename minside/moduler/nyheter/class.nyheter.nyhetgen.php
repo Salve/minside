@@ -385,6 +385,25 @@ class NyhetGen {
     
     public static function genNyhetStats(msnyhet &$objNyhet) {
         $arReadList = $objNyhet->getReadList();
+        
+        $res = 60 * 60 * 24;
+        $arDataset = MsNyhet::getGraphDataset($arReadList, $res);
+        $dataset = implode(',', $arDataset);
+        
+        $googleurl=
+            "http://chart.apis.google.com/chart" .
+            "?chxs=0,676767,12.833,0,l,676767" .
+            "&chxt=y,x" .
+            "&chs=650x450" .
+            "&cht=lc" .
+            "&chco=3D7930" .
+            "&chds=-6.667,100" .
+            "&chd=t:$dataset" .
+            "&chg=10,5,1,3" .
+            "&chls=2,4,0" .
+            "&chm=B,C5D4B5BB,0,0,0" .
+            "&chtt=Prosent+som+har+lest+nyhet";
+        $chartimg = "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
 
         $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
         foreach($arReadList as $readevent) {
@@ -397,7 +416,7 @@ class NyhetGen {
             <pre>'.$strReadTab.'</pre>';
         
         
-        $output = $strReadTab;
+        $output = $chartimg . $strReadTab;
         
         return $output;
     }
