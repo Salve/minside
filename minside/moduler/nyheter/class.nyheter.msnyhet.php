@@ -32,6 +32,7 @@ class MsNyhet {
 	protected $_wikihash;
 	protected $_wikitekst;
     
+    protected $_arreadlist;
     protected $_objkategori;
     protected $_coltags;
     
@@ -602,14 +603,69 @@ class MsNyhet {
         return (bool) $res;
     }
     
-    public function getAcl() {
-        return self::_checkAcl(curNS($this->getWikiPath()));
+    public function getReadList($force_reload=false) {
+        if (!$this->isSaved()) throw new Exception('Kan ikke hente stats for nyhet som ikke er lagret');
+        if ($force_reload || !isset($this->_arreadlist)) {
+            $this->_loadReadList();
+        }
+        return $this->_arreadlist;
     }
     
-    private static function _checkAcl($inNS) {
+    protected function _loadReadList() {
+        if(MinSide::DEBUG) msg('Loading read-list for nyhet: ' . $this->getId());
+        
+        global $msdb;
+        
+        $omrade = $this->getOmrade();
+        $nyhetid = $this->getId();
+        $safeomrade = $msdb->quote($omrade);
+        $safenyhetid = $msdb->quote($nyhetid);
+        $sql = "
+        SELECT
+            users.id AS brukerid,
+            users.wikiname AS wikiname,
+            users.wikifullname AS brukerfullnavn,
+            users.wikiepost AS brukerepost,
+            users.wikigroups AS brukergrupper,
+            lest.readtime AS readtime,
+            lest.readtime IS NULL AS ikkelest
+        FROM 
+                internusers AS users
+            LEFT JOIN
+                nyheter_lest AS lest 
+                    ON lest.brukerid = users.id
+                    AND lest.nyhetid = $safenyhetid
+        WHERE
+            users.isactive = '1'
+        ORDER BY
+            ikkelest,
+            readtime
+        ";
+        $data = $msdb->assoc($sql);
+        
+        $arReadList = array();
+        foreach($data as $datum) {
+            // Må sjekke access på hver bruker :\
+            $user['name'] = $datum['wikiname'];
+            $user['groups'] = (array) explode(',', $datum['brukergrupper']);
+            $datum['adgangsniva'] = $this->getAcl($user);
+            if($datum['adgangsniva'] < AUTH_READ) continue;
+            
+            $arReadList[] = $datum;
+        }
+        
+        $this->_arreadlist = $arReadList;
+    }
+    
+    public function getAcl($user=null) {
+        $ns = curNS($this->getWikiPath());
+        return self::_checkAcl($ns, $user);
+    }
+    
+    private static function _checkAcl($inNS, $user=null) {
         $objOmrade = NyhetOmrade::OmradeFactory('msnyheter', $inNS);
         if ($objOmrade instanceof NyhetOmrade) {
-            return $objOmrade->getAcl();
+            return $objOmrade->getAcl($user);
         } else {
             return MSAUTH_NONE;
         }

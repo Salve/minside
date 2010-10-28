@@ -20,6 +20,7 @@ class NyhetGen {
         switch($acl) {
             case MSAUTH_ADMIN:
             case MSAUTH_5:
+                $arOptions[] = 'stats';
             case MSAUTH_4:
             case MSAUTH_3:
             case MSAUTH_2:
@@ -117,6 +118,9 @@ class NyhetGen {
 		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&amp;act=restore&amp;nyhetid=$id\">" .
             '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+        $opt['stats'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=nyhetstats&amp;nyhetid=$id\">" .
+            '<img alt="stats" title="Statistikk for enkeltnyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'bargraf.gif" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
 			$options[] = $opt[$v];
@@ -375,6 +379,25 @@ class NyhetGen {
             ";
         }
         $output .= '</table><input type="submit" value="Lagre" class="button" /></form></div>';
+        
+        return $output;
+    }
+    
+    public static function genNyhetStats(msnyhet &$objNyhet) {
+        $arReadList = $objNyhet->getReadList();
+
+        $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
+        foreach($arReadList as $readevent) {
+            $strReadTab .= $readevent['brukerid'] . "\t";
+            $strReadTab .= $readevent['brukerfullnavn'] . "\t";
+            $strReadTab .= $readevent['readtime'] . "\n";
+        }
+        $strReadTab = 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
+            Brukere med tomt lese-tidspunkt har ikke markert nyhet som lest.
+            <pre>'.$strReadTab.'</pre>';
+        
+        
+        $output = $strReadTab;
         
         return $output;
     }

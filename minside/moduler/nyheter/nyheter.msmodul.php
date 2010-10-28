@@ -65,6 +65,8 @@ class msmodul_nyheter implements msmodul {
 		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
 		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
+        // Stats
+        $dispatcher->addActHandler('nyhetstats', 'gen_nyhet_stats', MSAUTH_5);
         // Admin
         $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
@@ -212,6 +214,24 @@ class msmodul_nyheter implements msmodul {
 		return $pre . $output . $post;
 		
 	}
+    
+    public function gen_nyhet_stats() {
+        $nyhetid = $_REQUEST['nyhetid'];
+        try{
+            $objNyhet = NyhetFactory::getNyhetById($nyhetid);
+        } catch (Exception $e) {
+            msg('Klarte ikke å laste statistikk for nyhet med id: ' . htmlspecialchars($nyhetid), -1);
+            return false;
+        }
+        
+        $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level2">';
+        $post = '</div>';
+        
+        return $pre . 
+            NyhetGen::genNyhetStats($objNyhet) .
+            NyhetGen::genFullNyhet($objNyhet, array(), 'nyhetstats') . 
+            $post;
+    }
     
     public function gen_nyhet_arkiv() {
         
