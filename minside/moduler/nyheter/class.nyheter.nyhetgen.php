@@ -53,6 +53,7 @@ class NyhetGen {
         $title = $nyhet->getTitle(true);
 		$body = $nyhet->getHtmlBody();
         $omrade = $nyhet->getOmrade();
+        $objKategori = $nyhet->getKategori();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
         $pubdiff = time() - strtotime($nyhet->getPublishTime());
         $pubdager = (int) floor($pubdiff / 60 / 60 / 24);
@@ -65,9 +66,11 @@ class NyhetGen {
         
         // HTML
         $returnto_html = ($returnto) ? '&amp;returnto='.$returnto.$extra_url_params : $extra_url_params;
-        $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
+        $omrade_html = '<div class="nyhetomrade">Område: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fomrader[]='. $omrade . 
+                '" title="område:' . $omrade . '">' . $omradeinfo['visningsnavn'] . '</a></div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
-        $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
+        $kategori_html = '<div class="nyhetkategori">Kategori: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fkat[]='. $objKategori->getId() . 
+                '" title="kategori:' . $objKategori->getNavn() . '">' . $objKategori->getNavn() . '</a></div>';
         $tags_html = self::genTagList($nyhet->getTags());
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
