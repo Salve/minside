@@ -132,8 +132,11 @@ CREATE TABLE `nyheter_lest` (
   `nyhetid` int(10) unsigned NOT NULL,
   `brukerid` int(10) unsigned NOT NULL,
   `readtime` datetime NOT NULL,
+  UNIQUE KEY `unik_binding` (`nyhetid`,`brukerid`),
   KEY `idlookup` (`nyhetid`,`brukerid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 
 DROP TABLE IF EXISTS `sidebar_blokk`;
 CREATE TABLE `sidebar_blokk` (
