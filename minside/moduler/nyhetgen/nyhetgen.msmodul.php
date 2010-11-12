@@ -10,7 +10,6 @@ class msmodul_nyhetgen implements msmodul{
 	
 	
 	public function __construct($UserID, $adgang) {
-	
 		$this->_userID = $UserID;
 		$this->_adgang = $adgang;
 	}
@@ -30,7 +29,7 @@ class msmodul_nyhetgen implements msmodul{
 	
 		$signatur = '---//[['.$INFO['userinfo']['mail'].'|'.$INFO['userinfo']['name'].']] '.$dato.' // ';
 
-		$this->_nyhetgenOut .= nl2br('<pre style="width:600px; font-size:12px;">&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.'\\\ **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n</pre>");
+		$this->_nyhetgenOut .= '<textarea style="width:600px; height:400px; font-size:12px;" name="nyhetgenerert" onClick="this.focus();this.select();"">&lt;hidden initialState="visible" onHidden="**### '.$overskrift.' ###** '.$signatur.'\\\ **'.$bread.'**" onVisible="**### '.$overskrift.' ###**\\\ **'.$bread.'**"&gt;'."\n\n".$tekst.' \\\ '."\n\n\n\n".$signatur."\n\n".'&lt;/hidden&gt;'."\n\n".'\\\ '."\n\n</textarea>";
 	}
 
 		$this->_nyhetgenOut .= '
@@ -54,8 +53,8 @@ class msmodul_nyhetgen implements msmodul{
 	}
 	
 	
-	public function registrer_meny(MenyitemCollection &$meny){
-		if ($this->_adgang > MSAUTH_NONE) { 
+	public function registrer_meny(MenyitemCollection &$meny){	
+        if ($this->_adgang > MSAUTH_NONE) { 
             $menynavn = 'Nyhetsgenerator';
             if (isset($this->_msmodulAct)) {
                 $menynavn = '<span class="selected">'.$menynavn.'</span>';
