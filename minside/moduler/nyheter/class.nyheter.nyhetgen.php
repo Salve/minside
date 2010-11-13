@@ -7,6 +7,21 @@ class NyhetGen {
 	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
     const TAGSELECTOR_TAGS_PER_ROW = 6;
 
+    public static $mnd_navn_kort = array(
+        1 => 'jan',
+        2 => 'feb',
+        3 => 'mar',
+        4 => 'apr',
+        5 => 'mai',
+        6 => 'jun',
+        7 => 'jul',
+        8 => 'aug',
+        9 => 'sep',
+        10 => 'okt',
+        11 => 'nov',
+        12 => 'des'
+        );
+    
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
@@ -108,7 +123,7 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
 		$opt['lest'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+            'height="16" src="' . MS_IMG_PATH . 'ulest.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -389,23 +404,9 @@ class NyhetGen {
     public static function genNyhetStats(msnyhet &$objNyhet) {
         $arReadList = $objNyhet->getReadList();
         
-        $res = 60 * 60 * 24;
-        $arDataset = MsNyhet::getGraphDataset($arReadList, $res);
-        $dataset = implode(',', $arDataset);
+        $res = 60*60*24;
+        $googleurl = MsNyhet::getGoogleGraphUri($arReadList);
         
-        $googleurl=
-            "http://chart.apis.google.com/chart" .
-            "?chxs=0,676767,12.833,0,l,676767" .
-            "&chxt=y,x" .
-            "&chs=650x450" .
-            "&cht=lc" .
-            "&chco=3D7930" .
-            "&chds=-6.667,100" .
-            "&chd=t:$dataset" .
-            "&chg=10,5,1,3" .
-            "&chls=2,4,0" .
-            "&chm=B,C5D4B5BB,0,0,0" .
-            "&chtt=Prosent+som+har+lest+nyhet";
         $chartimg = "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
 
         $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
@@ -419,7 +420,7 @@ class NyhetGen {
             <pre>'.$strReadTab.'</pre>';
         
         
-        $output = $chartimg . $strReadTab;
+        $output = $chartimg . $debug_dataset . $strReadTab;
         
         return $output;
     }
