@@ -68,15 +68,23 @@ class msmodul_nyheter implements msmodul {
         // Admin
         $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('admin', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'import_nyheter', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_omrade_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('doimport', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('doimport', 'gen_import_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('subtagadm', 'gen_import_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
         $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
+		$dispatcher->addActHandler('sletttag', 'gen_import_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
         $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'gen_import_admin', MSAUTH_ADMIN);
         // System / interne
 		$dispatcher->addActHandler('checkpublished', 'check_published', MSAUTH_NONE);
         $dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
@@ -120,6 +128,7 @@ class msmodul_nyheter implements msmodul {
                     case 'subtagadm':
                     case 'sletttag':
                     case 'subomradeadm':
+                    case 'doimport':
                     case 'admin':
                         $objStrong = $menyitem_admin;
                         break;
@@ -661,6 +670,189 @@ class msmodul_nyheter implements msmodul {
         }
         
         return (bool) $objNyhet->isPublished();
+    }
+    
+    public function gen_import_admin() {
+        $colSkrivbareOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_3);
+        return NyhetGen::genImportAdmin($colSkrivbareOmrader);
+    }
+    
+    public function import_nyheter() {
+        if(MinSide::DEBUG) msg('Starter nyhetimport');
+        
+        $input_omrade = $_POST['importomrade'];
+        // Hent områder bruker har create rights på
+        $colSkrivbareOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_3);
+        if($colSkrivbareOmrader->exists($input_omrade)) {
+            $objOmrade = $colSkrivbareOmrader->getItem($input_omrade);
+            $omrade = $objOmrade->getOmrade();
+        } else {
+            throw new Exception('Oppgitt område for importering eksisterer ikke, eller manglende tilgang.');
+        }
+        
+        // Sjekk lese/skrivetilganger
+        $filpath = DOKU_INC.'lib/plugins/minside/cache/';
+        if(!is_writable(DOKU_INC.'lib/plugins/minside/cache')) {
+            throw new Exception('Kan ikke importere nyheter: server kan ikke skrive til cache-mappen.');
+        } 
+        if(!is_readable(DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt')) {
+            throw new Exception('Kan ikke importere nyheter: filen '.DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt eksisterer ikke eller er ikke lesbar av serveren.');
+        }
+        
+        // Hvis vi er her har vi valid område å opprette nyheter i, lesetilgang til input-fil, og skrivetilgang for output fil.
+        $raw_input = file_get_contents($filpath . 'nyhet_import.txt');
+        $input_len = strlen($raw_input);
+        if($input_len < 1) {
+            throw new Exception('Input fil er tom.');
+        }
+        if(MinSide::DEBUG) msg('Checks passed, input har ' . $input_len . ' tegn.');
+        
+        // Hent ut nyheter, vi går ut fra at alle valid nyheter er i en <hidden> </hidden> tag.
+        $pattern = "#<hidden\b([^>]*)>(.*?)</hidden>#is";
+        $matches = array();
+        preg_match_all($pattern, $raw_input, $matches, PREG_SET_ORDER);
+        $num_matches = count($matches);
+        if(MinSide::DEBUG) msg('Fant ' . $num_matches . ' nyheter i inputfil.');
+        if($num_matches < 1) {
+            throw new Exception('Import feilet, fant ingen nyheter i inputfil. (Feilet i første søk)');
+        }
+        
+        // Hent brukere
+        $arUsers = MinSide::getUsers();
+        
+        // $matches er et 0-indeksert array med ett item for hver nyhet.
+        // Hvert item i arrayet er et array med 3 items.
+        // [0] inneholder hele strengen som matchet, altså <hidden x="y">Her er nyheten</hidden>
+        // [1] inneholder innhold i åpningstagen, altså x="y"
+        // [2] inneholder tekst mellom <hidden ... > og </hidden>, altså Her er nyheten
+        
+        
+        $failoutput = '';
+        $failcounter = 0;
+        $okcounter = 0;
+        foreach($matches as $key => $match) {
+            $nyhetnummer = $key + 1;
+            $match_feil = array();
+            
+            // Finn overskrift
+            $omatches = array();
+            preg_match('/\*\*(.*?)\*\*/is', $match[1], $omatches);
+            $overskrift = trim($omatches[1], ' #');
+            if(!strlen($overskrift)) {
+                if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet pga. tom overskrift', -1);
+                $match_feil[] = "Feilet på overskrift";
+            }
+            
+            // Finn bruker
+            $bmatches = array();
+            preg_match('#---[\w\s]*//\[\[[^\|]*\|(.*?)\]\]#is', $match[1], $bmatches);
+            $brukernavn = trim($bmatches[1]);
+            if(!strlen($brukernavn)) {
+                if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet pga. manglende brukernavn', -1);
+                $match_feil[] = "Feilet på brukernavn: ikke funnet i input";
+            } else {
+                $brukerid = false;
+                foreach($arUsers as $arUser) {
+                    if($arUser['wikifullname'] == $brukernavn) {
+                        $brukerid = $arUser['id'];
+                    }
+                }
+                if($brukerid === false) {
+                    if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet pga. bruker ikke i database: ' . $brukernavn, -1);
+                    $match_feil[] = 'Feilet på brukernavn: bruker ikke i database';
+                }
+            }
+
+            // Finn tidspunkt
+            $tmatches = array();
+            // Format på datestring ble endret på et tidspunkt, slik at noen nyheter har yyyy/mm/dd og noen har dd/mm/yyyy
+            preg_match('#([0-9]{2,4})/([0-9]{2})/([0-9]{2,4})\s([0-2][0-9]):([0-5][0-9])#is', $match[1], $tmatches);
+            $raw_tid = trim($tmatches[0]);
+            $dato1 = $tmatches[1];
+            $mnd = $tmatches[2];
+            $dato2 = $tmatches[3];
+            $time = $tmatches[4];
+            $minutt = $tmatches[5];
+            if(strlen($dato1) == 4) {
+                $aar = $dato1;
+                $dag = $dato2;
+            } else {
+                $aar = $dato2;
+                $dag = $dato1;
+            }
+            $timestamp = mktime($time, $minutt, 0, $mnd, $dag, $aar);
+            $checkyear = date('Y', $timestamp);
+            if($checkyear < 2000 || $checkyear > 2020) {
+                if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet pga. ugyldig eller manglende dato', -1);
+                $match_feil[] = "Feilet på dato";
+            }
+            
+            // Finn innhold
+            $nyhettekst = trim($match[2]);
+            if(strlen($nyhettekst) < 1) {
+                if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet pga. manglende innhold', -1);
+                $match_feil[] = "Feilet på innhold (tom nyhet)";
+            }
+            
+            // Dersom ingen feil sålangt forsøker vi å opprette nyhet
+            if(count($match_feil) == 0) {
+            
+                try{
+                    $objNyhet = new MsNyhet();
+                    
+                    $objNyhet->setTitle($overskrift);
+                    $objNyhet->setOmrade($omrade);
+                    // Wikipath
+                    $path = str_replace(array(':', ';', '/', '\\'), '_' , $overskrift);
+                    if (strlen($path) > MsNyhet::PATH_MAX_LEN) $path = substr($path, 0, MsNyhet::PATH_MAX_LEN);
+                    $path = 'msnyheter:'.$omrade.':' . date('YmdHis', $timestamp) . 'old_' . $path;
+                    $path = cleanID($path, true);
+                    $objNyhet->setWikiPath($path);
+                    
+                    $objNyhet->setType(1);
+                    $objNyhet->setIsSticky(false);
+                    $objNyhet->setImagePath('');
+                    
+                    $pubtime = date('Y-m-d H:i', $timestamp);                    
+                    $objNyhet->setPublishTime($pubtime);
+                    
+                } catch(Exception $e) {
+                    if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet under generering av objekt ', -1);
+                    $match_feil[] = "Feilet på generering av objekt: " . $e->getMessage();
+                }
+                
+                try{
+                    $objNyhet->setWikiTekst($nyhettekst, false);
+
+                    $objNyhet->update_db($brukerid, $pubtime);
+                    //$testoutput .= NyhetGen::genFullNyhet($objNyhet);
+                } catch(Exception $e) {
+                    if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet under lagring av objekt ', -1);
+                    $match_feil[] = "Feilet på lagring av objekt: " . $e->getMessage();
+                }
+                
+            
+            }
+            
+            // Sjekk for feil, legg nyhet med info om hva som feilt i streng som skrives til fil
+            if(count($match_feil) > 0) {
+                $failcounter++;
+                $failtekst = implode("\n", $match_feil);
+                $failoutput .= $failtekst . "\n---------------\n" . $match[0] . "\n\n\n";
+            } else {
+                $okcounter++;
+            }
+        }
+        
+        msg('Importsekvens ferdig. ' . $okcounter . ' nyheter importert, ' . $failcounter . ' feilet.');
+        
+        if ($failoutput) {
+            $fil = $filpath . date('YmdHis') . '.failedimport.txt';
+            file_put_contents($fil, $failoutput);
+        }
+        
+        
+        return $testoutput;
     }
     
     public function gen_tag_admin() {

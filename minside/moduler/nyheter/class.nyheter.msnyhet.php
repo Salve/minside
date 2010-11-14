@@ -542,7 +542,7 @@ class MsNyhet {
         $this->setHtmlBody($html);
     }
     
-    public function update_db() {
+    public function update_db($userid=null, $time=null) {
         if(MinSide::DEBUG) msg('update db kallt');
         global $msdb;
         
@@ -571,10 +571,12 @@ class MsNyhet {
                 ";
                 
         if (!$this->isSaved()) {
+            $createtime = ($time) ? "'".$time."'" : 'NOW()';
+            $createby = ($userid) ?: MinSide::getUserID();
             $presql = "INSERT INTO nyheter_nyhet SET\n";
             $presql .= "nyhetid = DEFAULT,\n";
-            $presql .= "createtime = NOW(),\n";
-            $presql .= "createby = " . MinSide::getUserID() . ",\n";
+            $presql .= "createtime = $createtime,\n";
+            $presql .= "createby = '$createby',\n";
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
