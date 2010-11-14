@@ -124,6 +124,7 @@ CREATE TABLE `nyheter_nyhet` (
   `issticky` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`nyhetid`),
   UNIQUE KEY `nyhetid_UNIQUE` (`nyhetid`),
+  UNIQUE KEY `unik_path` (`wikipath`),
   KEY `pubtime` (`pubtime`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
