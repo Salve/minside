@@ -543,7 +543,7 @@ class NyhetGen {
                 $output .= '<option value="' . $objOmrade->getOmrade() . '">' . $objOmrade->getVisningsnavn() . '</option>';
             }
             $output .= '</select>';
-            $output .= '<br /><br /><input type="submit" value="Start importering" class="button" /></form>';
+            $output .= '<br /><br /><input type="submit" value="Start importering" onClick="return heltSikker()" class="button" /></form>';
         }
         $output .= '</div>'; // level3
         $output .= '</div>'; // nyhet_import
