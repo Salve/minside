@@ -515,6 +515,42 @@ class NyhetGen {
         return $output;
     }
     
+    public static function genImportAdmin($colSkrivbareOmrader) {
+        $output = '<h2>Import-verktøy</h2>
+            <div class="nyhet_import">
+            <div class="level3">
+            <p>
+                For å importere nyheter fra gammel løsning med hidden-plugin, kopieres "kildekoden" til en eller flere nyheter med hidden-syntax
+                til filen '.DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt. Denne filen må være lesbar av serveren.
+            </p>
+            <p>
+                Eventuelle seksjoner som oppfattes som nyheter, men mangler info, ikke kan parses, eller er signert av en bruker som ikke finnes i databasen
+                vil skrives til en fil i '.DOKU_INC.'lib/plugins/minside/cache/. Serveren må kunne skrive til, og evt. opprette denne filen.
+            </p>
+            ';
+        
+        if ($colSkrivbareOmrader->length() === 0)  {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: du har ikke skrivetilgang til noe område.</div>';
+        } elseif(!is_writable(DOKU_INC.'lib/plugins/minside/cache')) {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: server kan ikke skrive til cache-mappen.</div>';
+        } elseif(!is_readable(DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt')) {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: filen '.DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt eksisterer ikke eller er ikke lesbar av serveren.</div>';
+        } else {
+            $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=doimport" method="POST">
+                Velg område nyheter skal opprettes i:<br />
+                <select name="importomrade" class="edit">';
+            foreach($colSkrivbareOmrader as $objOmrade) {
+                $output .= '<option value="' . $objOmrade->getOmrade() . '">' . $objOmrade->getVisningsnavn() . '</option>';
+            }
+            $output .= '</select>';
+            $output .= '<br /><br /><input type="submit" value="Start importering" class="button" /></form>';
+        }
+        $output .= '</div>'; // level3
+        $output .= '</div>'; // nyhet_import
+        
+        return $output;        
+    }
+    
     public static function genArkivOptions(array $data, $arkivlinkparams='') {
         
         // Linker

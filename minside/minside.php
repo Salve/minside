@@ -255,5 +255,42 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		}
 		
 	}
+    
+    public static function getUsers() {
+        global $msdb;
+        $sql = "
+            SELECT 
+                id,
+                wikiname,
+                wikifullname, 
+                wikiepost,
+                createtime,
+                isactive,
+                wikigroups
+            FROM 
+                internusers
+            ;";
+		$data = $msdb->assoc($sql);
+		
+		$arUsers = array();
+        
+		if(is_array($data) && sizeof($data)) {
+			foreach($data as $datum) {
+                $groups = explode(',', $datum['wikigroups']);
+				$user = array(
+                    'id' => $datum['id'],
+                    'wikiname' => $datum['wikiname'],
+                    'wikifullname' => $datum['wikifullname'],
+                    'wikiepost' => $datum['wikiepost'],
+                    'createtime' => $datum['createtime'],
+                    'isactive' => $datum['isactive'],
+                    'wikigroups' => $groups
+                );
+                $arUsers[$datum['id']] = $user;
+			}
+		}
+        if(MinSide::DEBUG) msg('Lastet ' . count($arUsers) . ' brukere fra database.');
+        return $arUsers;
+    }
 
 }
