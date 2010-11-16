@@ -144,7 +144,7 @@ class NyhetFactory {
                 AND pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY pubtime DESC
+			ORDER BY pubtime, nyhetid DESC
             LIMIT 100;";
         $res = $msdb->assoc($sql);
         
