@@ -274,7 +274,7 @@ class NyhetFactory {
         // Tildato
         if (array_key_exists('tdato', $limits)) $where[] = "pubtime <= '" . date('Y-m-d', $limits['tdato']) . ' 23:59:59' . "'";
         // Overskriftsøk
-        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace('*', '%', $limits['oskrift']));
+        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace(array('*', '?'), array('%', '_'), $limits['oskrift']));
         // Sortorder
         $safesortorder = ($limits['sortorder']) ?: 'DESC';
         // Limit
