@@ -63,15 +63,25 @@ class NyhetOmrade {
 		return $this->_omrade_full;
 	}
 	
-	public function checkAcl($lvl) {
-		return ($this->getAcl() >= $lvl);
+	public function checkAcl($lvl, $user=null) {
+		return ($this->getAcl($user) >= $lvl);
 	}
 	
-	public function getAcl() {
-        if (!isset($this->_acl)) {
-            $this->_acl = auth_quickaclcheck($this->_omrade_full.':*');
+	public function getAcl($user=null) {
+        // $user, hvis satt skal være array med keys name og groups
+        // name skal være streng med wiki-brukernavn whoms access skal sjekkes
+        // groups skal være array med alle brukergruppene denne brukeren er i
+        if(is_array($user)) {
+            if (!isset($this->_acl[$user['name']])) {
+                $this->_acl[$user['name']] = auth_aclcheck($this->_omrade_full.':*', $user['name'], (array) $user['groups']);
+            }
+            return $this->_acl[$user['name']];
+        } else {
+            if (!isset($this->_acl[0])) {
+                $this->_acl[0] = auth_quickaclcheck($this->_omrade_full.':*');
+            }
+            return $this->_acl[0];
         }
-		return $this->_acl;
 	}
 	
 	public static function getOmrader($parent_ns, $acl=0, $force_reload=false) {
