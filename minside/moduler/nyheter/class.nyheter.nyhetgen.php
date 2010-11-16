@@ -560,7 +560,7 @@ class NyhetGen {
         $min_fradato = '2005-01-01';
         $max_tildato_stamp = (60 * 60 * 24 * 365 * 5) + time();
         $max_tildato = date('Y-m-d', $max_tildato_stamp);
-        msg($max_tildato);
+
         // Fradato
         $infdato = $data['fdato'];
         $objCalendarFra = new tc_calendar("fdato", true);
@@ -588,6 +588,11 @@ class NyhetGen {
         ob_start(); // må ta vare på output...
         $objCalendarTil->writeScript();
         $html_datotil = ob_get_clean();
+        
+        // Warn @ til < fradato
+        if($infdato && $intdato && ($infdato > $intdato)) {
+            msg('Fradato er etter tildato, dette vil utelukke alle resultater!', -1);
+        }
         
         $html_datofilter = 
             '<table>
