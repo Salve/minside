@@ -668,7 +668,7 @@ class NyhetGen {
                     </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
-                <div class="avansertgroup" style="display:'.$html_display_adv.';" "id="avansertgroup">
+                <div class="avansertgroup" style="display:'.$html_display_adv.'" id="avansert__group">
                     <div class="arkivbar">
                         <div class="leftgroup">
                             <div class="gruppeheader">
@@ -708,7 +708,7 @@ class NyhetGen {
                     </div>
                     <div class="msclearer">&nbsp;</div>
                 </div>
-                <a href="javascript:void(0);" onClick="showFilter(\'avansertgroup\')">Trykk her for å vise/skjule avanserte valg</a>
+                <a href="javascript:void(0);" id="filter__link" value="test">Trykk her for å vise/skjule avanserte valg</a>
                 <div class="msclearer">&nbsp;</div>
             </div>
             <div class="arkivunder"> 

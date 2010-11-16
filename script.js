@@ -45,18 +45,24 @@ function submitFormImgSub() {
 }
 
 // Nyhetsarkiv
-
-function showFilter(filterId) {
-    var elm = document.getElementById(filterId);
+function showFilter() {
+    var elm = document.getElementById('avansert__group');
     var disStyle = elm.style.display;
     if( disStyle == 'none') {
-        elm.style.display = '';
+        elm.style.display = 'inline';
     }
     else {
         elm.style.display = 'none';
     }
     
 }
+function initShowFilter()
+{
+        var filter = document.getElementById('filter__link');
+        addEvent(filter, 'click', showFilter);
+}
+
+addInitEvent(initShowFilter);
 
 // Calendar
 
