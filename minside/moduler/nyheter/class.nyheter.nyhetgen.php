@@ -707,7 +707,7 @@ class NyhetGen {
                     </div>
                 </div>
                 <div class="msclearer">&nbsp;</div>
-                <div class="avansertgroup" style="display:'.$html_display_adv.'" id="avansert__group">
+                <div class="avansertgroup" style="display:'.$html_display_adv.';" id="avansert__group">
                     <div class="arkivbar">
                         <div class="leftgroup">
                             <div class="gruppeheader">
