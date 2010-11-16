@@ -304,6 +304,16 @@ class NyhetGen {
             $html_calendar = '';
         }
         
+        // Merk ulest for alle
+        // Vises kun dersom bruker har create rights på nyhetsområde og nyhet er saved
+        if($objNyhet->isSaved() && $objNyhet->getAcl() >= MSAUTH_3) {
+            $html_merkulest = '<div class="nyhetmerkulestalle"><label for="ulestallecheckbox">Merk nyhet som ulest for alle brukere?</label>' .
+			' <input id="ulestallecheckbox" class="edit" type="checkbox" name="merkulestalle" /></div>';
+        } else {
+            // Bruker har ikke create rights på området eller nyhet er ikke lagret enda
+            $html_merkulest = '';
+        }
+        
         // Wikitekst
         $rawwiki = $objNyhet->getWikiTekst();
         if (empty($rawwiki)) {
@@ -344,6 +354,8 @@ class NyhetGen {
                                 <div class="msclearer"></div>'
                                 .(($html_calendar) ?: '')
                                 .$html_sticky. '
+                                <div class="msclearer"></div>'
+                                .$html_merkulest. '
                                 <div class="msclearer"></div>'
                                 .$html_tags. '
                                 <div class="msclearer"></div>

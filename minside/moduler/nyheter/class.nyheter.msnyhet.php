@@ -403,6 +403,19 @@ class MsNyhet {
         
         return (bool) $res;
     }
+    
+    public function merkUlestForAlle() {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        
+        $sql = "DELETE FROM nyheter_lest WHERE
+                nyhetid = $safenyhetid;";
+                
+        $res = $msdb->exec($sql);
+        
+        return $res;
+    }
 	
 	public function slett() {
 		if ($this->isDeleted()) {

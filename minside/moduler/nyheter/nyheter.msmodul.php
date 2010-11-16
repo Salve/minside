@@ -522,6 +522,19 @@ class msmodul_nyheter implements msmodul {
             if (!$res) msg('Ugyldig dato/klokkeslett for publiseringstidspunkt. Nyheten publiseres ikke før korrekt tidspunkt settes!', -1);
         }
         
+        // Merk ulest for alle
+        if ($_POST['merkulestalle'] && $objNyhet->isSaved() && $acl >= MSAUTH_3) {
+            $res = $objNyhet->merkUlestForAlle();
+            if ($res === false) {
+                msg('Klarte ikke å merke nyhet ulest.', -1);
+            } elseif ($res === 0) {
+                msg('Merk ulest: Ingen brukere har markert denne nyheten som lest.');
+            } else {
+                msg('Merk ulest: ' . $res . ' brukere hadde markert nyheten som lest.', 1);
+            }
+        }
+        
+        // Innhold
         $objNyhet->setWikiTekst($_POST['wikitext'], $act_preview);
         
         if (!$act_preview) {
