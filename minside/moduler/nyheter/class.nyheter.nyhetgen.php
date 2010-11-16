@@ -557,6 +557,10 @@ class NyhetGen {
         $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . $arkivlinkparams;
         
         // Datofilter
+        $min_fradato = '2005-01-01';
+        $max_tildato_stamp = (60 * 60 * 24 * 365 * 5) + time();
+        $max_tildato = date('Y-m-d', $max_tildato_stamp);
+        msg($max_tildato);
         // Fradato
         $infdato = $data['fdato'];
         $objCalendarFra = new tc_calendar("fdato", true);
@@ -566,6 +570,7 @@ class NyhetGen {
         $objCalendarFra->setPath('lib/plugins/minside/minside/');
         $objCalendarFra->startMonday(true);
         $objCalendarFra->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        $objCalendarFra->dateAllow($min_fradato, $max_tildato, false);
         ob_start(); // må ta vare på output...
         $objCalendarFra->writeScript();
         $html_datofra = ob_get_clean();
@@ -579,6 +584,7 @@ class NyhetGen {
         $objCalendarTil->setPath('lib/plugins/minside/minside/');
         $objCalendarTil->startMonday(true);
         $objCalendarTil->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        $objCalendarTil->dateAllow($min_fradato, $max_tildato, false);
         ob_start(); // må ta vare på output...
         $objCalendarTil->writeScript();
         $html_datotil = ob_get_clean();
