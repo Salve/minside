@@ -1,0 +1,856 @@
+@charset "UTF-8";
+
+div.minside {
+	width:90%;
+	text-align:left;
+	position:relative;
+	margin-left:1em;
+    padding-left:1.5em;
+    padding-right:1.5em;
+    padding-bottom:3em;
+	font: normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
+}
+
+div.minside input.msbutton {
+  border: 1px solid #8cacbb;
+  color: #000;
+  background-color: #fff;
+  vertical-align: middle;
+  text-decoration: none;
+  font-size: 100%;
+  cursor: pointer;
+  margin: 1px;
+  padding: 0.125em 0.4em;
+}
+
+div.minside input.msbuttonincdec {
+	width: 24px;
+	height: 22px;
+	font-size: 120%;
+}
+
+html>body div.minside input.msbutton,
+html>body div.minside button.msbutton {
+  background:  #fff url(./minside/bilder/buttonshadow.png) repeat-x bottom;
+}
+
+* html div.minside input.msbutton,
+* html div.minside button.msbutton {
+  height: 1.8em;
+}
+
+#notattekst {
+	width: 96%;
+	height: 90px;
+	margin: 5px;
+	margin-left: 1px;
+	overflow: auto;
+}
+
+div.minside div.secedit input.msbutton {
+  border: 1px solid #8cacbb;
+  color: #000;
+  background-color: #fff;
+  vertical-align: middle;
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  cursor: pointer;
+  float: right;
+  display: inline;
+}
+
+#avsluttskift {
+	position: relative;
+	float: right;
+	clear: both;
+	margin-top: 20px;	
+}
+
+
+
+div.minside input.msedit,
+div.minside select.msedit {
+  font-size: 100%;
+  border: 1px solid #8cacbb;
+  color: #000;
+  background-color: #fff;
+  vertical-align: middle;
+  margin: 1px;
+  padding: 0.20em 0.3em;
+  display: inline;
+}
+
+div.minside select.tellerdropdown {
+	width: 147px;
+}
+
+/* nice alphatransparency background except for IE <7 */
+html>body div.minside input.msedit {
+  background:  #fff url(./minside/bilder/inputshadow.png) repeat-x top;
+}
+
+div.minside select.msedit {
+  padding: 0.1em 0;
+  border: none;
+}
+
+
+div.minside form.msform {
+  border: none;
+  display: inline;
+}
+
+div.minside label.msblock {
+  display: block;
+  text-align: right;
+  font-weight: bold;
+}
+
+div.minside label.mssimple {
+  display: block;
+  text-align: left;
+  font-weight: normal;
+}
+
+div.minside label.block input.msedit {
+  width: 50%;
+}
+
+div.minside fieldset.msfieldset {
+  width: 300px;
+  text-align: center;
+  border: 1px solid #8cacbb;
+  padding: 1em;
+  margin: auto;
+}
+
+div.minside div.antalltall {
+	position: relative;
+	left: 0px;
+	overflow: hidden;
+	width: 18em;
+}
+
+div.minside textarea.msedit {
+  font-family: monospace;
+  font-size: 14px;
+  color: #000;
+  background-color: #fff;
+  border: 1px solid #8cacbb;
+  padding: 0.3em 0 0 0.3em;
+  width: 100%;
+}
+
+/* nice alphatransparency background except for IE <7 */
+html>body div.minside textarea.msedit {
+  background:  #fff url(./minside/bilder/inputshadow.png) repeat-x top;
+}
+
+div.minside ul.msul {
+  line-height: 1.5em;
+  list-style-type: square;
+  list-style-image: none;
+  margin: 0 1.5em 1em 1.5em;
+  color: #333333;
+}
+
+/* ordered lists */
+div.minside ol.msol {
+  line-height: 1.5em;
+  list-style-image: none;
+  margin: 0 0 1em 3.5em;
+  color: #333333;
+  font-weight: bold;
+}
+
+div.minside div.rapporttpl ul {
+	color: #333333;
+}
+
+/* no bottom gap in between and smaller left margin for nested lists */
+div.minside li ul,
+div.minside li ol {
+  margin: 0 0 0 1.5em;
+}
+
+/* the list items overriding the ul/ol definition */
+div.minside .li {
+  color: #000;
+  font-weight: normal;
+}
+
+div.minside ol { list-style-type: decimal; }
+div.minside ol ol { list-style-type: upper-roman; }
+div.minside ol ol ol { list-style-type: lower-alpha; }
+div.minside ol ol ol ol { list-style-type: lower-greek; }
+
+div.minside li.msopen {
+  list-style-image: url(minside/images/open.gif);
+    /*list-style-type: circle;*/
+}
+
+div.minside li.msclosed {
+  list-style-image: url(minside/images/closed.gif);
+    /*list-style-type: disc;*/
+}
+
+div.mstoc {
+	/*position: absolute;
+	right: -205px;
+	clear:both;
+	float:right;
+	font-size:100%;
+	margin:1.2em 0 0 2em;
+	width:200px;*/
+}
+
+div.mstoc span.selected {
+    font-weight: bold;
+}
+
+div.dokuwiki ul.mstoc {
+	color:#638C9C;
+	line-height:1.5em;
+	list-style-image:none;
+	list-style-type:square;
+	margin:0 0 0 1.5em;
+}
+
+ul.mstoc ul.mstoc {
+	margin: 0 0 0 1.5em;
+}
+
+div.resultater .top {
+	width: 100%;
+	background-color: #DEE7EF;
+}
+
+div.mstoc .meny {
+	width: 100%;
+	/*border: 1px #8cacbb;
+	border-style: solid;
+    float:left;*/
+	background-color: white;
+	overflow: hidden;
+}
+
+#mstoc__inside {
+  border: 1px solid #8b7355;
+
+  text-align: left;
+  padding: 0.5em 0 0.7em 0;
+}
+
+div.mstocheader {
+  /*border: 1px solid #8CACBB;*/
+  background-color: #DEE7EC;
+  text-align: left;
+  font-weight: bold;
+  /*padding: 3px;*/
+  margin-bottom: 2px;
+  width:100%;
+}
+
+div.minside th {
+	border: 1px solid #8cacbb;
+	border-collapse: collapse;
+	background-color: #DEE7EF;
+	font-size: 0.9em;
+}
+
+div.minside th.top {
+	font-size: 0.9em;
+	text-align: center;
+}
+
+div.minside table {
+	font-size: 1em;
+}
+
+div.minside div.sisteendringer {
+    position: relative;
+    width: 80%;
+}
+
+div.minside div.tellerakt {
+    border: 1px #8cacbb;
+    border-style: none none solid none;
+    margin: 3px 3px 10px 3px;
+    width: 100%;
+    overflow: hidden;
+    float: left;
+}
+
+div.minside div.tellerakttekst {
+    float: left;
+    width: 70%;
+    overflow: hidden;
+}
+
+div.minside .feilmtable {
+	position:relative;
+	border-collapse: collapse;
+	margin-top: 1em;
+}
+
+div.minside .feilmtable td {
+	border: 1px solid #8cacbb;
+	border-collapse: collapse;
+	/*border-color: #8b7355;
+	border-style: solid none none none*/;
+}
+
+div.minside div.feilmtablecols {
+	width: 150px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+div.minside .mstemplatelist td {
+	border: 1px solid #8cacbb;
+	border-collapse: collapse;
+	padding: 3px;
+}
+
+div.minside .actheader {
+	font-size: 140%;
+	font-weight: bold;
+}
+
+div.minside .subactheader {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+div.minside #viewAct {
+    width: 100%;
+    position: absolute;
+    top:1.5em;
+    left:0;
+    padding:1em;
+    background:white;
+    border:1px solid #8CACBB;
+    z-index:1;
+}
+
+div.rapportarkiv {
+	margin: auto;
+	width: 80%;
+	border: 1px solid #8cacbb;
+	background-color:#DEE7EF;
+	/*font-family:sans-serif;
+	font-size: 1em;*/
+}
+
+div.rapparkivliste {
+	width: 100%;
+	border: 1px #8cacbb;
+	border-style: solid none none none;
+	background-color: #fff;
+}
+
+div.ukecontainer {
+	border: 1px #8cacbb;
+	border-style: none none solid;
+	position:relative;
+	height:100%;
+}
+
+div.ukeone {
+	background-color:#F7F3F7;
+}
+
+div.ukeheader {
+	float:left;
+	border: 0;
+	width:18%;
+}
+
+div.ukecontent {
+	float:left;
+	background-color: #ffffff;
+	width:80%;
+}
+
+div.dagcontent {
+	float:left;
+	font-size: 1.4em;
+	
+}
+
+div.dagheader {
+	float: left;
+	width: 20%;
+	height: 51px;
+	border: 1px #8cacbb;
+	border-style: none solid none none;
+	background-color: #dee7ef;
+	font-size: 1.3em;
+}
+
+
+div.dagcontainer {
+	border: 1px solid #8cacbb;
+	margin-top:2px;
+	margin-bottom:2px;
+	position:relative;
+	width:100%;
+	display: inline-block;
+}
+div.dagcontainer {
+	display: block;
+}
+
+span.rapportnavn {
+	background-color: #F3F3F3;
+	width: 100%;
+	font-size: .75em;
+	padding-right:20px;
+	padding-left:2px;
+}
+
+span.raptwo {
+	background-color: white;
+}
+
+a, a.hover, a.visited, a.active {
+	color: #436976;
+	text-decoration:none;
+}
+
+img {
+	border-style:none;
+}
+
+div.rapportarkivmeny {
+	font-size: 0.8em;
+}
+
+div.msclearer {
+	clear:both;
+}
+
+span.ukenavn {
+	font-size: 1.8em;.
+	font-weight: bold;
+}
+
+span.nskift{
+	background-image:url(./minside/bilder/nvakt.ico);
+	background-repeat:no-repeat;
+	background-position:right;
+}
+
+span.dskift{
+	background-image:url(./minside/bilder/dvakt.ico);
+	background-repeat:no-repeat;
+	background-position:right;
+}
+
+span.eskift{
+	background-image:url(./minside/bilder/evakt.ico);
+	background-repeat:no-repeat;
+	background-position:right;
+}
+
+span.ukjentskift{
+	background-image:url(./minside/bilder/uvakt.ico);
+	background-repeat:no-repeat;
+	background-position:right;
+}
+
+div.dagtwo div.dagheader {
+	background-color: #C4D3E0;	
+}
+
+#rapverdi {
+	width: 15px;
+}
+
+div.minside span.skift.oldskift {
+    background-color: #FFFF66;
+}
+
+div.minside span.skift.newskift {
+    background-color: #FF3333;
+}
+/*MSWARNING  IMPORTANT DO NOT TOUCH SALVE SIN!!!*/
+div.minside div.mswarningbar {
+	background-color: #FFDDDD;
+	border: 1px dashed #B20000;
+	border-collapse:collapse;
+	clear:both;
+    margin:auto;
+	margin-bottom:2em;
+	min-height:20px;
+	padding:15px 20px 15px 20px;
+	text-align:justify;
+	vertical-align:middle;
+	width:40% !important;
+}
+
+div.minside div#warningentellere {
+	width: 100% !important;
+}
+
+div.tellertable {
+	position:relative;
+    clear: left;
+	width:35%;
+	float:left;
+	padding-top:0;
+	left:25px;
+	margin-bottom: 2em;
+
+}
+
+#tellerfieldset {
+	width: 100%;
+	text-align: left;
+	padding-left:5px;
+	padding-right:5px;
+	padding-bottom: 1em;
+	padding-top: 0em;
+}
+
+div.notater {
+	position:relative;
+    clear: both;
+	width: 45%;
+	float:right;
+	right: 2em;
+	word-wrap: break-word;
+	overflow: hidden;
+}
+#notatfield {
+	position:relative;
+	text-align:left;
+	width:90%;
+	padding-left:1em;
+	padding-right:1em;
+	margin-bottom: 2em;
+	padding-top: 0;
+}
+
+.skift_full {
+	width: 100%;	
+}
+
+/* Nyheter */
+
+div.minside div.nyhet {
+
+   /* overflow: hidden;
+    width: 80%;*/
+    margin-left: 3em;
+    margin-bottom: 3em;
+    margin-right:3em;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: white;
+    border: 1px #C9D4DF;
+    border-style: solid;
+}
+
+div.minside div.nyhettopbar {
+    background-color: #dee7ef;
+    height:100%;
+    width:100%;
+    clear:both;
+}
+
+div.minside div.nyhetcontent {
+    margin-top:1em;
+}
+
+div.minside div.nyhetcontainer {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    background-color: #F5F5F5;
+}
+
+div.minside div.nyhetbody {
+    overflow: hidden;
+    min-height: 5em;
+}
+
+div.minside img.sticky {
+    height:1em;
+    width:1em;
+}
+
+
+div.minside div.nyhet.ks  > div.nyhettopbar{
+/*    border-top:#C9D4DF 1px;
+    border-top-style: dotted;
+  */
+}
+
+div.minside div.nyhettitle {
+    font-size: 1.5em;
+    color: #426973;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+div.minside div.nyhetinfo {
+    font-size: 80%;
+    width:98%;
+    color: #426973;
+    position: relative;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+div.minside div.nyhetinfo div.nyhetinforight {
+    float: right;
+}
+
+div.minside div.nyhetinfo div.nyhetinfoleft {
+
+    position: absolute;
+    bottom: 0.5em;
+    float: left;
+}
+
+div.minside div.nyhettopbar div.seksjontopp {
+    padding-top: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    margin-bottom: 0.75em;
+}
+
+div.minside div.nyhetomrade, div.nyhetkategori {
+    float:right;
+    clear:right;
+    vertical-align:bottom;
+}
+
+div.minside div.nyhetinfo div.nyhetpub, div.nyhetmod, div.nyhetdel {
+    float: left;
+    clear: left;
+    vertical-align:bottom;
+}
+
+div.minside div.nyhetinfo div.nyhetdel {
+	color: #FF0000;
+}
+
+div.minside div.nyhetinfo div.nyhetdel a{
+	color: #FF0000;
+}
+
+div.minside div.nyhetoptions {
+    float: right;
+    margin-top: 0.5em;
+    margin-right: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 1em;
+}
+
+div.minside div.nyhetcontent div.tags {
+	border: none;
+	clear:both;
+	font-size:95%;
+	text-align:right;
+    padding-top: 3px;
+}
+
+div.minside div.nyhetcontent div.tags span {
+    background:url("./minside/bilder/tag.gif") no-repeat scroll 0 1px transparent;
+    padding:1px 0 1px 16px;
+}
+
+div.minside div.nyhetimgleft {
+	float: left;
+    border-style:none;
+}
+
+div.nyhetimgleft img.nyhetimg {
+    border:0;
+    margin-right:1em;
+}
+
+
+div.minside .tagtable {
+    white-space: nowrap;
+}
+
+/*Nyhet editor*/
+
+div.minside div.editnyhet {
+    /*margin:2em;*/
+}
+
+div.minside div.nyhetattrib {
+    background-color: #DEE7EC;
+    border:1px #8cacdb;
+    border-style: none none solid;
+}
+
+div.minside p.editnyhetoverskrift {
+    background-color:#DEE7EC;
+    color: #436976;
+}
+
+div.minside div.msnyhetoverskrift {
+    float: left;
+    width: 70%;
+}
+
+div.minside div.nyhetomradevelger {
+    float:right;
+}
+
+div.minside div.nyhetkategorivelger {
+    float:right;
+}
+
+div.minside div.nyhetbildevelger {
+    float: left;
+}
+
+div.minside div.nyhetvelgsticky {
+    float: right;
+}
+
+div.minside div.nyhetpubdatovelger {
+    float: left;
+}
+
+div.minside div.nyhetmerkulestalle {
+    float: left;
+}
+
+div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger, div.nyhettagvelger, div.nyhetmerkulestalle {
+    padding-top:0.25em;
+    padding-bottom:0.25em;
+    padding-left:0.5em;
+    padding-right:0.5em;
+}
+
+div.minside div.nyhettagvelger {
+    border: 1px #8cacdb;
+    border-style: solid none none none;
+}
+
+div.minside div.nyhetsettext {
+    width:5em;
+    padding-top:0.2em;
+    float:left;
+}
+
+/* Nyhetsarkiv */
+
+div.minside div.arkivoptions {
+    width: 80%;
+    /*margin-left: 3em;*/
+    /*margin-bottom: 1em;*/
+    /*margin-right:3em;*/
+    /*margin:auto;*/
+    padding: 1em 1em 0 1em;
+    border: 1px #C9D4DF;
+    border-style: solid;    
+}
+
+div.minside div.arkivoptions div.leftgroup {
+    float: left;
+    width: 49%;
+    border: 1px #C9D4DF;
+    border-style: none solid none none;
+}
+div.minside div.arkivoptions div.rightgroup {
+    width: 49%;
+    float: right;
+}
+div.minside div.arkivoptions div.gruppeheader {
+    text-align: center;
+    font-size: 110%;
+}
+
+div.minside div.arkivoptions div.arkivbar {
+    border: 1px #C9D4DF;
+    border-style: none none solid none
+}
+
+div.minside div.arkivoptions #overskriftedit {
+    width:100%;
+    padding:0.2em 0em;
+}
+
+div.minside div.arkivoptions select.tagselect {
+    width: 80%;
+}
+
+div.minside div.arkivsearch {
+    position:relative;
+    float:right;
+}
+
+div.minside div.antallsearch {
+    position:relative;
+    float:left;
+}
+
+div.minside div.hidesearch {
+    display:none;
+}
+
+div.minside div.pagination {
+    width:80%;
+    /*margin:auto;*/
+}
+
+div.minside div.arkivunder {
+    width:80%;
+    padding-left: 1em;
+    padding-top: 0.5em;
+    /*margin:auto;*/
+}
+
+/* Område ADM */
+
+div.minside div.omradeadmwrap {
+    margin:2em;
+}
+div.minside table.omradeadmtbl {
+    background-color: #DEE7EC;
+    border:1px #8cacdb;
+    border-style: none none solid;
+
+}
+
+/* Sidebar */
+
+table.sidebaradm td {
+	padding-right: 5px;
+}
+
+div.sidebaradmin_right input.msbutton {
+	width: 150px;
+}
+
+div.sidebaradmin_right div.label {
+	width: 3em;
+	float: left;
+	line-height: 20px;
+}
+
+div.sidebaradmin_right input.edit {
+	width: 105px;
+}
+
+div#main_page > div.left_sidebar {
+	width: 140px;
+	overflow: hidden;
+}
+
+div#main_page > div.left_sidebar table{
+    width: 140px;
+    overflow: hidden;
+}
