@@ -191,7 +191,7 @@ class NyhetFactory {
 					AND pubtime < NOW()
                     AND pubtime > bruker.createtime
 					AND deletetime IS NULL
-                ORDER BY pubtime ASC, nyhetid ASC
+                ORDER BY pubtime ASC, nyheter_nyhet.nyhetid ASC
             ;";
             
         $res = $msdb->assoc($sql);
