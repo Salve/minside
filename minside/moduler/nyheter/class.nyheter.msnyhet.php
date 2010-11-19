@@ -32,6 +32,7 @@ class MsNyhet {
 	protected $_wikihash;
 	protected $_wikitekst;
     
+    protected $_arreadlist;
     protected $_objkategori;
     protected $_coltags;
     
@@ -402,6 +403,19 @@ class MsNyhet {
         
         return (bool) $res;
     }
+    
+    public function merkUlestForAlle() {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        
+        $sql = "DELETE FROM nyheter_lest WHERE
+                nyhetid = $safenyhetid;";
+                
+        $res = $msdb->exec($sql);
+        
+        return $res;
+    }
 	
 	public function slett() {
 		if ($this->isDeleted()) {
@@ -542,7 +556,7 @@ class MsNyhet {
         $this->setHtmlBody($html);
     }
     
-    public function update_db() {
+    public function update_db($userid=null, $time=null) {
         if(MinSide::DEBUG) msg('update db kallt');
         global $msdb;
         
@@ -571,10 +585,12 @@ class MsNyhet {
                 ";
                 
         if (!$this->isSaved()) {
+            $createtime = ($time) ? "'".$time."'" : 'NOW()';
+            $createby = ($userid) ?: MinSide::getUserID();
             $presql = "INSERT INTO nyheter_nyhet SET\n";
             $presql .= "nyhetid = DEFAULT,\n";
-            $presql .= "createtime = NOW(),\n";
-            $presql .= "createby = " . MinSide::getUserID() . ",\n";
+            $presql .= "createtime = $createtime,\n";
+            $presql .= "createby = '$createby',\n";
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
@@ -602,14 +618,69 @@ class MsNyhet {
         return (bool) $res;
     }
     
-    public function getAcl() {
-        return self::_checkAcl(curNS($this->getWikiPath()));
+    public function getReadList($force_reload=false) {
+        if (!$this->isSaved()) throw new Exception('Kan ikke hente stats for nyhet som ikke er lagret');
+        if ($force_reload || !isset($this->_arreadlist)) {
+            $this->_loadReadList();
+        }
+        return $this->_arreadlist;
     }
     
-    private static function _checkAcl($inNS) {
+    protected function _loadReadList() {
+        if(MinSide::DEBUG) msg('Loading read-list for nyhet: ' . $this->getId());
+        
+        global $msdb;
+        
+        $omrade = $this->getOmrade();
+        $nyhetid = $this->getId();
+        $safeomrade = $msdb->quote($omrade);
+        $safenyhetid = $msdb->quote($nyhetid);
+        $sql = "
+        SELECT
+            users.id AS brukerid,
+            users.wikiname AS wikiname,
+            users.wikifullname AS brukerfullnavn,
+            users.wikiepost AS brukerepost,
+            users.wikigroups AS brukergrupper,
+            lest.readtime AS readtime,
+            lest.readtime IS NULL AS ikkelest
+        FROM 
+                internusers AS users
+            LEFT JOIN
+                nyheter_lest AS lest 
+                    ON lest.brukerid = users.id
+                    AND lest.nyhetid = $safenyhetid
+        WHERE
+            users.isactive = '1'
+        ORDER BY
+            ikkelest,
+            readtime
+        ";
+        $data = $msdb->assoc($sql);
+        
+        $arReadList = array();
+        foreach($data as $datum) {
+            // Må sjekke access på hver bruker :\
+            $user['name'] = $datum['wikiname'];
+            $user['groups'] = (array) explode(',', $datum['brukergrupper']);
+            $datum['adgangsniva'] = $this->getAcl($user);
+            if($datum['adgangsniva'] < AUTH_READ) continue;
+            
+            $arReadList[] = $datum;
+        }
+        
+        $this->_arreadlist = $arReadList;
+    }
+    
+    public function getAcl($user=null) {
+        $ns = curNS($this->getWikiPath());
+        return self::_checkAcl($ns, $user);
+    }
+    
+    private static function _checkAcl($inNS, $user=null) {
         $objOmrade = NyhetOmrade::OmradeFactory('msnyheter', $inNS);
         if ($objOmrade instanceof NyhetOmrade) {
-            return $objOmrade->getAcl();
+            return $objOmrade->getAcl($user);
         } else {
             return MSAUTH_NONE;
         }
@@ -645,5 +716,148 @@ class MsNyhet {
         
         return $msdb->assoc($sql);
 
+    }
+    
+    public static function getGoogleGraphUri($inputdata, $resolution=null, $innfratid=null, $inntiltid=null) {
+        // Inputdata er array med brukere og tidspunkt de har lest en nyhet
+        // Resolution er antall sekunder per datapunkt
+        // Fra og til tid er timestamps som setter limits for periode som skal vises
+        
+        $total_users = count($inputdata);
+        $sorteddata = array();
+        foreach($inputdata as $datum) {
+            if($datum['ikkelest'] == 0) {
+                $sorteddata[] = strtotime($datum['readtime']);
+            }
+        }
+        sort($sorteddata);
+        $siste_datapunkt = $sorteddata[count($sorteddata)-1];
+        // Bruker første og siste timestamp som fra/til tid hvis de ikke er gitt
+        $fratid = ($innfratid===null) ? $sorteddata[0] : $innfratid;
+        $tiltid = ($inntiltid===null) ? $siste_datapunkt: $inntiltid;
+        
+        if ($tiltid < $fratid) throw new Exception('Data må representere en positiv tidsverdi.');
+        
+        if($resolution === null) $resolution = ceil(($tiltid - $fratid) / 200); // Totalt 200 datapunkter, gir url på ca 1k tegn.
+        if($resolution < 1) $resolution = 1;
+        $resolution = (int) $resolution;
+        
+        // Hvis vi har generert til/fratid, sørg for at første og siste datapunkt vises.
+        if($innfratid === null) $fratid -= $resolution;
+        if($inntiltid === null) $tiltid += $resolution;
+        
+        // Fordele data på datapunkter
+        $fordeltdata = array();
+        foreach($sorteddata as $datum) {
+            $sekunderfrastart = $datum - $fratid + 1;
+            $index = ceil($sekunderfrastart / $resolution);
+            if($index < 1) $index = 1;
+            $fordeltdata[$index]++;
+        }
+
+        $num_datapoints = ceil(($tiltid - $fratid + 1) / $resolution);
+        if($num_datapoints < 1) $num_datapoints = 1;
+        $counter_lest = 0;
+        $arDataset = array();
+        for($i=1;$i<=$num_datapoints;$i++) {
+            // Sjekk at vi ikke viser data for tidspunkter i fremtiden
+            if(($i * $resolution) + $fratid -1 > time()) {
+                $arDataset[] = -1;
+            } else {
+                $counter_lest += $fordeltdata[$i];
+                $arDataset[] = round(($counter_lest / $total_users) * 100);
+            }
+        }
+        
+        // Labels
+        
+        // X2 - dager
+        $minst_to_dager = ( date('dmY', $fratid) != date('dmY', $tiltid) );
+        $periode_lengde = $tiltid - $fratid;
+        $start_sec = (int) date('s', $fratid);
+        $start_min = (int) date('i', $fratid);
+        $start_time = (int) date('H', $fratid);
+        $start_dag = (int) date('j', $fratid);
+        $start_md = (int) date('n', $fratid);
+        $start_aar = (int) date('Y', $fratid);
+        
+        $dager_i_periode = floor($periode_lengde / 86400);
+        $dager_per_mark = ceil($dager_i_periode / 10);
+        
+        if($minst_to_dager) {
+            $daglabel_val = array();
+            $daglabel_pos = array();
+            $dagcounter = 1;
+            do {
+                $mark = mktime(0, 0, 0, $start_md, $start_dag + $dagcounter, $start_aar);
+                $mark_fra_start = $mark - $fratid;
+                $mark_dag = date('d', $mark);
+                $mark_mnd_nr = date('n', $mark);
+                $mark_mnd = NyhetGen::$mnd_navn_kort[$mark_mnd_nr];
+                $daglabel_val[] = $mark_dag.'. '.$mark_mnd;
+                $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
+                $dagcounter += $dager_per_mark;
+            } while($fratid + ($dagcounter * 86400) < $tiltid ); // 86400 = 60*60*24 = 24 timer
+            $x2_tekst = '2:|' . implode('|', $daglabel_val);
+            $x2_pos = '2,' . implode(',', $daglabel_pos);
+        } else {
+            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid);
+            $x2_pos = '2,0';
+        }
+        
+        // X1 - Timer/min/sec
+        $sekunder_per_mark = ceil($periode_lengde / 10);
+        $tidlabel_val = array();
+        $tidlabel_pos = array();
+        $sekund_counter = 1;
+        if($dager_per_mark > 1) {
+            $x1_tekst = '1:||';
+            $x1_pos = '1,0|';
+        } else {
+            do {
+                /*if($sekunder_per_mark <= 10) { // 5 min*/
+                    $tidsformat = 'H:i:s';
+                    $mark = mktime($start_time, $start_min, $start_sec + $sekund_counter, $start_md, $start_dag, $start_aar);
+                /*} elseif ($sekunder_per_mark < 18000) { // 5 timer
+                    $tidsformat = 'H:i';
+                } else {
+                    $tidsformat = 'H';
+                }*/
+                $mark_fra_start = $mark - $fratid;
+                $tidlabel_val[] = date($tidsformat, $mark);
+                $tidlabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
+                $sekund_counter += $sekunder_per_mark;
+            } while($fratid + $sekund_counter <= $tiltid);
+            $x1_tekst = '1:|' . implode('|', $tidlabel_val) . '|';
+            $x1_pos = '1,' . implode(',', $tidlabel_pos) .'|';
+        }
+        
+        msg($x1_tekst);
+        msg($x1_pos);
+        
+        // Gen URI
+        $dataset = implode(',', $arDataset);
+        $googleurl=
+            "http://chart.apis.google.com/chart" .
+            "?chxs=0N**%25,676767,13,0,l,676767" . // Aksedetaljer
+                "|1,676767,9,0,lt,676767" .
+                "|2,436976,13,0,lt,436976" .
+            "&chxtc=1,5|2,10" . // Akse tick mark style
+            "&chxt=y,x,x" . // Akser vist
+            "&chxl=" . // Custom labels
+                $x1_tekst .
+                $x2_tekst .
+            "&chxp=" . // Label positions
+                $x1_pos .
+                $x2_pos .
+            "&chs=650x450" . // Image size
+            "&cht=lc" . // Graph type
+            "&chco=436976" . // Linje-farge (data)
+            "&chd=t:$dataset" . // Data
+            "&chg=10,5,1,3" . // Grid style
+            "&chls=2,4,0" . // Line style
+            "&chm=B,DEE7ECBB,0,0,0"; // Fill under kurve
+        if(strlen($googleurl) > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
+        return $googleurl;
     }
 }

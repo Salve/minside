@@ -144,7 +144,7 @@ class NyhetFactory {
                 AND pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY pubtime DESC
+			ORDER BY pubtime DESC, nyhetid ASC
             LIMIT 100;";
         $res = $msdb->assoc($sql);
         
@@ -191,7 +191,7 @@ class NyhetFactory {
 					AND pubtime < NOW()
                     AND pubtime > bruker.createtime
 					AND deletetime IS NULL
-                ORDER BY nyheter_nyhet.nyhetid ASC
+                ORDER BY pubtime ASC, nyheter_nyhet.nyhetid ASC
             ;";
             
         $res = $msdb->assoc($sql);
@@ -274,7 +274,7 @@ class NyhetFactory {
         // Tildato
         if (array_key_exists('tdato', $limits)) $where[] = "pubtime <= '" . date('Y-m-d', $limits['tdato']) . ' 23:59:59' . "'";
         // Overskriftsøk
-        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace('*', '%', $limits['oskrift']));
+        if (array_key_exists('oskrift', $limits)) $where[] = "nyhettitle LIKE " . $msdb->quote(str_replace(array('*', '?'), array('%', '_'), $limits['oskrift']));
         // Sortorder
         $safesortorder = ($limits['sortorder']) ?: 'DESC';
         // Limit

@@ -45,6 +45,7 @@ function submitFormImgSub() {
 }
 
 // Nyhetsarkiv
+
 function showFilter() {
     var elm = document.getElementById('avansert__group');
     var disStyle = elm.style.display;
@@ -58,11 +59,13 @@ function showFilter() {
 }
 function initShowFilter()
 {
-        var filter = document.getElementById('filter__link');
-        addEvent(filter, 'click', showFilter);
+        var filterlink = document.getElementById('filter__link');
+        if(filterlink !== null) {
+            addEvent(filterlink, 'click', showFilter);
+        }
 }
-
 addInitEvent(initShowFilter);
+
 
 // Calendar
 

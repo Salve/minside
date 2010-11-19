@@ -7,6 +7,21 @@ class NyhetGen {
 	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
     const TAGSELECTOR_TAGS_PER_ROW = 6;
 
+    public static $mnd_navn_kort = array(
+        1 => 'jan',
+        2 => 'feb',
+        3 => 'mar',
+        4 => 'apr',
+        5 => 'mai',
+        6 => 'jun',
+        7 => 'jul',
+        8 => 'aug',
+        9 => 'sep',
+        10 => 'okt',
+        11 => 'nov',
+        12 => 'des'
+        );
+    
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
@@ -20,6 +35,7 @@ class NyhetGen {
         switch($acl) {
             case MSAUTH_ADMIN:
             case MSAUTH_5:
+                $arOptions[] = 'stats';
             case MSAUTH_4:
             case MSAUTH_3:
             case MSAUTH_2:
@@ -52,6 +68,7 @@ class NyhetGen {
         $title = $nyhet->getTitle(true);
 		$body = $nyhet->getHtmlBody();
         $omrade = $nyhet->getOmrade();
+        $objKategori = $nyhet->getKategori();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
         $pubdiff = time() - strtotime($nyhet->getPublishTime());
         $pubdager = (int) floor($pubdiff / 60 / 60 / 24);
@@ -64,9 +81,11 @@ class NyhetGen {
         
         // HTML
         $returnto_html = ($returnto) ? '&amp;returnto='.$returnto.$extra_url_params : $extra_url_params;
-        $omrade_html = '<div class="nyhetomrade">Område: ' . $omradeinfo['visningsnavn'] . '</div>';
+        $omrade_html = '<div class="nyhetomrade">Område: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fomrader[]='. $omrade . 
+                '" title="område:' . $omrade . '">' . $omradeinfo['visningsnavn'] . '</a></div>';
         $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
-        $kategori_html = '<div class="nyhetkategori">Kategori: ' . $nyhet->getKategoriNavn() . '</div>';
+        $kategori_html = '<div class="nyhetkategori">Kategori: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fkat[]='. $objKategori->getId() . 
+                '" title="kategori:' . $objKategori->getNavn() . '">' . $objKategori->getNavn() . '</a></div>';
         $tags_html = self::genTagList($nyhet->getTags());
         $create = ($nyhet->isSaved())
 			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
@@ -104,7 +123,7 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
 		$opt['lest'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
             '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+            'height="16" src="' . MS_IMG_PATH . 'ulest.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -117,6 +136,9 @@ class NyhetGen {
 		$opt['restore'] = '<a href="' . MS_NYHET_LINK . "&amp;act=restore&amp;nyhetid=$id\">" .
             '<img alt="gjenopprett" title="Gjenopprett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+        $opt['stats'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=nyhetstats&amp;nyhetid=$id\">" .
+            '<img alt="stats" title="Statistikk for enkeltnyhet" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'bargraf.gif" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
 			$options[] = $opt[$v];
@@ -235,7 +257,7 @@ class NyhetGen {
 		// Sticky
 		$checked = ($objNyhet->isSticky()) ? ' checked="checked"' : '';
 		$html_sticky = '<div class="nyhetvelgsticky"><label for="stickycheckbox">Skal nyheten være <acronym title="' .
-			'Sticky nyheter vises øverst i listen med siste nyheter, og blir liggende der til sticky-merking manuellt fjernes.">sticky</acronym>?</label>' .
+			'Sticky nyheter vises øverst i listen med aktuelle nyheter, og blir liggende der til sticky-merking manuellt fjernes.">sticky</acronym>?</label>' .
 			' <input id="stickycheckbox" class="edit" value="sticky" type="checkbox" name="nyhetsticky" '.$checked.' /></div>';
 		
 		// Bilde
@@ -276,10 +298,20 @@ class NyhetGen {
             $html_calendar .= ':<input type="text" size="1" maxlength="2" onChange="checkMins(this.id);" value="'. 
                 $minute .'" name="nyhetpubdato_minute" id="nyhetpubdato_minute" class="tcminute msedit">';
             $html_calendar .= '&nbsp;<img alt="Sett dags dato" align="absmiddle" onClick="setTodaysdate();" title="'.
-                'Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen over siste nyheter." src="' . MS_IMG_PATH . 'up.png" /></div>';
+                'Sett publiseringstidspunkt til nå, dette flytter nyhet til toppen av listen over aktuelle nyheter." src="' . MS_IMG_PATH . 'up.png" /></div>';
         } else {
             // Bruker har ikke create rights på området
             $html_calendar = '';
+        }
+        
+        // Merk ulest for alle
+        // Vises kun dersom bruker har create rights på nyhetsområde og nyhet er saved
+        if($objNyhet->isSaved() && $objNyhet->getAcl() >= MSAUTH_3) {
+            $html_merkulest = '<div class="nyhetmerkulestalle"><label for="ulestallecheckbox">Merk nyhet som ulest for alle brukere?</label>' .
+			' <input id="ulestallecheckbox" class="edit" type="checkbox" name="merkulestalle" /></div>';
+        } else {
+            // Bruker har ikke create rights på området eller nyhet er ikke lagret enda
+            $html_merkulest = '';
         }
         
         // Wikitekst
@@ -322,6 +354,8 @@ class NyhetGen {
                                 <div class="msclearer"></div>'
                                 .(($html_calendar) ?: '')
                                 .$html_sticky. '
+                                <div class="msclearer"></div>'
+                                .$html_merkulest. '
                                 <div class="msclearer"></div>'
                                 .$html_tags. '
                                 <div class="msclearer"></div>
@@ -375,6 +409,30 @@ class NyhetGen {
             ";
         }
         $output .= '</table><input type="submit" value="Lagre" class="button" /></form></div>';
+        
+        return $output;
+    }
+    
+    public static function genNyhetStats(msnyhet &$objNyhet) {
+        $arReadList = $objNyhet->getReadList();
+        
+        $res = 60*60*24;
+        $googleurl = MsNyhet::getGoogleGraphUri($arReadList);
+        
+        $chartimg = "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
+
+        $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
+        foreach($arReadList as $readevent) {
+            $strReadTab .= $readevent['brukerid'] . "\t";
+            $strReadTab .= $readevent['brukerfullnavn'] . "\t";
+            $strReadTab .= $readevent['readtime'] . "\n";
+        }
+        $strReadTab = 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
+            Brukere med tomt lese-tidspunkt har ikke markert nyhet som lest.
+            <pre>'.$strReadTab.'</pre>';
+        
+        
+        $output = $chartimg . $debug_dataset . $strReadTab;
         
         return $output;
     }
@@ -469,12 +527,52 @@ class NyhetGen {
         return $output;
     }
     
+    public static function genImportAdmin($colSkrivbareOmrader) {
+        $output = '<h2>Import-verktøy</h2>
+            <div class="nyhet_import">
+            <div class="level3">
+            <p>
+                For å importere nyheter fra gammel løsning med hidden-plugin, kopieres "kildekoden" til en eller flere nyheter med hidden-syntax
+                til filen '.DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt. Denne filen må være lesbar av serveren.
+            </p>
+            <p>
+                Eventuelle seksjoner som oppfattes som nyheter, men mangler info, ikke kan parses, eller er signert av en bruker som ikke finnes i databasen
+                vil skrives til en fil i '.DOKU_INC.'lib/plugins/minside/cache/. Serveren må kunne skrive til, og evt. opprette denne filen.
+            </p>
+            ';
+        
+        if ($colSkrivbareOmrader->length() === 0)  {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: du har ikke skrivetilgang til noe område.</div>';
+        } elseif(!is_writable(DOKU_INC.'lib/plugins/minside/cache')) {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: server kan ikke skrive til cache-mappen.</div>';
+        } elseif(!is_readable(DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt')) {
+            $output .= '<div class="mswarningbar">Kan ikke importere nyheter: filen '.DOKU_INC.'lib/plugins/minside/cache/nyhet_import.txt eksisterer ikke eller er ikke lesbar av serveren.</div>';
+        } else {
+            $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=doimport" method="POST">
+                Velg område nyheter skal opprettes i:<br />
+                <select name="importomrade" class="edit">';
+            foreach($colSkrivbareOmrader as $objOmrade) {
+                $output .= '<option value="' . $objOmrade->getOmrade() . '">' . $objOmrade->getVisningsnavn() . '</option>';
+            }
+            $output .= '</select>';
+            $output .= '<br /><br /><input type="submit" value="Start importering" onClick="return heltSikker()" class="button" /></form>';
+        }
+        $output .= '</div>'; // level3
+        $output .= '</div>'; // nyhet_import
+        
+        return $output;        
+    }
+    
     public static function genArkivOptions(array $data, $arkivlinkparams='') {
         
         // Linker
         $selflink = MS_NYHET_LINK . '&amp;act=arkiv' . $arkivlinkparams;
         
         // Datofilter
+        $min_fradato = '2005-01-01';
+        $max_tildato_stamp = (60 * 60 * 24 * 365 * 5) + time();
+        $max_tildato = date('Y-m-d', $max_tildato_stamp);
+
         // Fradato
         $infdato = $data['fdato'];
         $objCalendarFra = new tc_calendar("fdato", true);
@@ -484,6 +582,7 @@ class NyhetGen {
         $objCalendarFra->setPath('lib/plugins/minside/minside/');
         $objCalendarFra->startMonday(true);
         $objCalendarFra->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        $objCalendarFra->dateAllow($min_fradato, $max_tildato, false);
         ob_start(); // må ta vare på output...
         $objCalendarFra->writeScript();
         $html_datofra = ob_get_clean();
@@ -497,9 +596,15 @@ class NyhetGen {
         $objCalendarTil->setPath('lib/plugins/minside/minside/');
         $objCalendarTil->startMonday(true);
         $objCalendarTil->setIcon(MS_IMG_PATH . 'iconCalendar.gif');
+        $objCalendarTil->dateAllow($min_fradato, $max_tildato, false);
         ob_start(); // må ta vare på output...
         $objCalendarTil->writeScript();
         $html_datotil = ob_get_clean();
+        
+        // Warn @ til < fradato
+        if($infdato && $intdato && ($infdato > $intdato)) {
+            msg('Fradato er etter tildato, dette vil utelukke alle resultater!', -1);
+        }
         
         $html_datofilter = 
             '<table>

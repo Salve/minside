@@ -723,7 +723,11 @@ div.minside div.nyhetpubdatovelger {
     float: left;
 }
 
-div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger, div.nyhettagvelger {
+div.minside div.nyhetmerkulestalle {
+    float: left;
+}
+
+div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger, div.nyhettagvelger, div.nyhetmerkulestalle {
     padding-top:0.25em;
     padding-bottom:0.25em;
     padding-left:0.5em;
