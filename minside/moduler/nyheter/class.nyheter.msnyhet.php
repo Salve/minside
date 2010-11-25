@@ -806,34 +806,29 @@ class MsNyhet {
         }
         
         // X1 - Timer/min/sec
-        $sekunder_per_mark = ceil($periode_lengde / 10);
-        $tidlabel_val = array();
-        $tidlabel_pos = array();
-        $sekund_counter = 1;
         if($dager_per_mark > 1) {
             $x1_tekst = '1:||';
             $x1_pos = '1,0|';
         } else {
-            do {
-                /*if($sekunder_per_mark <= 10) { // 5 min*/
-                    $tidsformat = 'H:i:s';
-                    $mark = mktime($start_time, $start_min, $start_sec + $sekund_counter, $start_md, $start_dag, $start_aar);
-                /*} elseif ($sekunder_per_mark < 18000) { // 5 timer
-                    $tidsformat = 'H:i';
-                } else {
-                    $tidsformat = 'H';
-                }*/
-                $mark_fra_start = $mark - $fratid;
-                $tidlabel_val[] = date($tidsformat, $mark);
-                $tidlabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
-                $sekund_counter += $sekunder_per_mark;
-            } while($fratid + $sekund_counter <= $tiltid);
-            $x1_tekst = '1:|' . implode('|', $tidlabel_val) . '|';
-            $x1_pos = '1,' . implode(',', $tidlabel_pos) .'|';
+            $arMuligeResolutions = array(1, 2, 5, 10, 15, 30, 60, 90, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 14400, 43200);
+            foreach($arMuligeResolutions as $res) {
+                if ($periode_lengde / $res <= 12) break;
+            }
+            if($res < 120) {
+                $tidsformat = 'H:i:s';
+            } else {
+                $tidsformat = 'H:i';
+            }
+            
+            $arX1 = self::getTimeMarks($fratid, $tiltid, $res, $tidsformat);
+                        
+            $x1_tekst = '1:|' . implode('|', $arX1[0]) . '|';
+            $x1_pos = '1,' . implode(',', $arX1[1]) .'|';
         }
         
-        msg($x1_tekst);
-        msg($x1_pos);
+        msg('Times: ' . implode(', ', $arX1[0]));
+        msg('Pos: ' . implode(', ', $arX1[1]));
+        
         
         // Gen URI
         $dataset = implode(',', $arDataset);
@@ -859,5 +854,24 @@ class MsNyhet {
             "&chm=B,DEE7ECBB,0,0,0"; // Fill under kurve
         if(strlen($googleurl) > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
         return $googleurl;
+    }
+    
+    private static function getTimeMarks($starttime, $endtime, $resolution, $tidsformat) {
+        $midnatt_start = mktime(0,0,0,date('n', $starttime),date('j', $starttime),date('Y', $starttime));
+        $sek_fra_midnatt = $starttime - $midnatt_start;
+        $forste_mark = (ceil($sek_fra_midnatt / $resolution) * $resolution) + $midnatt_start;
+        $periode_lengde = $endtime - $starttime;
+        
+        $mark_array = array();
+        $pos_array = array();
+        for($i = $forste_mark; $i <= $endtime; $i += $resolution) {
+            $mark_array[] = date($tidsformat, $i);
+            
+            $mark_fra_start = $i - $starttime;
+            $pos_array[] = round(($mark_fra_start / $periode_lengde) * 100);
+        }
+        
+        return array($mark_array, $pos_array);
+        
     }
 }
