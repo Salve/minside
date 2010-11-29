@@ -216,6 +216,7 @@ div.dokuwiki ul.mstoc {
 	list-style-image:none;
 	list-style-type:square;
 	margin:0 0 0 1.5em;
+    padding-bottom:1.5em;
 }
 
 ul.mstoc ul.mstoc {
