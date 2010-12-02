@@ -322,7 +322,7 @@ class MsNyhet {
 	}
 	
 	public function getTitle($safe = false) {
-		return ($safe) ? htmlspecialchars($this->_title) : $this->_title;
+		return ($safe) ? htmlentities($this->_title, ENT_QUOTES, 'UTF-8') : $this->_title;
 	}	
 	public function setTitle($input) {
         if (strlen($input) > self::TITLE_MAX_LEN) $input = substr($input, 0, self::TITLE_MAX_LEN);
