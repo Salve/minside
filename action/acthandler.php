@@ -198,17 +198,30 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
     
         $nyhet_hits = array();
         foreach($event->result as $key => $id) {
+            // Funksjonen returnerer int(0) på match
             if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
                 $nyhet_hits[] = $id;
+                // Sørg for at nyhet-hits ikke vises i normalt resultat
                 unset($event->result[$key]);
             }
         }
         
-        print '<div class="search_quickresult"><h3>Matchende nyhetsnavn:</h3><div class="level1">';
-        foreach($nyhet_hits as $nyhet) {
-            print $nyhet . '<br />';
+        if(empty($nyhet_hits)) return;
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $output = $objMinSide->genModul('nyheter', 'searchpagelookup', $nyhet_hits);
+        } catch (Exception $e) {
+            if(MinSide::DEBUG) msg('Klarte ikke å laste pagelookup resultater fra MinSide::Nyheter: ' . $e->getMessage(), -1);
+            return;
         }
-        print '</div></div><div class="clearer">&nbsp;</div>';
+        
+        if(empty($output)) return;
+        
+        print '<div class="search_quickresult"><h3>Matchende nyhetsnavn:</h3><div class="level1">';
+        print $output;
+        print '</div><div class="clearer">&nbsp;</div></div>';
         
     }
     
@@ -216,17 +229,30 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
     
         $nyhet_hits = array();
         foreach($event->result as $id => $num_hits) {
+            // Funksjonen returnerer int(0) på match
             if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
                 $nyhet_hits[] = $id;
+                // Sørg for at nyhet-hits ikke vises i normalt resultat
                 unset($event->result[$id]);
             }
         }
         
-        print '<div class="search_quickresult"><h3>Treff i nyhetsinnhold:</h3><div class="level1">';
-        foreach($nyhet_hits as $nyhet) {
-            print $nyhet . '<br />';
+        if(empty($nyhet_hits)) return;
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $output = $objMinSide->genModul('nyheter', 'searchfullpage', $nyhet_hits);
+        } catch (Exception $e) {
+            if(MinSide::DEBUG) msg('Klarte ikke å laste pagelookup resultater fra MinSide::Nyheter: ' . $e->getMessage(), -1);
+            return;
         }
-        print '</div></div><div class="clearer">&nbsp;</div>';
+        
+        if(empty($output)) return;
+        
+        print '<div class="search_quickresult"><h3>Treff i nyhetsinnhold:</h3><div class="level1">';
+        print $output;
+        print '</div><div class="clearer">&nbsp;</div></div>';
     }
     
 }

@@ -189,6 +189,37 @@ class NyhetGen {
 		return $output;
 		
 	}
+    
+    public static function genSearchTitleOnly(NyhetCollection $nyhetCol) {
+        
+        if($nyhetCol->length() < 1) return '';
+        
+        $output = '<ul class="search_quickhits">' . "\n";
+        
+        foreach($nyhetCol as $objNyhet) {
+            $path = $objNyhet->getWikiPath();
+            $url = wl($path);
+            $title = $objNyhet->getTitle();
+            
+            $output .= '<li><a href="'. $url .'" class="wikilink1" title="'. $path .'">'. $title .'</a></li>' . "\n";
+        }
+        
+        $output .= '</ul>' . "\n";
+        
+        return $output;
+    }
+    
+    public static function genSearchHits(NyhetCollection $nyhetCol) {
+        
+        if($nyhetCol->length() < 1) return '';
+        
+        foreach($nyhetCol as $objNyhet) {
+            $output .= self::genFullNyhet($objNyhet);
+        }
+        
+        
+        return '<div class="minside">' . $output . '</div>';
+    }
 
     public static function genEdit(msnyhet &$objNyhet, $preview=false) {
 		// Område
