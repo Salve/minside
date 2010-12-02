@@ -854,9 +854,7 @@ class msmodul_nyheter implements msmodul {
                 
                 try{
                     $objNyhet->setWikiTekst($nyhettekst, false);
-
                     $objNyhet->update_db($brukerid, $pubtime);
-                    //$testoutput .= NyhetGen::genFullNyhet($objNyhet);
                 } catch(Exception $e) {
                     if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet under lagring av objekt ', -1);
                     $match_feil[] = "Feilet på lagring av objekt: " . $e->getMessage();

@@ -610,7 +610,19 @@ class MsNyhet {
         }
         
         $sql = $presql . $midsql . $postsql;
-        $res = $msdb->exec($sql);
+        
+        try {
+            $res = $msdb->exec($sql, true);
+        } catch(Exception $e) {
+            if(MinSide::DEBUG) {
+                $sqlstate = $e->errorInfo[0];
+                $mysqlcode = $e->errorInfo[1];
+                $mysqlmsg = $e->errorInfo[2];
+                throw new Exception("SQL-error oppstått i MsNyhet::update_db(). Feilkode $mysqlcode (ANSI: $sqlstate): $mysqlmsg");
+            } else {
+                throw new Exception("Feil har oppstått under lagring av nyhet i database. En administrator kan aktivere debug-modus for å se detaljer.", -1);
+            }
+        }
         
         if(!$this->isSaved()) {
             $this->setId($msdb->getLastInsertId());
