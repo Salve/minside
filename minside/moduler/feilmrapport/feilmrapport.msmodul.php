@@ -117,7 +117,10 @@ class msmodul_feilmrapport implements msmodul{
 				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
 				break;
 			case "rapportarkiv":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv();
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv(false);
+				break;
+            case "rapportarkivforside":
+				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv(true);
 				break;
 			case "visrapport":
 				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapport();
@@ -193,16 +196,14 @@ class msmodul_feilmrapport implements msmodul{
 		return $output;
 	}
 	
-	private function _genRapportArkiv() {
-		
-		$output .= '<br /><br />';
+	private function _genRapportArkiv($forside = false) {
 				
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
 		
 			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
 			
 			
-			$output .= '<p><strong>Rapporter opprettet det siste døgnet:</strong></p>' . "\n";
+			$output .= '<span id="rapportsistedogn">Rapporter opprettet det siste døgnet:</span>' . "\n";
 			
 			$output .= $this->_genRapportListe($rapportcol);
 		
@@ -223,7 +224,7 @@ class msmodul_feilmrapport implements msmodul{
 			}
 			
 			$rapportcol = SkiftFactory::getRapporterByMonth($inputmonth, $inputyear);
-			$output .= '<p><strong>Rapporter fra ' . self::$monthnames["$inputmonth"] . ' ' . $inputyear . ':</strong></p>' . "\n";		
+			$output .= '<span id="rapportarkivheader">Rapporter fra ' . self::$monthnames["$inputmonth"] . ' ' . $inputyear . ':</span>' . "\n";		
 			
 			$output .= $this->_genRapportListe($rapportcol, true);
 			
@@ -233,9 +234,13 @@ class msmodul_feilmrapport implements msmodul{
 		
 		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
 		
-		
-        $pre = '<h1>Rapportarkiv</h1><div class="rapportarkiv level2">';
-        $post = '</div>';
+		if(!$forside) {
+            $pre = '<h1>Rapportarkiv</h1><div class="rapportarkiv level2">';
+            $post = '</div>';
+        } else {
+            $pre = '<div class="rapportarkiv level1">';
+            $post = '</div>';
+        }
         
 		return $pre . $output . $post;
 	
@@ -372,8 +377,9 @@ class msmodul_feilmrapport implements msmodul{
 		$sql = "SELECT YEAR(createtime) AS 'YEAR', GROUP_CONCAT(DISTINCT MONTH(createtime)) AS 'MONTHS' FROM feilrap_rapport GROUP BY `YEAR`;";
 		$data = $msdb->assoc($sql);
 		
-		$output = '<p><strong>Rapportarkiv:</strong></p>' . "\n";
-	
+		$output = '<span id="rapportarkivmenyheader">Rapportarkiv:</span>' . "\n";
+        $output .= '<div class="rapportarkivmeny">';
+        
 		if(is_array($data) && sizeof($data)) {
 			foreach ($data as $datum) {
 			
@@ -397,7 +403,7 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= '<p>Ingen rapporter funnet.</p>';
 		}
 	
-		$output = '<div class="rapportarkivmeny">' . $output . '</div>';
+		$output .= '</div>';
 		return $output;
 	
 	
@@ -1677,7 +1683,7 @@ class msmodul_feilmrapport implements msmodul{
 		
 			$toppmeny = new Menyitem('FeilM Rapport','&amp;page=feilmrapport');
             
-            if (isset($act)) {
+            if (isset($act) && array_search('notoc', (array) $this->_msmodulvars) === false) {
                 $telleradmin = new Menyitem('Rediger tellere','&amp;page=feilmrapport&amp;act=telleradm');
                 $genrapport = new Menyitem('Lag rapport','&amp;page=feilmrapport&amp;act=genrapportsel');
                 $rapportarkiv = new Menyitem('Rapportarkiv','&amp;page=feilmrapport&amp;act=rapportarkiv');

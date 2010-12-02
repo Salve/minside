@@ -345,11 +345,21 @@ div.rapportarkiv {
 	font-size: 1em;*/
 }
 
-div.rapparkivliste {
+span#rapportsistedogn, span#rapportarkivmenyheader, span#rapportarkivheader {
+    font-weight: bold;
+    margin: 0.5em 0.5em 0.5em 0.5em;
+    display: block;
+}
+
+div.rapparkivliste, div.rapportarkivmeny {
 	width: 100%;
 	border: 1px #8cacbb;
-	border-style: solid none none none;
+	border-style: solid none solid none;
 	background-color: #fff;
+}
+
+div.rapportarkivmeny {
+    border-style: solid none none none;
 }
 
 div.ukecontainer {
@@ -423,10 +433,6 @@ a, a.hover, a.visited, a.active {
 
 img {
 	border-style:none;
-}
-
-div.rapportarkivmeny {
-	font-size: 0.8em;
 }
 
 div.msclearer {
