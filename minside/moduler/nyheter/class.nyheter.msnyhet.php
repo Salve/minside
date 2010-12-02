@@ -398,8 +398,18 @@ class MsNyhet {
                 nyhetid = $safenyhetid,
                 brukerid = $safebrukerid,
                 readtime = NOW();";
-                
-        $res = $msdb->exec($sql);
+        
+        try{
+            $res = $msdb->exec($sql, true);
+        } catch(Exception $e) {
+            if(MinSide::DEBUG) {
+                $sqlstate = $e->errorInfo[0];
+                $mysqlcode = $e->errorInfo[1];
+                $mysqlmsg = $e->errorInfo[2];
+                msg("SQL-error oppstått i MsNyhet::merkLest(). Feilkode $mysqlcode (ANSI: $sqlstate): $mysqlmsg", -1);
+            }
+            $res = false;
+        }
         
         return (bool) $res;
     }
