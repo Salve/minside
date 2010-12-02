@@ -658,9 +658,7 @@ class msmodul_nyheter implements msmodul {
                 msg("Merket nyhetid $inputid som lest", 1);
             }
         } else {
-            if(MinSide::DEBUG) {
-                msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
-            }
+            msg("Klarte ikke å merke nyhet som lest", -1);
         }
         
         if (isset($_REQUEST['returnto'])) {
