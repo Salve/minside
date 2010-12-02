@@ -41,10 +41,13 @@ class ActDispatcher {
             $objAct = $this->actcol->getItem($inputact);
             return $objAct->dispatch($this->caller, $this->adgang);
         } catch (AdgangsException $e) {
+            if(substr((string) $e->getCode(), 0, 1) == '9') throw $e;
             return '<div class="mswarningbar"><strong>Ingen adgang</strong><br /><br />'. $e->getMessage() .'</div>';
         }catch (UnexpectedValueException $e) {
+            if(substr((string) $e->getCode(), 0, 1) == '9') throw $e;
             return '<div class="mswarningbar"><strong>Dispatcher feilet</strong><br /><br />'. $e->getMessage() .'</div>';
         } catch (Exception $e) {
+            if(substr((string) $e->getCode(), 0, 1) == '9') throw $e;
             return '<div class="mswarningbar"><strong>En feil har oppstått:</strong>' .
                     '<br /><br /><em>'. $e->getMessage() . '</em>' .
                     '<br /><br />Feil oppstod under behandling av: ' . $inputact . '</div><br />';
