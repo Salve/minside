@@ -351,7 +351,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle(true) . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
