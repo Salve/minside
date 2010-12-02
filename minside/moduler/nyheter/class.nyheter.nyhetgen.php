@@ -70,9 +70,6 @@ class NyhetGen {
         $omrade = $nyhet->getOmrade();
         $objKategori = $nyhet->getKategori();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
-        $pubdiff = time() - strtotime($nyhet->getPublishTime());
-        $pubdager = (int) floor($pubdiff / 60 / 60 / 24);
-        $pubtimer = (int) floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
         if ($nyhet->hasImage()) {
 			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
 		} else {
@@ -106,11 +103,7 @@ class NyhetGen {
         if (!$nyhet->getPublishTime()) {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
-            if ($pubdager === 0) {
-                $tid_siden = $pubtimer . (($pubtimer === 1) ? ' time' : ' timer');
-            } else {
-                $tid_siden = $pubdager . (($pubdager === 1) ? ' dag' : ' dager');
-            }
+            $tid_siden = $nyhet->getTidSidenPub();
             $publish = '<div class="nyhetpub">Publisert '. self::dispTime($nyhet->getPublishTime()) .
 				' (' . $tid_siden . ' siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {

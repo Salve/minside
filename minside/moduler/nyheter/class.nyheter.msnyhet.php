@@ -152,6 +152,25 @@ class MsNyhet {
 	public function getPublishTime() {
 		return $this->_pubtime;
 	}
+    public function getTidSidenPub() {
+        if(!isset($this->_pubtime)) return false;
+        $pubtime = new DateTime($this->_pubtime);
+        $pubdiff = date_create('now')->diff($pubtime);
+        
+        if($pubdiff->y >= 1) return $pubdiff->y . ' år';
+        if($pubdiff->m > 1) return $pubdiff->m . ' måneder';
+        if($pubdiff->m == 1) return $pubdiff->m . ' måned';
+        if($pubdiff->d > 1) return $pubdiff->d . ' dager';
+        if($pubdiff->d == 1) return $pubdiff->d . ' dag';
+        if($pubdiff->h > 1) return $pubdiff->h . ' timer';
+        if($pubdiff->h == 1) return $pubdiff->h . ' time';
+        if($pubdiff->i > 1) return $pubdiff->i . ' minutter';
+        if($pubdiff->i == 1) return $pubdiff->i . ' minutt';
+        if($pubdiff->s > 1) return $pubdiff->s . ' sekunder';
+        return $pubdiff->s . ' sekund';
+        
+        
+    }
     public function isPublished() {
         $pubtime = strtotime($this->_pubtime);
         return ($pubtime < time());
