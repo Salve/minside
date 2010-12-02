@@ -40,6 +40,10 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
 		
         // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
+        
+        // Kontroller søkeresultat for upubliserte nyheter
+        $controller->register_hook('SEARCH_QUERY_FULLPAGE', 'AFTER', $this, 'handleSearchQueryFullpage');
+        $controller->register_hook('SEARCH_QUERY_PAGELOOKUP', 'AFTER', $this, 'handleSearchQueryPagelookup');
     }
      
     /**
@@ -188,6 +192,41 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
             return false;
         }
         
+    }
+    
+    function handleSearchQueryPagelookup(&$event, $param) {
+    
+        $nyhet_hits = array();
+        foreach($event->result as $key => $id) {
+            if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
+                $nyhet_hits[] = $id;
+                unset($event->result[$key]);
+            }
+        }
+        
+        print '<div class="search_quickresult"><h3>Matchende nyhetsnavn:</h3><div class="level1">';
+        foreach($nyhet_hits as $nyhet) {
+            print $nyhet . '<br />';
+        }
+        print '</div></div><div class="clearer">&nbsp;</div>';
+        
+    }
+    
+    function handleSearchQueryFullpage(&$event, $param) {
+    
+        $nyhet_hits = array();
+        foreach($event->result as $id => $num_hits) {
+            if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
+                $nyhet_hits[] = $id;
+                unset($event->result[$id]);
+            }
+        }
+        
+        print '<div class="search_quickresult"><h3>Treff i nyhetsinnhold:</h3><div class="level1">';
+        foreach($nyhet_hits as $nyhet) {
+            print $nyhet . '<br />';
+        }
+        print '</div></div><div class="clearer">&nbsp;</div>';
     }
     
 }
