@@ -826,8 +826,10 @@ class MsNyhet {
             $x1_pos = '1,' . implode(',', $arX1[1]) .'|';
         }
         
-        msg('Times: ' . implode(', ', $arX1[0]));
-        msg('Pos: ' . implode(', ', $arX1[1]));
+        if(MinSide::DEBUG) {
+            msg('Times: ' . implode(', ', $arX1[0]));
+            msg('Pos: ' . implode(', ', $arX1[1]));
+        }
         
         
         // Gen URI
