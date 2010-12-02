@@ -121,9 +121,6 @@ class NyhetGen {
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
-		$opt['lest'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
-            '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'ulest.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -141,13 +138,21 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'bargraf.gif" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
-			$options[] = $opt[$v];
+            if (array_key_exists($v, $opt)) {
+                $options[] = $opt[$v];
+            }
 		}
 		if (!empty($options)) {
 			$valg = implode('&nbsp;', $options);
 		} else {
 			$valg = '';
 		}
+        if(array_search('lest', $inoptions)) {
+            $lest_html = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
+            'Merk som lest</a>';
+        } else {
+            $lest_html = '';
+        }
         
         // Wannabetemplate :D
 		$output = "
@@ -158,6 +163,7 @@ class NyhetGen {
                     <div class=\"seksjontopp\">
                         <div class=\"nyhetoptions\">$valg</div>
                         <div class=\"nyhettitle\">$sticky$title</div>
+                        <div class=\"nyhetlest\">$lest_html</div>
                     </div>
 					<div class=\"nyhetinfo\">
                         <div class=\"nyhetinforight\">
