@@ -16,27 +16,35 @@ class Database {
 			$this->hConn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
 		catch(PDOException $e) {
-			throw new Exception("En feil har oppstått ved oppkobling mot database: " . $e->getMessage(), E_USER_ERROR);
+            if(MinSide::DEBUG) {
+                throw new Exception("En kritisk feil har oppstått ved oppkobling mot database: " . $e->getMessage());
+            } else {
+                throw new Exception("En kritisk feil har oppstått ved oppkobling mot database.");
+            }
 		}
 				
 		
 	}
 	
-	public function assoc($sqlstring, $fetchone = false) {
+	public function assoc($sqlstring, $rethrow_exceptions=false) {
 		$db_starttime = microtime(true);
 		
 		try {
 			$stmt = $this->hConn->prepare("$sqlstring");
 			$stmt->execute();
 		} catch (PDOException $e) {
-			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
-		}
-		if ($fetchone) {
-			$result = $stmt->fetch(PDO::FETCH_ASSOC);
-		} else {
-			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if($rethrow_exceptions) throw $e;
+            
+            if(MinSide::DEBUG) {
+                die('PDOException i db-funksjon assoc med følgende query: ' . $sqlstring . '<br /><br />Error message: ' . $e->getMessage());
+            } else {
+                die('En kritisk feil har oppstått under utførelse av en spørring mot database.<br />
+                        Script avbrytes her, vennligst gå tilbake og forsøk igjen. Dersom feil vedvarer, kontakt en wiki-administrator.');
+            }
 		}
 		
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+				
 		$db_endtime = microtime(true);
 		
 		if ($this->debug) msg(htmlspecialchars($sqlstring) . ' : ' . round(($db_endtime - $db_starttime), 5));
@@ -47,20 +55,24 @@ class Database {
 		return $result;
 	}
 	
-	public function num($sqlstring, $fetchone = false) {
+	public function num($sqlstring, $rethrow_exceptions=false) {
 		$db_starttime = microtime(true);
 		
 		try {
 			$stmt = $this->hConn->prepare("$sqlstring");
 			$stmt->execute();
 		} catch (PDOException $e) {
-			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
+			if($rethrow_exceptions) throw $e;
+            
+            if(MinSide::DEBUG) {
+                die('PDOException i db-funksjon num med følgende query: ' . $sqlstring . '<br /><br />Error message: ' . $e->getMessage());
+            } else {
+                die('En kritisk feil har oppstått under utførelse av en spørring mot database.<br />
+                        Script avbrytes her, vennligst gå tilbake og forsøk igjen. Dersom feil vedvarer, kontakt en wiki-administrator.');
+            }
 		}
-		if ($fetchone) {
-			$result = $stmt->fetch(PDO::FETCH_NUM);	
-		} else {
-			$result = $stmt->fetchAll(PDO::FETCH_NUM);
-		}
+		
+        $result = $stmt->fetchAll(PDO::FETCH_NUM);
 		
 		$db_endtime = microtime(true);
 		
@@ -71,13 +83,20 @@ class Database {
 		return $result;
 	}
 	
-	public function exec($sqlstring) {
+	public function exec($sqlstring, $rethrow_exceptions = false) {
 		$db_starttime = microtime(true);
 		
 		try {
 			$result = $this->hConn->exec("$sqlstring");
 		} catch (PDOException $e) {
-			die($e->getMessage() . ' Sqlstring: ' . $sqlstring);
+            if($rethrow_exceptions) throw $e;
+                        
+            if(MinSide::DEBUG) {
+                die('PDOException i db-funksjon exec med følgende query: ' . $sqlstring . '<br /><br />Error message: ' . $e->getMessage());
+            } else {
+                die('En kritisk feil har oppstått under utførelse av en handling på database.<br />
+                        Script avbrytes her, vennligst gå tilbake og forsøk igjen. Dersom feil vedvarer, kontakt en wiki-administrator.');
+            }
 		}
 		
 		$db_endtime = microtime(true);

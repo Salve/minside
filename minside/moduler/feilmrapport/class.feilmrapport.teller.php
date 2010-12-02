@@ -112,7 +112,7 @@ class Teller {
 	private function _setActive() {
 		global $msdb;
 		
-		$datum = $msdb->num('SELECT tellerorder FROM feilrap_teller ORDER BY tellerorder DESC LIMIT 1', true);
+		$datum = $msdb->num('SELECT tellerorder FROM feilrap_teller ORDER BY tellerorder DESC LIMIT 1');
 		$nyorder = $datum[0] + 1;
 		
 		$safetellerid = $msdb->quote($this->_id);

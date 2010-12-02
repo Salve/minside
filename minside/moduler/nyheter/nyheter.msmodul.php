@@ -88,7 +88,8 @@ class msmodul_nyheter implements msmodul {
         $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subomradeadm', 'gen_import_admin', MSAUTH_ADMIN);
         // System / interne
-		$dispatcher->addActHandler('checkpublished', 'check_published', MSAUTH_NONE);
+		$dispatcher->addActHandler('searchpagelookup', 'gen_searchpagelookup', MSAUTH_1);
+		$dispatcher->addActHandler('searchfullpage', 'gen_searchfullpage', MSAUTH_1);
         $dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
 		$dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 	}
@@ -658,9 +659,7 @@ class msmodul_nyheter implements msmodul {
                 msg("Merket nyhetid $inputid som lest", 1);
             }
         } else {
-            if(MinSide::DEBUG) {
-                msg("Klarte ikke å merke nyhetid $inputid som lest", -1);
-            }
+            msg("Klarte ikke å merke nyhet som lest", -1);
         }
         
         if (isset($_REQUEST['returnto'])) {
@@ -693,16 +692,62 @@ class msmodul_nyheter implements msmodul {
         }
     }
     
-    public function check_published() {
-        $wikipath = $this->_msmodulvars;
-        
-        try {
-            $objNyhet = NyhetFactory::getNyhetByWikiPath($wikipath);
-        } catch (Exception $e) {
-            throw Exception('Fant ikke nyhet i database');
+    public function gen_searchpagelookup() {
+        $data = $this->_msmodulvars;
+        if(!is_array($data) || empty($data)) {
+            throw new Exception('Ugyldig data', 9400);
         }
         
-        return (bool) $objNyhet->isPublished();
+        $errcount = 0;
+        $output = '';
+        
+        $colPubNyheter = new NyhetCollection();
+        foreach($data as $nyhet_wikipath) {
+            try {
+                $objNyhet = NyhetFactory::getNyhetByWikiPath($nyhet_wikipath);
+            } catch (Exception $e) {
+                if(MinSide::DEBUG) msg('Klarte ikke å laste nyhet med path: ' . $nyhet_wikipath, -1);
+                $errcount++;
+                continue;
+            }
+            
+            if($objNyhet->isPublished() && $objNyhet->getAcl() >= MSAUTH_1) {
+                $colPubNyheter->addItem($objNyhet, $objNyhet->getId());
+            } else {
+                if(MinSide::DEBUG) msg('Nyhet med path: ' . $nyhet_wikipath . ' ble blokkert fra visning grunnet pub dato eller acl.');
+            }
+        }
+
+        return NyhetGen::genSearchTitleOnly($colPubNyheter);
+    }
+    
+    public function gen_searchfullpage() {
+        $data = $this->_msmodulvars;
+        if(!is_array($data) || empty($data)) {
+            throw new Exception('Ugyldig data', 9400);
+        }
+        
+        $errcount = 0;
+        $output = '';
+        
+        $colPubNyheter = new NyhetCollection();
+        foreach($data as $nyhet_wikipath) {
+            try {
+                $objNyhet = NyhetFactory::getNyhetByWikiPath($nyhet_wikipath);
+            } catch (Exception $e) {
+                if(MinSide::DEBUG) msg('Klarte ikke å laste nyhet med path: ' . $nyhet_wikipath, -1);
+                $errcount++;
+                continue;
+            }
+            
+            if($objNyhet->isPublished() && $objNyhet->getAcl() >= MSAUTH_1) {
+                $colPubNyheter->addItem($objNyhet, $objNyhet->getId());
+            } else {
+                if(MinSide::DEBUG) msg('Nyhet med path: ' . $nyhet_wikipath . ' ble blokkert fra visning grunnet pub dato eller acl.');
+            }
+        }
+
+        return NyhetGen::genSearchHits($colPubNyheter);
     }
     
     public function gen_import_admin() {
@@ -856,9 +901,7 @@ class msmodul_nyheter implements msmodul {
                 
                 try{
                     $objNyhet->setWikiTekst($nyhettekst, false);
-
                     $objNyhet->update_db($brukerid, $pubtime);
-                    //$testoutput .= NyhetGen::genFullNyhet($objNyhet);
                 } catch(Exception $e) {
                     if(MinSide::DEBUG) msg('Nyhet nummer ' . $nyhetnummer . ' feilet under lagring av objekt ', -1);
                     $match_feil[] = "Feilet på lagring av objekt: " . $e->getMessage();

@@ -41,8 +41,9 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         // Generer og viser nyhet når bruker forsøker å se nyhet direkte i dw
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleTplContentDisplay');
         
-        // Hooker indexer adds, for å sørge for at upubliserte nyheter ikke indexeres
-        $controller->register_hook('INDEXER_PAGE_ADD', 'BEFORE', $this, 'handleIndexerPageAdd');
+        // Kontroller søkeresultat for upubliserte nyheter
+        $controller->register_hook('SEARCH_QUERY_FULLPAGE', 'AFTER', $this, 'handleSearchQueryFullpage');
+        $controller->register_hook('SEARCH_QUERY_PAGELOOKUP', 'AFTER', $this, 'handleSearchQueryPagelookup');
     }
      
     /**
@@ -193,31 +194,65 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         
     }
     
-    function handleIndexerPageAdd(&$event, $param) {
-        if(substr($event->data[0], 0, 10) != 'msnyheter:') return;
-        
-        $debug = false;
-        
-        if($debug) {
-            $fh = fopen('indexerlogg.txt', 'a') or die();
-            $data = 'Indexing: ' . $event->data[0] . "\r\n";
-            fwrite($fh, $data);
+    function handleSearchQueryPagelookup(&$event, $param) {
+    
+        $nyhet_hits = array();
+        foreach($event->result as $key => $id) {
+            // Funksjonen returnerer int(0) på match
+            if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
+                $nyhet_hits[] = $id;
+                // Sørg for at nyhet-hits ikke vises i normalt resultat
+                unset($event->result[$key]);
+            }
         }
-
+        
+        if(empty($nyhet_hits)) return;
+        
         require_once(DOKU_PLUGIN.'minside/minside/minside.php');
         try {
             $objMinSide = MinSide::getInstance();
-            if(!$objMinSide->genModul('nyheter', 'checkpublished', $event->data[0])) {
-                $event->preventDefault();
-                if($debug) fwrite($fh, "    BLOCKED! Nyhet er ikke publisert.\r\n");
-            } else {
-                if($debug) fwrite($fh, "    ALLOWED! Nyhet er publisert.\r\n");
-            }
+            $output = $objMinSide->genModul('nyheter', 'searchpagelookup', $nyhet_hits);
         } catch (Exception $e) {
-            $event->preventDefault();
-            if($debug) fwrite($fh, "    ERROR! Blokkerer indexing by default: " . $e->getMessage() . "\r\n");
+            if(MinSide::DEBUG) msg('Klarte ikke å laste pagelookup resultater fra MinSide::Nyheter: ' . $e->getMessage(), -1);
+            return;
         }
-        if($debug) fclose($fh);
+        
+        if(empty($output)) return;
+        
+        print '<div class="search_quickresult"><h3>Matchende nyhetsnavn:</h3><div class="level1">';
+        print $output;
+        print '</div><div class="clearer">&nbsp;</div></div>';
+        
+    }
+    
+    function handleSearchQueryFullpage(&$event, $param) {
+    
+        $nyhet_hits = array();
+        foreach($event->result as $id => $num_hits) {
+            // Funksjonen returnerer int(0) på match
+            if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
+                $nyhet_hits[] = $id;
+                // Sørg for at nyhet-hits ikke vises i normalt resultat
+                unset($event->result[$id]);
+            }
+        }
+        
+        if(empty($nyhet_hits)) return;
+        
+        require_once(DOKU_PLUGIN.'minside/minside/minside.php');
+        try {
+            $objMinSide = MinSide::getInstance();
+            $output = $objMinSide->genModul('nyheter', 'searchfullpage', $nyhet_hits);
+        } catch (Exception $e) {
+            if(MinSide::DEBUG) msg('Klarte ikke å laste pagelookup resultater fra MinSide::Nyheter: ' . $e->getMessage(), -1);
+            return;
+        }
+        
+        if(empty($output)) return;
+        
+        print '<div class="search_quickresult"><h3>Treff i nyhetsinnhold:</h3><div class="level1">';
+        print $output;
+        print '</div><div class="clearer">&nbsp;</div></div>';
     }
     
 }

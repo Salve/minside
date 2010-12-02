@@ -70,9 +70,6 @@ class NyhetGen {
         $omrade = $nyhet->getOmrade();
         $objKategori = $nyhet->getKategori();
         $omradeinfo = NyhetOmrade::getVisningsinfoForNyhet($nyhet, 'msnyheter');
-        $pubdiff = time() - strtotime($nyhet->getPublishTime());
-        $pubdager = (int) floor($pubdiff / 60 / 60 / 24);
-        $pubtimer = (int) floor(($pubdiff - $pubdager * 60 * 60 * 24) / 60 / 60);
         if ($nyhet->hasImage()) {
 			$img = $nyhet->getImageTag(self::THUMB_BREDDE);
 		} else {
@@ -106,11 +103,7 @@ class NyhetGen {
         if (!$nyhet->getPublishTime()) {
             $publish = '<div class="nyhetpub">Nyhet publiseres ikke! Dato ikke satt.</div>';
         } elseif (strtotime($nyhet->getPublishTime()) < time()) {
-            if ($pubdager === 0) {
-                $tid_siden = $pubtimer . (($pubtimer === 1) ? ' time' : ' timer');
-            } else {
-                $tid_siden = $pubdager . (($pubdager === 1) ? ' dag' : ' dager');
-            }
+            $tid_siden = $nyhet->getTidSidenPub();
             $publish = '<div class="nyhetpub">Publisert '. self::dispTime($nyhet->getPublishTime()) .
 				' (' . $tid_siden . ' siden) av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>';
         } else {
@@ -121,9 +114,6 @@ class NyhetGen {
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'link.png" /></a>';
-		$opt['lest'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
-            '<img alt="lest" title="Merk nyhet som lest" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'ulest.png" /></a>';
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
@@ -141,13 +131,21 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'bargraf.gif" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
-			$options[] = $opt[$v];
+            if (array_key_exists($v, $opt)) {
+                $options[] = $opt[$v];
+            }
 		}
 		if (!empty($options)) {
 			$valg = implode('&nbsp;', $options);
 		} else {
 			$valg = '';
 		}
+        if(array_search('lest', $inoptions)) {
+            $lest_html = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
+            'Merk som lest</a>';
+        } else {
+            $lest_html = '';
+        }
         
         // Wannabetemplate :D
 		$output = "
@@ -158,6 +156,7 @@ class NyhetGen {
                     <div class=\"seksjontopp\">
                         <div class=\"nyhetoptions\">$valg</div>
                         <div class=\"nyhettitle\">$sticky$title</div>
+                        <div class=\"nyhetlest\">$lest_html</div>
                     </div>
 					<div class=\"nyhetinfo\">
                         <div class=\"nyhetinforight\">
@@ -183,6 +182,37 @@ class NyhetGen {
 		return $output;
 		
 	}
+    
+    public static function genSearchTitleOnly(NyhetCollection $nyhetCol) {
+        
+        if($nyhetCol->length() < 1) return '';
+        
+        $output = '<ul class="search_quickhits">' . "\n";
+        
+        foreach($nyhetCol as $objNyhet) {
+            $path = $objNyhet->getWikiPath();
+            $url = wl($path);
+            $title = $objNyhet->getTitle();
+            
+            $output .= '<li><a href="'. $url .'" class="wikilink1" title="'. $path .'">'. $title .'</a></li>' . "\n";
+        }
+        
+        $output .= '</ul>' . "\n";
+        
+        return $output;
+    }
+    
+    public static function genSearchHits(NyhetCollection $nyhetCol) {
+        
+        if($nyhetCol->length() < 1) return '';
+        
+        foreach($nyhetCol as $objNyhet) {
+            $output .= self::genFullNyhet($objNyhet);
+        }
+        
+        
+        return '<div class="minside">' . $output . '</div>';
+    }
 
     public static function genEdit(msnyhet &$objNyhet, $preview=false) {
 		// Område
@@ -345,7 +375,7 @@ class NyhetGen {
                             '</textarea>
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
-                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle() . '" />
+                                    <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle(true) . '" />
                                 </div>'
                                 .$html_omrade. '
                                 <div class="msclearer"></div>'
