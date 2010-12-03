@@ -89,6 +89,7 @@ class SidebarGen {
 		$output .= '<div class="label">Tekst: </div><input type="text" name="addtekst" class="edit"><br />';
 		$output .= '<div class="label">URL: </div><input type="text" name="addhref" class="edit"><br />';
 		$output .= '<div class="label">ACL: </div><input type="text" name="addacl" class="edit"><br />';
+		$output .= '<label for="checknyttvindu">Åpne i nytt vindu: </label><input type="checkbox" name="addnyttvindu" id="checknyttvindu"><br />';
 		$output .= '<input type="submit" name="addaction" value="Lag overskrift" class="msbutton"><br />';
 		$output .= '<input type="submit" name="addaction" value="Lag vanlig lenke" class="msbutton"><br />';
 		$output .= '<br /><p><strong>Legg til spesialblokker</strong></p>';
@@ -107,6 +108,7 @@ class SidebarGen {
 		$href = $objMenyitem->getHref();
 		$tekst = $objMenyitem->getTekst();
 		$acl = $objMenyitem->getAcl();
+        $nyttvindu = $objMenyitem->getNyttvindu();
 		
 		if (empty($acl)) { 
 			$acl = 'Ingen ACL satt, alle kan se denne.';
@@ -114,12 +116,20 @@ class SidebarGen {
 			$acl = 'Blokk kun synlig for brukere med lesetilgang til: ' . $acl;
 		}
 		
+        if($nyttvindu) {
+            $target = ' target="_blank"';
+        }
+        
 		if (!empty($href)) {
-			$menyitem = "<span title=\"$acl\"><a href=\"$href\" class=\"menu_item\">$tekst</a></span>";
+			$menyitem = "<span title=\"$acl\"><a href=\"$href\" class=\"menu_item\"$target>$tekst</a></span>";
 		} else {
 			$menyitem = $tekst;
 		}
 		
+        if($nyttvindu) {
+            $menyitem = '<em>' . $menyitem . '</em>';
+        }
+        
 		$opt['move'] = '<input type="image" src="'.MS_IMG_PATH.'insert.gif" width=16 height=16 alt="flytt" ' .
 					'title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . $objMenyitem->getId() . '">';
 		$opt['trash'] = '<a href="'. MS_LINK.'&amp;page=sidebar&amp;act=sidebarrem&amp;blokkid='. $objMenyitem->getId() .

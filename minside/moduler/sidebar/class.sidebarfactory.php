@@ -3,7 +3,7 @@ if(!defined('MS_INC')) die();
 
 class SidebarFactory {
 
-	const DB_COLS = 'blokkid, blokknavn, blokkurl, blokktype, blokkorder, blokkacl ';
+	const DB_COLS = 'blokkid, blokknavn, blokkurl, blokktype, blokkorder, blokkacl, nyttvindu ';
 
 	public static function getSidebar() {
 		global $msdb;
@@ -42,6 +42,7 @@ class SidebarFactory {
 			$dbrow['blokknavn'],
 			$dbrow['blokkurl'],
 			$dbrow['blokkacl'],
+            $dbrow['nyttvindu'],
 			$dbrow['blokktype']
 		);
 		$objMenyitem->setSaved(

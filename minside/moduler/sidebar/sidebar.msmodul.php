@@ -88,6 +88,7 @@ class msmodul_sidebar implements msmodul{
 				$navn = htmlspecialchars($_REQUEST['addtekst']);
 				$href = htmlspecialchars($_REQUEST['addhref']);
 				$acl = cleanID($_REQUEST['addacl'], true);
+                $nyttvindu = (bool) $_REQUEST['addnyttvindu'];
 				$type = Menyitem::TYPE_HEADER;
 				break;
 			case 'Lag vanlig lenke':
@@ -102,6 +103,7 @@ class msmodul_sidebar implements msmodul{
 				$navn = htmlspecialchars($_REQUEST['addtekst']);
 				$href = htmlspecialchars($_REQUEST['addhref']);
 				$acl = cleanID($_REQUEST['addacl'], true);
+                $nyttvindu = (bool) $_REQUEST['addnyttvindu'];
 				$type = Menyitem::TYPE_NORMAL;
 				break;
 			case 'Spacer':
@@ -117,7 +119,7 @@ class msmodul_sidebar implements msmodul{
 				break;
 		}
 		
-		$objMenyitem = new Menyitem($navn, $href, $acl, $type);
+		$objMenyitem = new Menyitem($navn, $href, $acl, $nyttvindu, $type);
 		$objMenyitem->updateDb();
 		
 		if (isset($_REQUEST['targetblokkid'])) {
