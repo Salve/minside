@@ -70,6 +70,11 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
         $page = ($_REQUEST['page']) ?: 'nyheter';
         $act = ($_REQUEST['act']) ?: 'show';
 		
+        global $INFO;
+        if($page == 'admin' && $INFO['isadmin']) {
+            return $this->_genAdmin();
+        }
+        
         try {
             $msdisp = new msdispatcher($page, $this->_msmod, $this, $act, NULL);
             $msoutput = $msdisp->dispatch();
@@ -160,7 +165,16 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 		foreach ($this->_msmod as $msmod) {
 			$msmod->registrer_meny($meny); // hver modul får collection by reference, slik at menyitems kan legges til
 		}
-		
+        
+        global $INFO;
+        if($INFO['isadmin']) {
+            $admintekst = 'Admin';
+            if($_REQUEST['page'] == 'admin') {
+                $admintekst = '<span class="selected">'.$admintekst.'</span>';
+            }
+            $meny->addItem(new Menyitem($admintekst,'&amp;page=admin'));
+        }
+        
 		if ($getObj) return $meny;
 	
 		$output .= '<div class="mstoc">'."\n";
@@ -289,8 +303,175 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
                 $arUsers[$datum['id']] = $user;
 			}
 		}
-        if(MinSide::DEBUG) msg('Lastet ' . count($arUsers) . ' brukere fra database.');
+        if(MinSide::DEBUG) msg('Lastet inn ' . count($arUsers) . ' brukere fra MinSide-database.');
         return $arUsers;
     }
+    
+    public static function forceUserUpdate() {
+        global $conf;
+        global $msdb;
+        
+        // Laster dokuwiki auth backend
+        if (@file_exists(DOKU_INC.'inc/auth/'.$conf['authtype'].'.class.php')) {
+            require_once (DOKU_INC.'inc/auth/basic.class.php');
+            require_once(DOKU_INC.'inc/auth/'.$conf['authtype'].'.class.php');
 
+            $auth_class = "auth_".$conf['authtype'];
+            if (class_exists($auth_class)) {
+                $auth = new $auth_class();
+            } else {
+              nice_die($lang['authmodfailed']);
+            }
+        } else {
+            nice_die($lang['authmodfailed']);
+        }
+        
+        $minsideusers = self::getUsers();
+        $dokuusers = $auth->retrieveUsers();
+        if(self::DEBUG) msg('Lastet inn ' . count($dokuusers) . ' brukere fra DokuWiki');
+        
+        $arMatched = array();
+        $arChanged = array();
+        $arNew = array();
+        $arGone = array();
+        
+        foreach($dokuusers as $username => $wikidata) {
+            foreach($minsideusers as $userid => $minsidedata) {
+                if($username == $minsidedata['wikiname']) {
+                    // Sjekk for changes
+                    if( $wikidata['name'] != $minsidedata['wikifullname'] ||
+                        $wikidata['mail'] != $minsidedata['wikiepost'] ||
+                        implode(',', $wikidata['grps']) != implode(',', $minsidedata['wikigroups']) ) {
+                        if(self::DEBUG) msg('Bruker ' . $username . ' er endret', 2);
+                        $arChanged[$username] = $wikidata;
+                    }
+                    // Merk minsideuser som matched, så vi kan sjekke hvilke som ikke finnes i DW.
+                    $arMatched[] = $userid;
+                    continue 2;
+                }
+            }
+            // Ny bruker
+            if(self::DEBUG) msg('Ny bruker: ' . $username, 2);
+            $arNew[$username] = $wikidata;
+        }
+        
+        // Sjekk for slettede dokuusers
+        foreach($minsideusers as $userid => $minsidedata) {
+            if($minsidedata['isactive'] && !in_array($userid, $arMatched)) {
+                if(self::DEBUG) msg('Slettet bruker: ' . $minsidedata['wikiname'], 2);
+                $arGone[$userid] = $minsidedata;
+            }
+        }
+        
+        $arSql = array();
+        
+        // Behandle slettede brukere
+        if(!empty($arGone)) {
+            if(self::DEBUG) msg('Genererer SQL for deaktivering av ' . count($arGone) . ' slettede brukere');
+            foreach($arGone as $userid => $minsidedata) {
+                $safeid = $msdb->quote($userid);
+                
+                $arSql[] = "UPDATE internusers SET
+                                wikigroups = '',
+                                modifytime = now(),
+                                isactive = '0'
+                            WHERE id = $safeid
+                            LIMIT 1
+                        ;";
+            }
+        }
+        
+        // Behandle nye brukere
+        if(!empty($arNew)) {
+            if(self::DEBUG) msg('Genererer SQL for opprettelse av ' . count($arNew) . ' nye brukere');
+            foreach($arNew as $username => $wikidata) {
+                $safewikiname = $msdb->quote($username);
+                $safewikifullname = $msdb->quote($wikidata['name']);
+                $safewikiepost = $msdb->quote($wikidata['mail']);
+                $safewikigroups = $msdb->quote(implode(',', $wikidata['grps']));
+                
+                $arSql[] = "INSERT INTO internusers SET
+                                wikiname = $safewikiname,
+                                wikifullname = $safewikifullname,
+                                wikiepost = $safewikiepost,
+                                wikigroups = $safewikigroups,
+                                createtime = now(),
+                                modifytime = now(),
+                                isactive = '1'
+                        ;";
+            }
+        }
+        
+        // Behandle endrede brukere
+        if(!empty($arChanged)) {
+            if(self::DEBUG) msg('Genererer SQL for korrigering av ' . count($arChanged) . ' endrede brukere');
+            foreach($arChanged as $username => $wikidata) {
+                $safewikiname = $msdb->quote($username);
+                $safewikifullname = $msdb->quote($wikidata['name']);
+                $safewikiepost = $msdb->quote($wikidata['mail']);
+                $safewikigroups = $msdb->quote(implode(',', $wikidata['grps']));
+                
+                $arSql[] = "UPDATE internusers SET
+                                wikifullname = $safewikifullname,
+                                wikiepost = $safewikiepost,
+                                wikigroups = $safewikigroups,
+                                modifytime = now(),
+                                isactive = '1'
+                            WHERE wikiname = $safewikiname
+                            LIMIT 1
+                        ;";
+            }
+        }
+        
+        $altok = true;
+        if(!empty($arSql)) {
+            if(self::DEBUG) msg('User update: Kjører ' . count($arSql) . ' sql-queries.');
+            foreach($arSql as $sql) {
+                try{
+                    $msdb->exec($sql, true);
+                } catch(Exception $e) {
+                    $altok = false;
+                    if(self::DEBUG) msg('Sql feilet: ' . $e->getMessage(), -1);
+                    continue;
+                }
+            }
+        } else {
+            if(self::DEBUG) msg('User update: Ingen endringer');
+        }
+        
+        return $altok;
+    }
+    
+    private static function _genAdmin() {
+        if($_POST['act'] == 'do_force_user_update') {
+            if(self::DEBUG) msg('ForceUserUpdate requested, starting...');
+            if(self::forceUserUpdate()) {
+                msg('Brukersynkronisering mellom DokuWiki og MinSide var vellykket.', 1);
+            } elseif (self::DEBUG) {
+                msg('Brukersynkronisering mellom DokuWiki og MinSide feilet.', -1);
+            } else {
+                msg('Brukersynkronisering mellom DokuWiki og MinSide feilet, skru på debug for detaljer.', -1);
+            }
+        }
+        
+        return '
+            <div class="minside">
+                <h1>MinSide - Admin</h1>
+                <div class="level1">
+                    <h2>Brukersynkronisering</h2>
+                    <div class="level2">
+                        Denne funksjonen synkroniserer MinSides brukerdatabase med DokuWiki, for alle brukere.<br />
+                        Data synkroniseres normalt kun når en bruker besøker en MinSide-modul direkte (ikke lastet via DokuWiki-syntax, eller i template).<br />
+                        <br />
+                        Brukere som ligger i MinSide, men er fjernet helt fra DokuWiki vil miste alle tilganger, og markeres som inaktive, men fremdeles eksistere i databasen. Dette grunnet knytninger mot brukeres handlinger, f.eks. nyheter. Det anbefales at tilganger fjernes i DokuWiki, i stedet for at bruker slettes. Brukere som ikke finnes i MinSide-databasen vil bli opprettet der.<br />
+                        <br />
+                        <form action="' . MS_LINK . '&amp;page=admin" method="post">
+                            <input type="hidden" name="act" value="do_force_user_update" />
+                            <input type="submit" value="Synkoniser data" class="button" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        ';
+    }
 }
