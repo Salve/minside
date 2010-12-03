@@ -683,8 +683,10 @@ class MsNyhet {
         
         $omrade = $this->getOmrade();
         $nyhetid = $this->getId();
+        $createtime = $this->getCreateTime();
         $safeomrade = $msdb->quote($omrade);
         $safenyhetid = $msdb->quote($nyhetid);
+        $safecreate = $msdb->quote($createtime);
         $sql = "
         SELECT
             users.id AS brukerid,
@@ -702,6 +704,8 @@ class MsNyhet {
                     AND lest.nyhetid = $safenyhetid
         WHERE
             users.isactive = '1'
+          AND
+            users.createtime < $safecreate
         ORDER BY
             ikkelest,
             readtime
