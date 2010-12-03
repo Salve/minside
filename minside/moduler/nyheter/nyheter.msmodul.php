@@ -234,13 +234,7 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level2">';
-        $post = '</div>';
-        
-        return $pre . 
-            NyhetGen::genNyhetStats($objNyhet) .
-            NyhetGen::genFullNyhet($objNyhet, array(), 'nyhetstats') . 
-            $post;
+        return NyhetGen::genNyhetStats($objNyhet);
     }
     
     public function gen_nyhet_arkiv() {

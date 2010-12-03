@@ -444,25 +444,42 @@ class NyhetGen {
     }
     
     public static function genNyhetStats(msnyhet &$objNyhet) {
+        
+        // Valg av periode
+        $section_periode = '<h2>Valg av periode</h2><div class="level3">';
+        $section_periode .= '</div>';
+        
+        
+        // Graph
+        $section_graph = '<h2>Grafisk fremvisning</h2><div class="level3">';
         $arReadList = $objNyhet->getReadList();
-        
-        $res = 60*60*24;
         $googleurl = MsNyhet::getGoogleGraphUri($arReadList);
+        $section_graph .= "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
+        $section_graph .= '</div>';
         
-        $chartimg = "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
-
-        $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
+        // Datagrunnlag
+        $section_tabell = '<h2>Datagrunnlag</h2><div class="level3">';
+        $section_tabell .= 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
+            Brukere med blankt lesetidspunkt har ikke markert nyhet som lest.<pre>';
+        $section_tabell .= "BrukerID\tNavn\tTidspunkt lest\n";
         foreach($arReadList as $readevent) {
-            $strReadTab .= $readevent['brukerid'] . "\t";
-            $strReadTab .= $readevent['brukerfullnavn'] . "\t";
-            $strReadTab .= $readevent['readtime'] . "\n";
+            $section_tabell .= $readevent['brukerid'] . "\t";
+            $section_tabell .= $readevent['brukerfullnavn'] . "\t";
+            $section_tabell .= $readevent['readtime'] . "\n";
         }
-        $strReadTab = 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
-            Brukere med tomt lese-tidspunkt har ikke markert nyhet som lest.
-            <pre>'.$strReadTab.'</pre>';
+        $section_tabell .= '</pre></div>';
+        
+        // Visning av nyhet
+        $section_nyhet = '<h2>Nyhet</h2><div class="level3">';
+        $section_nyhet .= self::genFullNyhet($objNyhet, array(), 'nyhetstats');
+        $section_nyhet .= '</div>';
         
         
-        $output = $chartimg . $debug_dataset . $strReadTab;
+        
+        $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level1">';
+        $post = '</div>';
+        $output = $pre . $section_periode . $section_graph . $section_tabell . 
+            $section_nyhet . $post;
         
         return $output;
     }
