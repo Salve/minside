@@ -754,14 +754,18 @@ div.minside div.nyhetsettext {
 /* Nyhetsarkiv */
 
 div.minside div.arkivoptions {
-    width: 80%;
-    /*margin-left: 3em;*/
-    /*margin-bottom: 1em;*/
-    /*margin-right:3em;*/
-    /*margin:auto;*/
     padding: 1em 1em 0 1em;
+    margin-left: 3em;
+    margin-right: 3em;
     border: 1px #C9D4DF;
-    border-style: solid;    
+    border-style: solid;
+    background-color: white;
+}
+
+div.minside div.arkivoptions_frame {
+    width: 100%;
+    border-style: none;    
+    background-color: #F5F5F5;
 }
 
 div.minside div.arkivoptions div.leftgroup {
@@ -777,6 +781,8 @@ div.minside div.arkivoptions div.rightgroup {
 div.minside div.arkivoptions div.gruppeheader {
     text-align: center;
     font-size: 110%;
+    font-weight: bold;
+    margin: 0.5em;
 }
 
 div.minside div.arkivoptions div.arkivbar {
