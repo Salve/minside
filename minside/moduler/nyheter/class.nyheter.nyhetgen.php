@@ -640,7 +640,7 @@ class NyhetGen {
             '<table>
                 <tr>
                     <td>
-                         Fradato:
+                         Fra:
                     </td>
                     <td>'
                         .$html_datofra.'
@@ -648,7 +648,7 @@ class NyhetGen {
                 </tr>
                 <tr>
                     <td>
-                        Tildato:
+                        Til:
                     </td>
                     <td>'
                         .$html_datotil.'
@@ -774,6 +774,8 @@ class NyhetGen {
         
         // "Template"
         $output = '
+        <div class="arkivoptions_frame">
+            <br />
             <div class="arkivoptions">
                 <form method="POST" action="'.MS_NYHET_LINK.'&amp;act=arkiv">
                 <div class="arkivbar">
@@ -863,6 +865,7 @@ class NyhetGen {
                 '.$html_pagination.'
             </div>
             <br />
+        </div>
         ';
 
         return $output;

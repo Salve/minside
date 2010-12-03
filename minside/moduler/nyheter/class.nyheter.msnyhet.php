@@ -154,22 +154,31 @@ class MsNyhet {
 	}
     public function getTidSidenPub() {
         if(!isset($this->_pubtime)) return false;
-        $pubtime = new DateTime($this->_pubtime);
-        $pubdiff = date_create('now')->diff($pubtime);
+        $pubtime = strtotime($this->_pubtime);
+        $now = time();
+        $pubdiff = $now - $pubtime;
         
-        if($pubdiff->y >= 1) return $pubdiff->y . ' år';
-        if($pubdiff->m > 1) return $pubdiff->m . ' måneder';
-        if($pubdiff->m == 1) return $pubdiff->m . ' måned';
-        if($pubdiff->d > 1) return $pubdiff->d . ' dager';
-        if($pubdiff->d == 1) return $pubdiff->d . ' dag';
-        if($pubdiff->h > 1) return $pubdiff->h . ' timer';
-        if($pubdiff->h == 1) return $pubdiff->h . ' time';
-        if($pubdiff->i > 1) return $pubdiff->i . ' minutter';
-        if($pubdiff->i == 1) return $pubdiff->i . ' minutt';
-        if($pubdiff->s > 1) return $pubdiff->s . ' sekunder';
-        return $pubdiff->s . ' sekund';
+        if($pubdiff < 0) return false;
         
-        
+        $aar = floor($pubdiff / 31536000);
+        if($aar >= 1) return $aar . ' år';
+        $mnd = floor($pubdiff / 2628000);
+        if($mnd > 1) return $mnd . ' måneder';
+        if($mnd == 1) return '1 måned';
+        $uke = floor($pubdiff / 604800);
+        if($uke > 1) return $uke . ' uker';
+        if($uke == 1) return '1 uke';
+        $dag = floor($pubdiff / 86400);
+        if($dag > 1) return $dag . ' dager';
+        if($dag == 1) return '1 dag';
+        $time = floor($pubdiff / 3600);
+        if($time > 1) return $time . ' timer';
+        if($time == 1) return '1 time';
+        $min = floor($pubdiff / 60);
+        if($min > 1) return $min . ' minutter';
+        if($min == 1) return '1 minutt';
+        if($pubdiff > 1) return $pubdiff . ' sekunder';
+        return '1 sekund';
     }
     public function isPublished() {
         $pubtime = strtotime($this->_pubtime);

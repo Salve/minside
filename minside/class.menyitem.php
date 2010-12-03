@@ -6,6 +6,7 @@ class Menyitem {
     protected $_tekst;
     protected $_href;
     protected $_acl;
+    protected $_nyttvindu;
     protected $_type;
     protected $_order;
     protected $_hasChildren = false;
@@ -20,10 +21,11 @@ class Menyitem {
     // Custom-typer
     const TYPE_MSTOC = 10;
 	
-	public function __construct($tekst, $href = NULL, $acl = NULL, $type = NULL) {
+	public function __construct($tekst, $href = NULL, $acl = NULL, $nyttvindu = NULL, $type = NULL) {
 		$this->_tekst = $tekst;
 		$this->_href = $href;
         $this->_acl = $acl;
+        $this->_nyttvindu = (bool) $nyttvindu;
         $this->_type = $type;
 	}
     
@@ -59,6 +61,13 @@ class Menyitem {
     }
     public function setAcl($input) {
         $this->_setvar($this->_acl, $input);
+    }
+    
+    public function getNyttvindu() {
+        return $this->_nyttvindu;
+    }
+    public function setNyttvindu($input) {
+        $this->_setvar($this->_nyttvindu, $input);
     }
     
     public function getType() {
@@ -110,8 +119,8 @@ class Menyitem {
 		$res1 = $msdb->exec($sql_makeroom);
 		$res2 = $msdb->exec($sql_move);
 		if ($res1 === false || $res2 === false) {
-			throw new Exception('Flytting feilet!');
 			$msdb->rollBack();
+            throw new Exception('Flytting feilet!');
 		} else {
 			$msdb->commit();
 			return true;
@@ -211,7 +220,8 @@ class Menyitem {
         $safetekst = $msdb->quote($this->_tekst);
         $safehref = $msdb->quote($this->_href);
         $safeacl = $msdb->quote($this->_acl);
-        $safetype = $msdb->quote($this->_type); 
+        $safetype = $msdb->quote($this->_type);
+        $safenyttvindu = ($this->_nyttvindu) ? '1' : '0';
 
         
         if (!$this->isSaved()) {
@@ -222,13 +232,15 @@ class Menyitem {
                     blokkurl = $safehref,
                     blokktype = $safetype,
                     blokkacl = $safeacl,
-                    blokkorder = $safeorder;"; 
+                    blokkorder = $safeorder,
+                    nyttvindu = $safenyttvindu;"; 
         } else {
             $sql = "UPDATE sidebar_blokk SET
                     blokknavn = $safetekst,
                     blokkurl = $safehref,
                     blokktype = $safetype,
-                    blokkacl = $safeacl
+                    blokkacl = $safeacl,
+                    nyttvindu = $safenyttvindu
                     WHERE blokkid = $safeid
                     LIMIT 1;";
         }
