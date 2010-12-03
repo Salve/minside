@@ -146,7 +146,7 @@ class SidebarGen {
 				$blokk = "<td><span title=\"$acl\">SPACER</span></td>";
 				break;
 			case Menyitem::TYPE_MSTOC:
-				$blokk = '<td class="menu_title" align="left">MinSide meny her</td>';
+				$blokk = '<td class="menu_title" align="left"><span title="'.$acl.'">MinSide meny her</span></td>';
 				break;
 			default:
 				throw new Exception('Ukjent menyitem-type: ' . $objMenyitem->getType());
