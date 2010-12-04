@@ -189,7 +189,7 @@ class NyhetFactory {
                 WHERE nyheter_lest.nyhetid IS NULL
 					AND nyheter_nyhet.omrade IN ($omrader)
 					AND pubtime < NOW()
-                    AND createtime > bruker.createtime
+                    AND nyheter_nyhet.createtime > bruker.createtime
 					AND deletetime IS NULL
                 ORDER BY pubtime ASC, nyheter_nyhet.nyhetid ASC
             ;";
