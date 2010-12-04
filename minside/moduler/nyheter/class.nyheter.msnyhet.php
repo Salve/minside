@@ -855,11 +855,11 @@ class MsNyhet {
                 $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
                 $dagcounter += $dager_per_mark;
             } while($fratid + ($dagcounter * 86400) < $tiltid ); // 86400 = 60*60*24 = 24 timer
-            $x2_tekst = '2:|' . implode('|', $daglabel_val);
-            $x2_pos = '2,' . implode(',', $daglabel_pos);
+            $x2_tekst = '2:|' . implode('|', $daglabel_val) . '|';
+            $x2_pos = '2,' . implode(',', $daglabel_pos) . '|';
         } else {
-            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid);
-            $x2_pos = '2,0';
+            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid) . '|';
+            $x2_pos = '2,0|';
         }
         
         // X1 - Timer/min/sec
@@ -883,6 +883,15 @@ class MsNyhet {
             $x1_pos = '1,' . implode(',', $arX1[1]) .'|';
         }
         
+        // R - Antall lest
+        $lest_per_mark = ceil($total_users / 10);
+        for($i = $lest_per_mark; $i <= $total_users; $i += $lest_per_mark) {
+            $lestlabel_val[] = $i;
+            $lestlabel_pos[] = round(($i / $total_users) * 100);
+        }
+        $r_tekst = '3:|' . implode('|', $lestlabel_val);
+        $r_pos = '3,' . implode(',', $lestlabel_pos);
+        
         // Gen URI
         $dataset = implode(',', $arDataset);
         $googleurl=
@@ -891,13 +900,15 @@ class MsNyhet {
                 "|1,676767,9,0,lt,676767" .
                 "|2,436976,13,0,lt,436976" .
             "&chxtc=1,5|2,10" . // Akse tick mark style
-            "&chxt=y,x,x" . // Akser vist
+            "&chxt=y,x,x,r" . // Akser vist
             "&chxl=" . // Custom labels
                 $x1_tekst .
                 $x2_tekst .
+                $r_tekst .
             "&chxp=" . // Label positions
                 $x1_pos .
                 $x2_pos .
+                $r_pos .
             "&chs=650x450" . // Image size
             "&cht=lc" . // Graph type
             "&chco=436976" . // Linje-farge (data)
