@@ -228,6 +228,17 @@ class msmodul_nyheter implements msmodul {
     public function gen_nyhet_stats() {
         $nyhetid = $_REQUEST['nyhetid'];
         $mode = $_REQUEST['mode'];
+        if(!empty($_REQUEST['fratid'])) {
+            $fratid = strtotime($_REQUEST['fratid']);
+        } else {
+            $fratid = null;
+        }
+        if(!empty($_REQUEST['tiltid'])) {
+            $tiltid = strtotime($_REQUEST['tiltid']);
+        } else {
+            $tiltid = null;
+        }
+        
         try{
             $objNyhet = NyhetFactory::getNyhetById($nyhetid);
         } catch (Exception $e) {
@@ -235,7 +246,7 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        return NyhetGen::genNyhetStats($objNyhet, $mode);
+        return NyhetGen::genNyhetStats($objNyhet, $mode, $fratid, $tiltid);
     }
     
     public function gen_nyhet_arkiv() {

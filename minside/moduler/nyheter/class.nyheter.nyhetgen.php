@@ -446,8 +446,9 @@ class NyhetGen {
     public static function genNyhetStats(msnyhet &$objNyhet, $mode=null, $innfratid=null, $inntiltid=null) {
         $pubtime = strtotime($objNyhet->getPublishTime());
         $nowtime = time();
+        
         switch($mode) {
-            case null:
+            case '0':
                 $fratid = $innfratid;
                 $tiltid = $inntiltid;
                 break;
@@ -524,7 +525,8 @@ class NyhetGen {
                 $tiltid = $nowtime;
                 break;
         }
-        
+        $fratid_tekst = ($fratid) ? date('d.m.Y H:i:s', $fratid) : '';
+        $tiltid_tekst = ($tiltid) ? date('d.m.Y H:i:s', $tiltid) : '';
         
         // Valg av periode
         $section_periode = '<h2>Valg av periode</h2><div class="level3">';
@@ -553,6 +555,17 @@ class NyhetGen {
             </ul>
             <div class="msclearer">&nbsp;</div>
             
+            <form action="?doku.php" method="GET">
+                <input type="hidden" name="do" value="minside" />
+                <input type="hidden" name="act" value="nyhetstats" />
+                <input type="hidden" name="nyhetid" value="'.$objNyhet->getId().'" />
+                <input type="hidden" name="mode" value="0" />
+                Fratid:&nbsp;
+                <input type="text" class="edit" name="fratid" value="'.$fratid_tekst.'" /><br />
+                Tiltid:&nbsp;
+                <input type="text" class="edit" name="tiltid" value="'.$tiltid_tekst.'" /><br />
+                <input type="submit" class="button" value="Generer" />
+            </form>
             ';
         $section_periode .= '</div>';
         
