@@ -777,8 +777,6 @@ class MsNyhet {
         // Resolution er antall sekunder per datapunkt
         // Fra og til tid er timestamps som setter limits for periode som skal vises
         
-        if(MinSide::DEBUG) msg('Starter graph-generation. Gitt fratid: ' . date('d.m.Y H:i', $innfratid) . ', tiltid: ' . date('d.m.Y H:i', $inntiltid));
-        
         $total_users = count($inputdata);
         if($total_users <= 0) throw new Exception('Kan ikke generere statistikk, ingen brukere aktuelle.');
         $sorteddata = array();
@@ -818,7 +816,7 @@ class MsNyhet {
         $arDataset = array();
         for($i=1;$i<=$num_datapoints;$i++) {
             // Sjekk at vi ikke viser data for tidspunkter i fremtiden
-            if(($i * $resolution) + $fratid -1 > time()) {
+            if((($i - 1) * $resolution) + $fratid -1 > time()) {
                 $arDataset[] = -1;
             } else {
                 $counter_lest += $fordeltdata[$i];
@@ -925,6 +923,7 @@ class MsNyhet {
         $sek_fra_midnatt = $starttime - $midnatt_start;
         $forste_mark = (ceil($sek_fra_midnatt / $resolution) * $resolution) + $midnatt_start;
         $periode_lengde = $endtime - $starttime;
+        if($periode_lengde < 1) $periode_lengde = 1;
         
         $mark_array = array();
         $pos_array = array();
