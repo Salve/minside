@@ -852,7 +852,7 @@ class MsNyhet {
                 $daglabel_val[] = $mark_dag.'. '.$mark_mnd;
                 $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
                 $dagcounter += $dager_per_mark;
-            } while($fratid + ($dagcounter * 86400) < $tiltid ); // 86400 = 60*60*24 = 24 timer
+            } while($mark <= $tiltid - (86400 * $dager_per_mark)); // 86400 = 60*60*24 = 24 timer
             $x2_tekst = '2:|' . implode('|', $daglabel_val) . '|';
             $x2_pos = '2,' . implode(',', $daglabel_pos) . '|';
         } else {
