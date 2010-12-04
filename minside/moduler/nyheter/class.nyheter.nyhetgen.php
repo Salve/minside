@@ -443,17 +443,124 @@ class NyhetGen {
         return $output;
     }
     
-    public static function genNyhetStats(msnyhet &$objNyhet) {
+    public static function genNyhetStats(msnyhet &$objNyhet, $mode=null, $innfratid=null, $inntiltid=null) {
+        $pubtime = strtotime($objNyhet->getPublishTime());
+        $nowtime = time();
+        switch($mode) {
+            case null:
+                $fratid = $innfratid;
+                $tiltid = $inntiltid;
+                break;
+            case 1:
+                $fratid = $pubtime;
+                $tiltid = $nowtime;
+                break;
+            case 2:
+                $fratid = null;
+                $tiltid = null;
+                break;
+            case 3:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+1 hour', $pubtime);
+                break;
+            case 4:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+4 hours', $pubtime);
+                break;
+            case 5:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+8 hours', $pubtime);
+                break;
+            case 6:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+24 hours', $pubtime);
+                break;
+            case 7:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+3 days', $pubtime);
+                break;
+            case 8:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+7 days', $pubtime);
+                break;
+            case 9:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+2 weeks', $pubtime);
+                break;
+            case 10:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+1 month', $pubtime);
+                break;
+            case 11:
+                $fratid = strtotime('-4 hours');
+                $tiltid = $nowtime;
+                break;
+            case 12:
+                $fratid = strtotime('-8 hours');
+                $tiltid = $nowtime;
+                break;
+            case 13:
+                $fratid = strtotime('-24 hours');
+                $tiltid = $nowtime;
+                break;
+            case 14:
+                $fratid = strtotime('-3 days');
+                $tiltid = $nowtime;
+                break;
+            case 15:
+                $fratid = strtotime('-7 days');
+                $tiltid = $nowtime;
+                break;
+            case 16:
+                $fratid = strtotime('-2 weeks');
+                $tiltid = $nowtime;
+                break;
+            case 17:
+                $fratid = strtotime('-1 month');
+                $tiltid = $nowtime;
+                break;
+            default:
+                $fratid = $pubtime;
+                $tiltid = $nowtime;
+                break;
+        }
+        
         
         // Valg av periode
         $section_periode = '<h2>Valg av periode</h2><div class="level3">';
+        $section_periode .= '
+            <ul class="nyhetstatspreselect">
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=1">Publiseringstidspunkt til nå</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=2">Fra første til siste datapunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=3">1 time fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=4">4 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=5">8 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=6">24 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=7">3 dager fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=8">7 dager fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=9">2 uker fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=10">1 måned fra publiseringstidspunkt</a></li>
+            </ul>
+            <ul class="nyhetstatspreselect">
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=11">Siste 4 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=12">Siste 8 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=13">Siste 24 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=14">Siste 3 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=15">Siste 7 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=16">Siste 2 uker</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=17">Siste måned</a></li>
+                
+            </ul>
+            <div class="msclearer">&nbsp;</div>
+            
+            ';
         $section_periode .= '</div>';
         
         
         // Graph
         $section_graph = '<h2>Grafisk fremvisning</h2><div class="level3">';
         $arReadList = $objNyhet->getReadList();
-        $googleurl = MsNyhet::getGoogleGraphUri($arReadList);
+        $googleurl = MsNyhet::getGoogleGraphUri($arReadList, null, $fratid, $tiltid);
         $section_graph .= "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
         $section_graph .= '</div>';
         

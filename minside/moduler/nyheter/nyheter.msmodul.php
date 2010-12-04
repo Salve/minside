@@ -227,6 +227,7 @@ class msmodul_nyheter implements msmodul {
     
     public function gen_nyhet_stats() {
         $nyhetid = $_REQUEST['nyhetid'];
+        $mode = $_REQUEST['mode'];
         try{
             $objNyhet = NyhetFactory::getNyhetById($nyhetid);
         } catch (Exception $e) {
@@ -234,7 +235,7 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        return NyhetGen::genNyhetStats($objNyhet);
+        return NyhetGen::genNyhetStats($objNyhet, $mode);
     }
     
     public function gen_nyhet_arkiv() {

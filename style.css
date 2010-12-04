@@ -825,6 +825,12 @@ div.minside div.arkivunder {
     /*margin:auto;*/
 }
 
+/* Nyhet stats */
+
+div.minside ul.nyhetstatspreselect {
+    float: left;
+}
+
 /* Område ADM */
 
 div.minside div.omradeadmwrap {

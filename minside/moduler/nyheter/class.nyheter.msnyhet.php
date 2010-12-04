@@ -777,7 +777,10 @@ class MsNyhet {
         // Resolution er antall sekunder per datapunkt
         // Fra og til tid er timestamps som setter limits for periode som skal vises
         
+        if(MinSide::DEBUG) msg('Starter graph-generation. Gitt fratid: ' . date('d.m.Y H:i', $innfratid) . ', tiltid: ' . date('d.m.Y H:i', $inntiltid));
+        
         $total_users = count($inputdata);
+        if($total_users <= 0) throw new Exception('Kan ikke generere statistikk, ingen brukere aktuelle.');
         $sorteddata = array();
         foreach($inputdata as $datum) {
             if($datum['ikkelest'] == 0) {
