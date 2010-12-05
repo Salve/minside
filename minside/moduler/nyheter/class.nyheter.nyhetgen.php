@@ -571,7 +571,7 @@ class NyhetGen {
         
         
         // Graph
-        $section_graph = '<h2>Grafisk fremvisning</h2><div class="level3">';
+        $section_graph = '<h2>Diagram</h2><div class="level3">';
         $arReadList = $objNyhet->getReadList();
         $googleurl = MsNyhet::getGoogleGraphUri($arReadList, null, $fratid, $tiltid);
         $section_graph .= "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
@@ -598,7 +598,7 @@ class NyhetGen {
         
         $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level1">';
         $post = '</div>';
-        $output = $pre . $section_periode . $section_graph . $section_tabell . 
+        $output = $pre . $section_graph . $section_periode . $section_tabell . 
             $section_nyhet . $post;
         
         return $output;
