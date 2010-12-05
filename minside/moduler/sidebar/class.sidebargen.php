@@ -130,8 +130,8 @@ class SidebarGen {
             $menyitem = '<em>' . $menyitem . '</em>';
         }
         
-		$opt['move'] = '<input type="image" src="'.MS_IMG_PATH.'insert.gif" width=16 height=16 alt="flytt" ' .
-					'title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . $objMenyitem->getId() . '">';
+		$opt['move'] = '<input type="submit" title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . 
+                    $objMenyitem->getId() . '" class="reorder" />&nbsp;';
 		$opt['trash'] = '<a href="'. MS_LINK.'&amp;page=sidebar&amp;act=sidebarrem&amp;blokkid='. $objMenyitem->getId() .
 					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" title="Slett blokk"></a>';
 		

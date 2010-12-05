@@ -849,6 +849,21 @@ table.sidebaradm td {
 	padding-right: 5px;
 }
 
+div.minside input.reorder {
+background: transparent url(./minside/bilder/insert.gif) no-repeat scroll 0 0;
+cursor: pointer;
+overflow: hidden;
+font-size: 1em;
+width: 16px;
+height: 16px;
+border-style: none;
+border-width: 0;
+padding: 0 0 0 16px !important;
+text-align: left;
+line-height: 1 !important;
+color: transparent;
+}
+
 div.sidebaradmin_right input.msbutton {
 	width: 150px;
 }
