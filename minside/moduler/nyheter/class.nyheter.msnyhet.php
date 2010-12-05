@@ -838,6 +838,7 @@ class MsNyhet {
         
         $dager_i_periode = floor($periode_lengde / 86400);
         $dager_per_mark = ceil($dager_i_periode / 10);
+        if($dager_per_mark < 1) $dager_per_mark = 1;
         
         if($minst_to_dager) {
             $daglabel_val = array();
