@@ -29,9 +29,14 @@ class SidebarGen {
 		
 		$href = $objMenyitem->getHref();
 		$tekst = $objMenyitem->getTekst();
+        $nyttvindu = $objMenyitem->getNyttvindu();
 		
+        if($nyttvindu) {
+            $target = ' target="_blank"';
+        }
+        
 		if (!empty($href)) {
-			$menyitem = "<a href=\"$href\" class=\"menu_item\">$tekst</a>";
+			$menyitem = "<a href=\"$href\" class=\"menu_item\"$target>$tekst</a>";
 		} else {
 			$menyitem = $tekst;
 		}
