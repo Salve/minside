@@ -820,7 +820,7 @@ class MsNyhet {
                 $arDataset[] = -1;
             } else {
                 $counter_lest += $fordeltdata[$i];
-                $arDataset[] = round(($counter_lest / $total_users) * 100);
+                $arDataset[] = round(($counter_lest / $total_users) * 1000);
             }
         }
         
@@ -850,7 +850,7 @@ class MsNyhet {
                 $mark_mnd_nr = date('n', $mark);
                 $mark_mnd = NyhetGen::$mnd_navn_kort[$mark_mnd_nr];
                 $daglabel_val[] = $mark_dag.'. '.$mark_mnd;
-                $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
+                $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 1000);
                 $dagcounter += $dager_per_mark;
             } while($mark <= $tiltid - (86400 * $dager_per_mark)); // 86400 = 60*60*24 = 24 timer
             $x2_tekst = '2:|' . implode('|', $daglabel_val) . '|';
@@ -882,23 +882,27 @@ class MsNyhet {
         }
         
         // R - Antall lest
-        $lest_per_mark = ceil($total_users / 10);
+        $lest_per_mark = ceil($total_users / 20);
         for($i = $lest_per_mark; $i <= $total_users; $i += $lest_per_mark) {
             $lestlabel_val[] = $i;
-            $lestlabel_pos[] = round(($i / $total_users) * 100);
+            $lestlabel_pos[] = round(($i / $total_users) * 1000);
         }
         $r_tekst = '3:|' . implode('|', $lestlabel_val);
         $r_pos = '3,' . implode(',', $lestlabel_pos);
+        
+        // Scale på y-gridlines
+        $y_grid_spacing = round(100 / ($total_users / $lest_per_mark), 2);
         
         // Gen URI
         $dataset = implode(',', $arDataset);
         $googleurl=
             "http://chart.apis.google.com/chart" .
-            "?chxs=0N**%25,676767,13,0,l,676767" . // Aksedetaljer
+            "?chxs=0N**%25,676767,13,0,lt,676767" . // Aksedetaljer
                 "|1,676767,9,0,lt,676767" .
                 "|2,436976,13,0,lt,436976" .
             "&chxtc=1,5|2,10" . // Akse tick mark style
             "&chxt=y,x,x,r" . // Akser vist
+            "&chxr=1,0,1000|2,0,1000|3,0,1000" . // Scale på aksene
             "&chxl=" . // Custom labels
                 $x1_tekst .
                 $x2_tekst .
@@ -911,10 +915,13 @@ class MsNyhet {
             "&cht=lc" . // Graph type
             "&chco=436976" . // Linje-farge (data)
             "&chd=t:$dataset" . // Data
-            "&chg=10,5,1,3" . // Grid style
+            "&chds=0,1000" . // Scale på y-aksen
+            "&chg=0,$y_grid_spacing,1,3" . // Grid style
             "&chls=2,4,0" . // Line style
             "&chm=B,DEE7ECBB,0,0,0"; // Fill under kurve
-        if(strlen($googleurl) > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
+        $url_len = strlen($googleurl);
+        if(MinSide::DEBUG) msg('Google graph uri generert. Lengde: ' . $url_len);
+        if($url_len > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
         return $googleurl;
     }
     
@@ -931,7 +938,7 @@ class MsNyhet {
             $mark_array[] = date($tidsformat, $i);
             
             $mark_fra_start = $i - $starttime;
-            $pos_array[] = round(($mark_fra_start / $periode_lengde) * 100);
+            $pos_array[] = round(($mark_fra_start / $periode_lengde) * 1000);
         }
         
         return array($mark_array, $pos_array);
