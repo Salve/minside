@@ -683,8 +683,10 @@ class MsNyhet {
         
         $omrade = $this->getOmrade();
         $nyhetid = $this->getId();
+        $createtime = $this->getCreateTime();
         $safeomrade = $msdb->quote($omrade);
         $safenyhetid = $msdb->quote($nyhetid);
+        $safecreate = $msdb->quote($createtime);
         $sql = "
         SELECT
             users.id AS brukerid,
@@ -702,6 +704,8 @@ class MsNyhet {
                     AND lest.nyhetid = $safenyhetid
         WHERE
             users.isactive = '1'
+          AND
+            users.createtime < $safecreate
         ORDER BY
             ikkelest,
             readtime
@@ -774,6 +778,7 @@ class MsNyhet {
         // Fra og til tid er timestamps som setter limits for periode som skal vises
         
         $total_users = count($inputdata);
+        if($total_users <= 0) throw new Exception('Kan ikke generere statistikk, ingen brukere aktuelle.');
         $sorteddata = array();
         foreach($inputdata as $datum) {
             if($datum['ikkelest'] == 0) {
@@ -811,11 +816,11 @@ class MsNyhet {
         $arDataset = array();
         for($i=1;$i<=$num_datapoints;$i++) {
             // Sjekk at vi ikke viser data for tidspunkter i fremtiden
-            if(($i * $resolution) + $fratid -1 > time()) {
+            if((($i - 1) * $resolution) + $fratid -1 > time()) {
                 $arDataset[] = -1;
             } else {
                 $counter_lest += $fordeltdata[$i];
-                $arDataset[] = round(($counter_lest / $total_users) * 100);
+                $arDataset[] = round(($counter_lest / $total_users) * 1000);
             }
         }
         
@@ -833,6 +838,7 @@ class MsNyhet {
         
         $dager_i_periode = floor($periode_lengde / 86400);
         $dager_per_mark = ceil($dager_i_periode / 10);
+        if($dager_per_mark < 1) $dager_per_mark = 1;
         
         if($minst_to_dager) {
             $daglabel_val = array();
@@ -845,14 +851,14 @@ class MsNyhet {
                 $mark_mnd_nr = date('n', $mark);
                 $mark_mnd = NyhetGen::$mnd_navn_kort[$mark_mnd_nr];
                 $daglabel_val[] = $mark_dag.'. '.$mark_mnd;
-                $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 100);
+                $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 1000);
                 $dagcounter += $dager_per_mark;
-            } while($fratid + ($dagcounter * 86400) < $tiltid ); // 86400 = 60*60*24 = 24 timer
-            $x2_tekst = '2:|' . implode('|', $daglabel_val);
-            $x2_pos = '2,' . implode(',', $daglabel_pos);
+            } while($mark <= $tiltid - (86400 * $dager_per_mark)); // 86400 = 60*60*24 = 24 timer
+            $x2_tekst = '2:|' . implode('|', $daglabel_val) . '|';
+            $x2_pos = '2,' . implode(',', $daglabel_pos) . '|';
         } else {
-            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid);
-            $x2_pos = '2,0';
+            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid) . '|';
+            $x2_pos = '2,0|';
         }
         
         // X1 - Timer/min/sec
@@ -876,29 +882,47 @@ class MsNyhet {
             $x1_pos = '1,' . implode(',', $arX1[1]) .'|';
         }
         
+        // R - Antall lest
+        $lest_per_mark = ceil($total_users / 20);
+        for($i = $lest_per_mark; $i <= $total_users; $i += $lest_per_mark) {
+            $lestlabel_val[] = $i;
+            $lestlabel_pos[] = round(($i / $total_users) * 1000);
+        }
+        $r_tekst = '3:|' . implode('|', $lestlabel_val);
+        $r_pos = '3,' . implode(',', $lestlabel_pos);
+        
+        // Scale på y-gridlines
+        $y_grid_spacing = round(100 / ($total_users / $lest_per_mark), 2);
+        
         // Gen URI
         $dataset = implode(',', $arDataset);
         $googleurl=
             "http://chart.apis.google.com/chart" .
-            "?chxs=0N**%25,676767,13,0,l,676767" . // Aksedetaljer
+            "?chxs=0N**%25,676767,13,0,lt,676767" . // Aksedetaljer
                 "|1,676767,9,0,lt,676767" .
                 "|2,436976,13,0,lt,436976" .
             "&chxtc=1,5|2,10" . // Akse tick mark style
-            "&chxt=y,x,x" . // Akser vist
+            "&chxt=y,x,x,r" . // Akser vist
+            "&chxr=1,0,1000|2,0,1000|3,0,1000" . // Scale på aksene
             "&chxl=" . // Custom labels
                 $x1_tekst .
                 $x2_tekst .
+                $r_tekst .
             "&chxp=" . // Label positions
                 $x1_pos .
                 $x2_pos .
+                $r_pos .
             "&chs=650x450" . // Image size
             "&cht=lc" . // Graph type
             "&chco=436976" . // Linje-farge (data)
             "&chd=t:$dataset" . // Data
-            "&chg=10,5,1,3" . // Grid style
+            "&chds=0,1000" . // Scale på y-aksen
+            "&chg=0,$y_grid_spacing,1,3" . // Grid style
             "&chls=2,4,0" . // Line style
             "&chm=B,DEE7ECBB,0,0,0"; // Fill under kurve
-        if(strlen($googleurl) > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
+        $url_len = strlen($googleurl);
+        if(MinSide::DEBUG) msg('Google graph uri generert. Lengde: ' . $url_len);
+        if($url_len > 2000 ) throw new Exception('Feil under generering av graf. URI for lang.');
         return $googleurl;
     }
     
@@ -907,6 +931,7 @@ class MsNyhet {
         $sek_fra_midnatt = $starttime - $midnatt_start;
         $forste_mark = (ceil($sek_fra_midnatt / $resolution) * $resolution) + $midnatt_start;
         $periode_lengde = $endtime - $starttime;
+        if($periode_lengde < 1) $periode_lengde = 1;
         
         $mark_array = array();
         $pos_array = array();
@@ -914,7 +939,7 @@ class MsNyhet {
             $mark_array[] = date($tidsformat, $i);
             
             $mark_fra_start = $i - $starttime;
-            $pos_array[] = round(($mark_fra_start / $periode_lengde) * 100);
+            $pos_array[] = round(($mark_fra_start / $periode_lengde) * 1000);
         }
         
         return array($mark_array, $pos_array);

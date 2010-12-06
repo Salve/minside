@@ -1,28 +1,18 @@
 <?php
-die('Du har glemt å fjerne andre linje i main.php (tpl-mappen)...'); // Fjern denne linjen om siden kopieres inn i tpl...
+//die('Du har glemt å fjerne andre linje i main.php (tpl-mappen)...'); // Fjern denne linjen om siden kopieres inn i tpl...
 /**
- * Modifisert simple_sidebar-template, som er basert på DokuWiki default template.
+ * MinSide-Sidebar template til DokuWiki
  *
- * This is the template you need to change for the overall look
- * of DokuWiki.
- *
- * You should leave the doctype at the very top - It should
- * always be the very first line of a document.
+ * Template er kopi av default template fra Anteater
+ * med minimum av modifikasjoner nødvendig for å loade sidebaren
  *
  * @link   http://dokuwiki.org/templates
  * @author Andreas Gohr <andi@splitbrain.org>
- * @author Salve Spinnangr <salve.spinnangr@gmail.com>
+ * @author Salve Spinnangr <salve@salves.net>
  */
 
 // must be run from within DokuWiki
 if (!defined('DOKU_INC')) die();
-
-
-    function _hide_email($email) {
-          $encode = '';
-          for ($x=0; $x < strlen($email); $x++) $encode .= '&#x' . bin2hex($email{$x}).';';
-          return $encode;
-    }
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -45,11 +35,7 @@ if (!defined('DOKU_INC')) die();
 
 <body>
 <?php /*old includehook*/ @include(dirname(__FILE__).'/topheader.html')?>
-
-<!--  TOP BAR -->
-
-<div id="top_bar" class="dokuwiki">
-
+<div class="dokuwiki">
   <?php html_msgarea()?>
 
   <div class="stylehead">
@@ -63,7 +49,7 @@ if (!defined('DOKU_INC')) die();
       </div>
 
       <div class="clearer"></div>
-    </div>  <!-- header -->
+    </div>
 
     <?php /*old includehook*/ @include(dirname(__FILE__).'/header.html')?>
 
@@ -77,12 +63,14 @@ if (!defined('DOKU_INC')) die();
         <?php tpl_button('recent')?>
         <?php tpl_searchform()?>&nbsp;
       </div>
+
       <div class="clearer"></div>
-    </div>  <!-- bar__top -->
+    </div>
 
     <?php if($conf['breadcrumbs']){?>
     <div class="breadcrumbs">
       <?php tpl_breadcrumbs()?>
+      <?php //tpl_youarehere() //(some people prefer this)?>
     </div>
     <?php }?>
 
@@ -92,67 +80,76 @@ if (!defined('DOKU_INC')) die();
     </div>
     <?php }?>
 
-  </div> <!-- stylehead -->
-
-  <?php flush()?>
-
-  <?php /*old includehook*/ @include(dirname(__FILE__).'/pageheader.html')?>
-</div> <!--top_bar-->
-
-<!--  TOP BAR END -->
-
-
-<!--  WRAPPER START-->
-
-<div id="wrapper">
-<div id="main_page" class="dokuwiki">
-
-<?php 
+  </div>
+  <?php tpl_flush()?>
+  
+  <div class="mssidebar">
+<?php
+    // MinSide-edit start
+    
+    // Starter nytt layer med output buffering, for å ta vare på
+    // output fra tpl_content(), som genererer alt innhold i en wikiside,
+    // dette inkluderer normal output fra MinSide som gir output til DW
+    // via en plugin hook.
+    
     ob_start();
     tpl_content();
-    $keep_tpl_content = ob_get_contents();
-    ob_end_clean();
+    $keep_tpl_content = ob_get_clean();
     
+    // Så loader vi MinSide-classen og genererer/outputer sidebar
+    // Dette gjøres altså etter hovedside-content er generert, men før
+    // det er outputet.
+    
+    // Loader ikke sidebar dersom bruker ikke er logget inn.
     if (!empty($_SERVER['REMOTE_USER'])) {
         require_once(DOKU_PLUGIN.'minside/minside/minside.php');
         $objMinSide = MinSide::getInstance();
-        echo $objMinSide->genModul('sidebar', 'show'); 
+        try {
+            echo $objMinSide->genModul('sidebar', 'show'); 
+        } catch(Exception $e) {
+            echo 'Klarte ikke å generere sidebar: ' . $e->getMessage();
+        }
     }
+    
+    // MinSide-edit slutt
 ?>
+  </div>
+  
+  <?php tpl_flush()?>
+  
+  <?php /*old includehook*/ @include(dirname(__FILE__).'/pageheader.html')?>
 
-<div class="page">
-<div class="right_page">
-
+  <div class="page">
     <!-- wikipage start -->
-    <?php echo $keep_tpl_content; ?>
+    <?php /* Output content vi cacha over */ echo $keep_tpl_content ?>
     <!-- wikipage stop -->
-  </div>  <!-- right_page-->
-  </div>  <!-- page -->
-
+  </div>
 
   <div class="clearer">&nbsp;</div>
 
-  <?php flush()?>
+  <?php tpl_flush()?>
 
- <div class="stylefoot" id="bottom_div">
+  <div class="stylefoot">
 
-      
-      <div class="meta">
-        <?php tpl_userinfo()?>  <?php tpl_pageinfo()?>&nbsp;&nbsp;
+    <div class="meta">
+      <div class="user">
+        <?php tpl_userinfo()?>
       </div>
-   
-    
+      <div class="doc">
+        <?php tpl_pageinfo()?>
+      </div>
+    </div>
 
    <?php /*old includehook*/ @include(dirname(__FILE__).'/pagefooter.html')?>
-   <br />
+
     <div class="bar" id="bar__bottom">
       <div class="bar-left" id="bar__bottomleft">
         <?php tpl_button('edit')?>
         <?php tpl_button('history')?>
+        <?php tpl_button('revert')?>
       </div>
       <div class="bar-right" id="bar__bottomright">
         <?php tpl_button('subscribe')?>
-        <?php tpl_button('subscribens')?>
         <?php tpl_button('admin')?>
         <?php tpl_button('profile')?>
         <?php tpl_button('login')?>
@@ -160,20 +157,15 @@ if (!defined('DOKU_INC')) die();
         <?php tpl_button('top')?>&nbsp;
       </div>
       <div class="clearer"></div>
-    </div>  <!-- end bar__bottom-->
+    </div>
 
-  </div>  <!-- end stylefoot-->
+  </div>
 
-</div>  <!-- end main_page -->
+  <?php tpl_license(false);?>
 
-<div id="footer">
-<?php /*old includehook*/ @include(dirname(__FILE__).'/footer.html') ?>
 </div>
-
+<?php /*old includehook*/ /* MinSide edit, disabler linje med donasjon osv @include(dirname(__FILE__).'/footer.html') */ ?>
 
 <div class="no"><?php /* provide DokuWiki housekeeping, required in all templates */ tpl_indexerWebBug()?></div>
-
-</div>  <!-- wrapper -->
-<!--  WRAPPER END -->
 </body>
 </html>

@@ -8,17 +8,11 @@ class SidebarGen {
             return self::GenEmptySidebar($adgang);
         }
         
-		$output .= '<div class="left_sidebar">' .
-				   '<TABLE cellspacing=4>';
-		
 		foreach ($objSidebar as $objMenyitem) {
 			if ($objMenyitem->checkAcl() === true) {
 				$output .= self::GenMenyitem($objMenyitem);
 			}
 		}
-		
-		$output .= '</TABLE>' .
-				   '</div>  <!-- end left_sidebar-->';
 		
 		return $output;
 	
@@ -29,30 +23,35 @@ class SidebarGen {
 		
 		$href = $objMenyitem->getHref();
 		$tekst = $objMenyitem->getTekst();
+        $nyttvindu = $objMenyitem->getNyttvindu();
 		
+        if($nyttvindu) {
+            $target = ' target="_blank"';
+        }
+        
 		if (!empty($href)) {
-			$menyitem = "<a href=\"$href\" class=\"menu_item\">$tekst</a>";
+			$menyitem = "<a href=\"$href\" class=\"menu_item\"$target>$tekst</a>";
 		} else {
 			$menyitem = $tekst;
 		}
 		
 		switch ($objMenyitem->getType()) {
 			case Menyitem::TYPE_HEADER:
-				$output = '<tr><td class="menu_title" align="left">' .
+				$output = '<div class="sidebarblokk_header">' .
 						  $menyitem .
-						  '</td></tr>' . "\n";
+						  '</div>' . "\n";
 				break;
 			case Menyitem::TYPE_NORMAL:
-				$output = '<tr><td>' .
+				$output = '<div class="sidebarblokk_item">' .
 						  $menyitem .
-						  '</td></tr>';
+						  '</div>' . "\n";
 				break;
 			case Menyitem::TYPE_SPACER:
-				$output = "<tr><td>&nbsp;</td></tr>\n";
+				$output = "<div class=\"sidebarblokk_spacer\">&nbsp;</div>\n";
 				break;
 			case Menyitem::TYPE_MSTOC:
 				$objMinSide = MinSide::getInstance();
-				return '<tr><td>' . $objMinSide->getMeny() . '</td></tr>';
+				return '<div class="sidebarblokk_mstoc">' . $objMinSide->getMeny() . '</div>';
 				break;
 			default:
 				throw new Exception('Ukjent menyitem-type: ' . $objMenyitem->getType());
@@ -130,8 +129,8 @@ class SidebarGen {
             $menyitem = '<em>' . $menyitem . '</em>';
         }
         
-		$opt['move'] = '<input type="image" src="'.MS_IMG_PATH.'insert.gif" width=16 height=16 alt="flytt" ' .
-					'title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . $objMenyitem->getId() . '">';
+		$opt['move'] = '<input type="submit" title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . 
+                    $objMenyitem->getId() . '" class="reorder" />&nbsp;';
 		$opt['trash'] = '<a href="'. MS_LINK.'&amp;page=sidebar&amp;act=sidebarrem&amp;blokkid='. $objMenyitem->getId() .
 					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" title="Slett blokk"></a>';
 		

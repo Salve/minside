@@ -167,8 +167,10 @@ class msmodul_feilmrapport implements msmodul{
 			default:
 				$this->_frapout .= $this->genSkift();
 		}
-						
-		return $this->_frapout;
+        
+        $output = $this->_frapout;
+        $this->_frapout = '';
+		return $output;
 	
 	}
 	

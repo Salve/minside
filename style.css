@@ -196,16 +196,6 @@ div.minside li.msclosed {
     /*list-style-type: disc;*/
 }
 
-div.mstoc {
-	/*position: absolute;
-	right: -205px;
-	clear:both;
-	float:right;
-	font-size:100%;
-	margin:1.2em 0 0 2em;
-	width:200px;*/
-}
-
 div.mstoc span.selected {
     font-weight: bold;
 }
@@ -229,28 +219,8 @@ div.resultater .top {
 
 div.mstoc .meny {
 	width: 100%;
-	/*border: 1px #8cacbb;
-	border-style: solid;
-    float:left;*/
 	background-color: white;
 	overflow: hidden;
-}
-
-#mstoc__inside {
-  border: 1px solid #8b7355;
-
-  text-align: left;
-  padding: 0.5em 0 0.7em 0;
-}
-
-div.mstocheader {
-  /*border: 1px solid #8CACBB;*/
-  background-color: #DEE7EC;
-  text-align: left;
-  font-weight: bold;
-  /*padding: 3px;*/
-  margin-bottom: 2px;
-  width:100%;
 }
 
 div.minside th {
@@ -825,6 +795,12 @@ div.minside div.arkivunder {
     /*margin:auto;*/
 }
 
+/* Nyhet stats */
+
+div.minside ul.nyhetstatspreselect {
+    float: left;
+}
+
 /* Område ADM */
 
 div.minside div.omradeadmwrap {
@@ -839,8 +815,19 @@ div.minside table.omradeadmtbl {
 
 /* Sidebar */
 
-table.sidebaradm td {
-	padding-right: 5px;
+div.minside input.reorder {
+background: transparent url(./minside/bilder/insert.gif) no-repeat scroll 0 0;
+cursor: pointer;
+overflow: hidden;
+font-size: 1em;
+width: 16px;
+height: 16px;
+border-style: none;
+border-width: 0;
+padding: 0 0 0 16px !important;
+text-align: left;
+line-height: 1 !important;
+color: transparent;
 }
 
 div.sidebaradmin_right input.msbutton {
@@ -865,4 +852,12 @@ div#main_page > div.left_sidebar {
 div#main_page > div.left_sidebar table{
     width: 140px;
     overflow: hidden;
+}
+
+table.sidebaradm td {
+    font-weight: bold;
+}
+
+table.sidebaradm td.menu_title {
+    background-color: __background_alt__;
 }

@@ -199,7 +199,7 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
         $nyhet_hits = array();
         foreach($event->result as $key => $id) {
             // Funksjonen returnerer int(0) på match
-            if(substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
+            if(strlen($id) > 10 && substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
                 $nyhet_hits[] = $id;
                 // Sørg for at nyhet-hits ikke vises i normalt resultat
                 unset($event->result[$key]);

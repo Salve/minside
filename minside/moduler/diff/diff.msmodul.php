@@ -22,8 +22,6 @@ class msmodul_diff implements msmodul{
 	public function gen_msmodul($act, $vars){
 		$this->_msmodulAct = $act;
 		$this->_msmodulVars = $vars;
-
-		$this->_diffOut = 'Dette er output fra Diff! UserId er: '. $this->_userID . ' act er: ' . $this->_msmodulAct . '<br /><br />';
 		
 		if ($this->_msmodulAct == 'dispdiff') {
 			$text1 = explode ("\n", $_POST['difftext1']);

@@ -443,26 +443,163 @@ class NyhetGen {
         return $output;
     }
     
-    public static function genNyhetStats(msnyhet &$objNyhet) {
-        $arReadList = $objNyhet->getReadList();
+    public static function genNyhetStats(msnyhet &$objNyhet, $mode=null, $innfratid=null, $inntiltid=null) {
+        $pubtime = strtotime($objNyhet->getPublishTime());
+        $nowtime = time();
         
-        $res = 60*60*24;
-        $googleurl = MsNyhet::getGoogleGraphUri($arReadList);
-        
-        $chartimg = "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
-
-        $strReadTab = "BrukerID\tNavn\tTidspunkt lest\n";
-        foreach($arReadList as $readevent) {
-            $strReadTab .= $readevent['brukerid'] . "\t";
-            $strReadTab .= $readevent['brukerfullnavn'] . "\t";
-            $strReadTab .= $readevent['readtime'] . "\n";
+        switch($mode) {
+            case '0':
+                $fratid = $innfratid;
+                $tiltid = $inntiltid;
+                break;
+            case 1:
+                $fratid = $pubtime;
+                $tiltid = $nowtime;
+                break;
+            case 2:
+                $fratid = null;
+                $tiltid = null;
+                break;
+            case 3:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+1 hour', $pubtime);
+                break;
+            case 4:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+4 hours', $pubtime);
+                break;
+            case 5:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+8 hours', $pubtime);
+                break;
+            case 6:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+24 hours', $pubtime);
+                break;
+            case 7:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+3 days', $pubtime);
+                break;
+            case 8:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+7 days', $pubtime);
+                break;
+            case 9:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+2 weeks', $pubtime);
+                break;
+            case 10:
+                $fratid = $pubtime;
+                $tiltid = strtotime('+1 month', $pubtime);
+                break;
+            case 11:
+                $fratid = strtotime('-4 hours');
+                $tiltid = $nowtime;
+                break;
+            case 12:
+                $fratid = strtotime('-8 hours');
+                $tiltid = $nowtime;
+                break;
+            case 13:
+                $fratid = strtotime('-24 hours');
+                $tiltid = $nowtime;
+                break;
+            case 14:
+                $fratid = strtotime('-3 days');
+                $tiltid = $nowtime;
+                break;
+            case 15:
+                $fratid = strtotime('-7 days');
+                $tiltid = $nowtime;
+                break;
+            case 16:
+                $fratid = strtotime('-2 weeks');
+                $tiltid = $nowtime;
+                break;
+            case 17:
+                $fratid = strtotime('-1 month');
+                $tiltid = $nowtime;
+                break;
+            default:
+                $fratid = $pubtime;
+                $tiltid = $nowtime;
+                break;
         }
-        $strReadTab = 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
-            Brukere med tomt lese-tidspunkt har ikke markert nyhet som lest.
-            <pre>'.$strReadTab.'</pre>';
+        $fratid_tekst = ($fratid) ? date('d.m.Y H:i:s', $fratid) : '';
+        $tiltid_tekst = ($tiltid) ? date('d.m.Y H:i:s', $tiltid) : '';
+        
+        // Valg av periode
+        $section_periode = '<h2>Valg av periode</h2><div class="level3">';
+        $section_periode .= '
+            <ul class="nyhetstatspreselect">
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=1">Publiseringstidspunkt til nå</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=2">Fra første til siste datapunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=3">1 time fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=4">4 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=5">8 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=6">24 timer fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=7">3 dager fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=8">7 dager fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=9">2 uker fra publiseringstidspunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=10">1 måned fra publiseringstidspunkt</a></li>
+            </ul>
+            <ul class="nyhetstatspreselect">
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=11">Siste 4 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=12">Siste 8 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=13">Siste 24 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=14">Siste 3 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=15">Siste 7 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=16">Siste 2 uker</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=17">Siste måned</a></li>
+                
+            </ul>
+            <div class="msclearer">&nbsp;</div>
+            
+            <form action="?doku.php" method="GET">
+                <input type="hidden" name="do" value="minside" />
+                <input type="hidden" name="act" value="nyhetstats" />
+                <input type="hidden" name="nyhetid" value="'.$objNyhet->getId().'" />
+                <input type="hidden" name="mode" value="0" />
+                Fratid:&nbsp;
+                <input type="text" class="edit" name="fratid" value="'.$fratid_tekst.'" /><br />
+                Tiltid:&nbsp;
+                <input type="text" class="edit" name="tiltid" value="'.$tiltid_tekst.'" /><br />
+                <input type="submit" class="button" value="Generer" />
+            </form>
+            ';
+        $section_periode .= '</div>';
         
         
-        $output = $chartimg . $debug_dataset . $strReadTab;
+        // Graph
+        $section_graph = '<h2>Diagram</h2><div class="level3">';
+        $arReadList = $objNyhet->getReadList();
+        $googleurl = MsNyhet::getGoogleGraphUri($arReadList, null, $fratid, $tiltid);
+        $section_graph .= "<img src=\"$googleurl\" height=\"450\" width=\"650\" alt=\"Prosent som har lest nyhet\" />";
+        $section_graph .= '</div>';
+        
+        // Datagrunnlag
+        $section_tabell = '<h2>Datagrunnlag</h2><div class="level3">';
+        $section_tabell .= 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
+            Brukere med blankt lesetidspunkt har ikke markert nyhet som lest.<pre>';
+        $section_tabell .= "BrukerID\tNavn\tTidspunkt lest\n";
+        foreach($arReadList as $readevent) {
+            $section_tabell .= $readevent['brukerid'] . "\t";
+            $section_tabell .= $readevent['brukerfullnavn'] . "\t";
+            $section_tabell .= $readevent['readtime'] . "\n";
+        }
+        $section_tabell .= '</pre></div>';
+        
+        // Visning av nyhet
+        $section_nyhet = '<h2>Nyhet</h2><div class="level3">';
+        $section_nyhet .= self::genFullNyhet($objNyhet, array(), 'nyhetstats');
+        $section_nyhet .= '</div>';
+        
+        
+        
+        $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level1">';
+        $post = '</div>';
+        $output = $pre . $section_graph . $section_periode . $section_tabell . 
+            $section_nyhet . $post;
         
         return $output;
     }

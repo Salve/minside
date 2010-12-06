@@ -227,6 +227,18 @@ class msmodul_nyheter implements msmodul {
     
     public function gen_nyhet_stats() {
         $nyhetid = $_REQUEST['nyhetid'];
+        $mode = $_REQUEST['mode'];
+        if(!empty($_REQUEST['fratid'])) {
+            $fratid = strtotime($_REQUEST['fratid']);
+        } else {
+            $fratid = null;
+        }
+        if(!empty($_REQUEST['tiltid'])) {
+            $tiltid = strtotime($_REQUEST['tiltid']);
+        } else {
+            $tiltid = null;
+        }
+        
         try{
             $objNyhet = NyhetFactory::getNyhetById($nyhetid);
         } catch (Exception $e) {
@@ -234,13 +246,7 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        $pre = '<h1>Statistikk for enkeltnyhet</h1><div class="level2">';
-        $post = '</div>';
-        
-        return $pre . 
-            NyhetGen::genNyhetStats($objNyhet) .
-            NyhetGen::genFullNyhet($objNyhet, array(), 'nyhetstats') . 
-            $post;
+        return NyhetGen::genNyhetStats($objNyhet, $mode, $fratid, $tiltid);
     }
     
     public function gen_nyhet_arkiv() {
