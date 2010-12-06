@@ -847,17 +847,19 @@ class MsNyhet {
             do {
                 $mark = mktime(0, 0, 0, $start_md, $start_dag + $dagcounter, $start_aar);
                 $mark_fra_start = $mark - $fratid;
-                $mark_dag = date('d', $mark);
+                $mark_ukedag = NyhetGen::$dag_navn_kort[date('w', $mark)];
+                $mark_dag = date('j', $mark);
                 $mark_mnd_nr = date('n', $mark);
                 $mark_mnd = NyhetGen::$mnd_navn_kort[$mark_mnd_nr];
-                $daglabel_val[] = $mark_dag.'. '.$mark_mnd;
+                $str_ukedag = ($dager_i_periode < 8) ?  ' (' . $mark_ukedag . ')' : '';
+                $daglabel_val[] = $mark_dag.'. '.$mark_mnd . $str_ukedag;
                 $daglabel_pos[] = round(($mark_fra_start / $periode_lengde) * 1000);
                 $dagcounter += $dager_per_mark;
             } while($mark <= $tiltid - (86400 * $dager_per_mark)); // 86400 = 60*60*24 = 24 timer
             $x2_tekst = '2:|' . implode('|', $daglabel_val) . '|';
             $x2_pos = '2,' . implode(',', $daglabel_pos) . '|';
         } else {
-            $x2_tekst = '2:|<- '.date('d', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid) . '|';
+            $x2_tekst = '2:|<- '.date('j', $fratid) . '. ' . NyhetGen::$mnd_navn_kort[date('n', $fratid)] . date(' Y', $fratid) . '|';
             $x2_pos = '2,0|';
         }
         

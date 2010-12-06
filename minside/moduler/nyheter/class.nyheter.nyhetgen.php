@@ -22,6 +22,16 @@ class NyhetGen {
         12 => 'des'
         );
     
+    public static $dag_navn_kort = array(
+        0 => 'søn',   
+        1 => 'man',   
+        2 => 'tir',   
+        3 => 'ons',   
+        4 => 'tor',   
+        5 => 'fre',   
+        6 => 'lør',   
+    );
+    
 	private function __construct() { }
 	
 	public static function genFullNyhetViewOnly(msnyhet &$nyhet) {
@@ -493,32 +503,104 @@ class NyhetGen {
                 $tiltid = strtotime('+1 month', $pubtime);
                 break;
             case 11:
-                $fratid = strtotime('-4 hours');
+                $fratid = strtotime('-1 hour');
                 $tiltid = $nowtime;
                 break;
             case 12:
-                $fratid = strtotime('-8 hours');
+                $fratid = strtotime('-4 hours');
                 $tiltid = $nowtime;
                 break;
             case 13:
-                $fratid = strtotime('-24 hours');
+                $fratid = strtotime('-8 hours');
                 $tiltid = $nowtime;
                 break;
             case 14:
-                $fratid = strtotime('-3 days');
+                $fratid = strtotime('-24 hours');
                 $tiltid = $nowtime;
                 break;
             case 15:
-                $fratid = strtotime('-7 days');
+                $fratid = strtotime('-3 days');
                 $tiltid = $nowtime;
                 break;
             case 16:
-                $fratid = strtotime('-2 weeks');
+                $fratid = strtotime('-7 days');
                 $tiltid = $nowtime;
                 break;
             case 17:
+                $fratid = strtotime('-2 weeks');
+                $tiltid = $nowtime;
+                break;
+            case 18:
                 $fratid = strtotime('-1 month');
                 $tiltid = $nowtime;
+                break;
+            case 19:
+                // Sist uke man-fre
+                $ukedag = date('w');
+                if($ukedag == 1) {
+                    $fratid = mktime(0,0,0,date('n'),date('j'),date('Y'));
+                } else {
+                    $fratid = strtotime('last monday');
+                }
+                if($ukedag == 5) {
+                    $tiltid = mktime(23,59,59,date('n'),date('j'),date('Y'));
+                } elseif ($ukedag == 6 || $ukedag == 0) {
+                    $tiltid = strtotime('last friday 23:59:59');
+                } else {
+                    $tiltid = strtotime('next friday 23:59:59');
+                }
+                break;
+            case 20:
+                // Denne uke man-søn
+                $ukedag = date('w');
+                if($ukedag == 1) {
+                    $fratid = mktime(0,0,0,date('n'),date('j'),date('Y'));
+                } else {
+                    $fratid = strtotime('last monday');
+                }
+                if($ukedag == 0) {
+                    $tiltid = mktime(23,59,59,date('n'),date('j'),date('Y'));
+                } else {
+                    $tiltid = strtotime('next sunday 23:59:59');
+                }
+                break;
+            case 21:
+                // Sist uke man-fre
+                $ukedag = date('w');
+                if($ukedag == 1) {
+                    $fratid = strtotime('last monday');
+                } else {
+                    $fratid = strtotime('-2 monday');
+                }
+                if ($ukedag == 6 || $ukedag == 0) {
+                    $tiltid = strtotime('-2 friday 23:59:59');
+                } else {
+                    $tiltid = strtotime('last friday 23:59:59');
+                }
+                break;
+            case 22:
+                // Sist uke man-søn
+                $ukedag = date('w');
+                if($ukedag == 1) {
+                    $fratid = strtotime('last monday');
+                } else {
+                    $fratid = strtotime('-2 monday');
+                }
+                $tiltid = strtotime('last sunday 23:59:59');
+                break;
+            case 23:
+                // Denne måneden
+                $month = date('n');
+                $year = date('Y');
+                $fratid = mktime(0,0,0,$month,1,$year);
+                $tiltid = mktime(23,59,59,$month+1,0,$year);
+                break;
+            case 24:
+                // Sist måned
+                $month = date('n');
+                $year = date('Y');
+                $fratid = mktime(0,0,0,$month-1,1,$year);
+                $tiltid = mktime(23,59,59,$month,0,$year);
                 break;
             default:
                 $fratid = $pubtime;
@@ -532,26 +614,38 @@ class NyhetGen {
         $section_periode = '<h2>Valg av periode</h2><div class="level3">';
         $section_periode .= '
             <ul class="nyhetstatspreselect">
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=1">Publiseringstidspunkt til nå</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=2">Fra første til siste datapunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=3">1 time fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=4">4 timer fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=5">8 timer fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=6">24 timer fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=7">3 dager fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=8">7 dager fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=9">2 uker fra publiseringstidspunkt</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=10">1 måned fra publiseringstidspunkt</a></li>
+                Tid fra publiseringsdato:
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=3">1 time</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=4">4 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=5">8 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=6">24 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=7">3 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=8">7 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=9">2 uker</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=10">1 måned</a></li>
             </ul>
             <ul class="nyhetstatspreselect">
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=11">Siste 4 timer</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=12">Siste 8 timer</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=13">Siste 24 timer</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=14">Siste 3 dager</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=15">Siste 7 dager</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=16">Siste 2 uker</a></li>
-                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=17">Siste måned</a></li>
+                Periode tilbake i tid (fra nå):
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=11">1 time</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=12">4 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=13">8 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=14">24 timer</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=15">3 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=16">7 dager</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=17">2 uker</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=18">1 måned</a></li>
                 
+            </ul>
+            <ul class="nyhetstatspreselect">
+                Custom visninger:
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=1">Publiseringstidspunkt til nå</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=2">Fra første til siste datapunkt</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=19">Denne uken (man-fre)</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=20">Denne uken (man-søn)</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=21">Sist uke (man-fre)</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=22">Sist uke (man-søn)</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=23">Denne måneden</a></li>
+                <li><a href="'.MS_NYHET_LINK.'&amp;act=nyhetstats&amp;nyhetid='.$objNyhet->getId().'&amp;mode=24">Sist måned</a></li>
             </ul>
             <div class="msclearer">&nbsp;</div>
             
@@ -560,10 +654,24 @@ class NyhetGen {
                 <input type="hidden" name="act" value="nyhetstats" />
                 <input type="hidden" name="nyhetid" value="'.$objNyhet->getId().'" />
                 <input type="hidden" name="mode" value="0" />
-                Fratid:&nbsp;
-                <input type="text" class="edit" name="fratid" value="'.$fratid_tekst.'" /><br />
-                Tiltid:&nbsp;
-                <input type="text" class="edit" name="tiltid" value="'.$tiltid_tekst.'" /><br />
+                <table>
+                    <tr>
+                        <td>
+                           Fra-tidspunkt:
+                        </td>
+                        <td>
+                            <input type="text" class="edit" name="fratid" value="'.$fratid_tekst.'" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Til-tidspunkt:
+                        </td>
+                        <td>
+                            <input type="text" class="edit" name="tiltid" value="'.$tiltid_tekst.'" />
+                        </td>
+                    </tr>
+                </table>
                 <input type="submit" class="button" value="Generer" />
             </form>
             ';
