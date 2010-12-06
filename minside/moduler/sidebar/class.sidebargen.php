@@ -8,17 +8,11 @@ class SidebarGen {
             return self::GenEmptySidebar($adgang);
         }
         
-		$output .= '<div class="left_sidebar">' .
-				   '<TABLE cellspacing=4>';
-		
 		foreach ($objSidebar as $objMenyitem) {
 			if ($objMenyitem->checkAcl() === true) {
 				$output .= self::GenMenyitem($objMenyitem);
 			}
 		}
-		
-		$output .= '</TABLE>' .
-				   '</div>  <!-- end left_sidebar-->';
 		
 		return $output;
 	
@@ -43,21 +37,21 @@ class SidebarGen {
 		
 		switch ($objMenyitem->getType()) {
 			case Menyitem::TYPE_HEADER:
-				$output = '<tr><td class="menu_title" align="left">' .
+				$output = '<div class="sidebarblokk_header">' .
 						  $menyitem .
-						  '</td></tr>' . "\n";
+						  '</div>' . "\n";
 				break;
 			case Menyitem::TYPE_NORMAL:
-				$output = '<tr><td>' .
+				$output = '<div class="sidebarblokk_item">' .
 						  $menyitem .
-						  '</td></tr>';
+						  '</div>' . "\n";
 				break;
 			case Menyitem::TYPE_SPACER:
-				$output = "<tr><td>&nbsp;</td></tr>\n";
+				$output = "<div class=\"sidebarblokk_spacer\">&nbsp;</div>\n";
 				break;
 			case Menyitem::TYPE_MSTOC:
 				$objMinSide = MinSide::getInstance();
-				return '<tr><td>' . $objMinSide->getMeny() . '</td></tr>';
+				return '<div class="sidebarblokk_mstoc">' . $objMinSide->getMeny() . '</div>';
 				break;
 			default:
 				throw new Exception('Ukjent menyitem-type: ' . $objMenyitem->getType());
