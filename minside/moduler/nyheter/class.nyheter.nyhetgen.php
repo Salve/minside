@@ -370,7 +370,7 @@ class NyhetGen {
                             <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
                             <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
                             <input type="hidden" name="rev" value="" />
-                            <textarea name="wikitext" id="wiki__text" class="edit" cols="80" rows="10" tabindex="1" style="width:99%">'
+                            <textarea name="wikitext" id="wiki__text" class="edit nyhet__edit" cols="80" rows="10" tabindex="1">'
                                . $rawwiki .
                             '</textarea>
                             <div class="nyhetattrib">
@@ -390,7 +390,7 @@ class NyhetGen {
                                 .$html_tags. '
                                 <div class="msclearer"></div>
                             </div>
-                            <div id="wiki__editbar" >
+                            <div id="wiki__editbar" class="editnyhet">
                                 <div id="size__ctl" ></div>
                                 <div class="editButtons" >
                                     <input name="editsave" type="submit" value="Lagre" class="button" id="edbtn__save" accesskey="s" tabindex="6" title="Lagre [S]" />
