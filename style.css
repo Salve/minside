@@ -660,7 +660,7 @@ div.minside .tagtable {
 /*Nyhet editor*/
 
 div.minside div.editnyhet {
-    /*margin:2em;*/
+    margin-bottom:3em;
 }
 
 div.minside div.nyhetattrib {
@@ -772,6 +772,7 @@ div.minside div.arkivoptions select.tagselect {
 div.minside div.arkivsearch {
     position:relative;
     float:right;
+    padding-right:0.2em;
 }
 
 div.minside div.antallsearch {
@@ -786,13 +787,16 @@ div.minside div.hidesearch {
 div.minside div.pagination {
     width:80%;
     /*margin:auto;*/
+    margin-left:3em;
 }
 
 div.minside div.arkivunder {
-    width:80%;
-    padding-left: 1em;
+    width:90%;
+    /*padding-left: 1em;*/
     padding-top: 0.5em;
-    /*margin:auto;*/
+    margin:auto;
+    padding-left:3em;
+    padding-right:3em;
 }
 
 /* Nyhet stats */
