@@ -376,13 +376,14 @@ class NyhetGen {
                                 <!--//--><![CDATA[//><!-- textChanged = false; //--><!]]>
                             </script>
                         </div> <!-- toolbar -->
-                        <form action="' . MS_NYHET_LINK . '&amp;act=subedit" method="POST">
+                        <form id="dw__editform" action="' . MS_NYHET_LINK . '&amp;act=subedit" method="POST">
                             <input type="hidden" name="nyhetid" value="' . $objNyhet->getId() . '" />
                             <input type="hidden" name="id" value="'.$objNyhet->getWikiPath().'" />
                             <input type="hidden" name="rev" value="" />
                             <textarea name="wikitext" id="wiki__text" class="edit nyhet__edit" cols="80" rows="10" tabindex="1">'
                                . $rawwiki .
                             '</textarea>
+                            <input type="hidden" id="edit__summary" />
                             <div class="nyhetattrib">
                                 <div class="msnyhetoverskrift">
                                     <div class="nyhetsettext">Overskrift:</div> <input class="edit" style="width:30em;" type="text" tabindex="2" name="nyhettitle" maxlength="'.MsNyhet::TITLE_MAX_LEN.'" value="' . $objNyhet->getTitle(true) . '" />
