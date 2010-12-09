@@ -331,10 +331,12 @@ class msmodul_nyheter implements msmodul {
 
         $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
         $arkiv_selflink_params = NyhetGen::genArkivLinkParams($limits);
-        $output = NyhetGen::genArkivOptions($limits, $arkiv_selflink_params);
+        $html_tools = NyhetGen::genArkivOptions($limits, $arkiv_selflink_params);
+        $output = $html_tools[0];
+        $pagination = $html_tools[1];
         
 		if ($objNyhetCol->length() === 0) {
-			return $output . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
+			return $output . '<br />' . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
 		}
         foreach ($objNyhetCol as $objNyhet) {
             $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv', $arkiv_selflink_params);
@@ -343,7 +345,7 @@ class msmodul_nyheter implements msmodul {
         $pre = '<h1>Nyhetsarkiv</h1><div class="level2">';
         $post = '</div>';
         
-		return $pre . $output . $post;
+		return $pre . $output . '<br />' . $pagination . $post;
         
     }
     

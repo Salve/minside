@@ -904,8 +904,7 @@ class NyhetGen {
         
         // Overskriftfilter
         $html_overskriftfilter =
-            '<input class="edit" id="overskriftedit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br />
-            Støtter wildcards (* eller %)';
+            '<input class="edit" id="overskriftedit" type="text" name="oskrift" value="'.((hsc($data['oskrift']))?:'').'" /><br /><br />';
         // Tagfilter
         
         // Kategorifilter
@@ -916,7 +915,7 @@ class NyhetGen {
         }
         $html_kategorifilter = 
             '<select class="edit tagselect" name="fkat[]" size="7" multiple="multiple">'. $katopts .'</select><br />
-            Hold inne ctrl for å velge flere.';
+            <span class="filterinfo">Hold inne ctrl for å velge flere.</span>';
             
         // Tagfilter
         $colTag = NyhetTagFactory::getAlleNyhetTags(true, false, false, NyhetTag::TYPE_TAG);
@@ -933,7 +932,7 @@ class NyhetGen {
         }
         $html_tagfilter = 
             '<select class="edit tagselect" name="ftag[]" size="7" multiple="multiple">'. $tagopts .'</select><br />
-            Hold inne ctrl for å velge flere.<br />
+            <span class="filterinfo">Hold inne ctrl for å velge flere.</span><br />
             <input type="radio" id="tfOR" name="tagfilter" value="OR"'.$tfORchecked.' />
             <label for="tfOR">Minst en av valgte tags</label><br />
             <input type="radio" id="tfAND" name="tagfilter" value="AND"'.$tfANDchecked.' />
@@ -961,7 +960,7 @@ class NyhetGen {
         }
         $html_publisherfilter = 
             '<select class="edit tagselect" name="fpublishers[]" size="7" multiple="multiple">'. $pubopts .'</select><br />
-            Hold inne ctrl for å velge flere.';
+            <span class="filterinfo">Hold inne ctrl for å velge flere.</span>';
             
         // Handlinger
         $html_antall = 
@@ -988,7 +987,7 @@ class NyhetGen {
             }
             $html_omradefilter = 
                 '<select class="edit tagselect" name="fomrader[]" size="7" multiple="multiple">'. $omradeopts .'</select><br />
-                Hold inne ctrl for å velge flere.';
+                <span class="filterinfo">Hold inne ctrl for å velge flere.</span>';
         } else {
             $html_omradefilter =
                 'Du har ikke tilgang til mer enn ett område.<br />
@@ -1000,17 +999,17 @@ class NyhetGen {
         $currpage = $data['pages']['currpage'];
         $numpages = $data['pages']['numpages'];
         $forrige = ($currpage > 1) 
-            ? '<a href="'.$selflink.'&amp;visside='.($currpage - 1).'">Forrige</a> '
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage - 1).'">forrige</a> '
             : '';
         $neste = ($currpage < $numpages) 
-            ? '<a href="'.$selflink.'&amp;visside='.($currpage + 1).'">Neste</a>'
+            ? '<a href="'.$selflink.'&amp;visside='.($currpage + 1).'">neste</a>'
             : '';
         for($i=1;$i<=$numpages;$i++) {
             $pagelinks .= ($currpage == $i)
                 ? '<strong>' . $i . '</strong>&nbsp;'
                 : '<a href="'.$selflink.'&amp;visside='.$i.'">'.$i.'</a>&nbsp;';
         }
-        $html_pagination = 'Side: ' . $forrige . $pagelinks . $neste;
+        $html_pagination = ($numhits) ? 'Side: ' . $forrige . $pagelinks . $neste : '';
         
         // Selflink
         $html_selflink = '<a href="'.$selflink.'&amp;visside='.$currpage.'">Link til dette søket</a>';
@@ -1027,7 +1026,7 @@ class NyhetGen {
                 <div class="arkivbar">
                     <div class="topgroup">
                         <div class="gruppeheader">
-                            Overskrift:
+                            Søk på nyhets-overskrift
                         </div>
                         <div class="gruppecontent">
                             '.$html_overskriftfilter.'
@@ -1091,7 +1090,7 @@ class NyhetGen {
                     </div>
                     <div class="msclearer">&nbsp;</div>
                 </div>
-                <a href="javascript:void(0);" id="filter__link" value="test">Trykk her for å vise/skjule avanserte valg</a>
+                <div class="hideshowadv"><a href="javascript:void(0);" id="filter__link" value="test">Trykk her for å vise/skjule avanserte valg</a></div>
                 <div class="msclearer">&nbsp;</div>
             </div>
             <div class="arkivunder"> 
@@ -1114,7 +1113,7 @@ class NyhetGen {
         </div>
         ';
 
-        return $output;
+        return array($output, $html_pagination);
     }
 	
 	protected static function getMailLink($name, $epost) {

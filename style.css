@@ -769,6 +769,15 @@ div.minside div.arkivoptions select.tagselect {
     width: 80%;
 }
 
+div.minside span.filterinfo {
+    font-style: italic;
+    font-size: 80%;
+}
+
+div.minside div.hideshowadv {
+    text-align: center;
+}
+
 div.minside div.arkivsearch {
     position:relative;
     float:right;
