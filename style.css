@@ -189,12 +189,10 @@ div.minside ol ol ol ol { list-style-type: lower-greek; }
 
 div.minside li.msopen {
   list-style-image: url(minside/images/open.gif);
-    /*list-style-type: circle;*/
 }
 
 div.minside li.msclosed {
   list-style-image: url(minside/images/closed.gif);
-    /*list-style-type: disc;*/
 }
 
 div.mstoc span.selected {
@@ -269,8 +267,6 @@ div.minside .feilmtable {
 div.minside .feilmtable td {
 	border: 1px solid #8cacbb;
 	border-collapse: collapse;
-	/*border-color: #8b7355;
-	border-style: solid none none none*/;
 }
 
 div.minside div.feilmtablecols {
@@ -312,8 +308,6 @@ div.rapportarkiv {
 	width: 80%;
 	border: 1px solid #8cacbb;
 	background-color:#DEE7EF;
-	/*font-family:sans-serif;
-	font-size: 1em;*/
 }
 
 span#rapportsistedogn, span#rapportarkivmenyheader, span#rapportarkivheader {
@@ -519,9 +513,6 @@ div.notater {
 /* Nyheter */
 
 div.minside div.nyhet {
-
-   /* overflow: hidden;
-    width: 80%;*/
     margin-left: 3em;
     margin-bottom: 3em;
     margin-right:3em;
@@ -704,6 +695,17 @@ div.minside div.nyhetmerkulestalle {
     float: left;
 }
 
+div.minside div.nyhetlest {
+    width:100%;
+}
+
+div.minside div.nyhetlestbox {
+/*    border:1px solid;
+    border-color: #80B6C9;*/
+    padding-top: 0.2em;
+    padding-bottom:0.2em;
+}
+
 div.minside div.nyhetpubdatovelger, div.nyhetvelgsticky, div.nyhetbildevelger, div.nyhetomradevelger, div.msnyhetoverskrift, div.nyhetkategorivelger, div.nyhettagvelger, div.nyhetmerkulestalle {
     padding-top:0.25em;
     padding-bottom:0.25em;
@@ -796,13 +798,11 @@ div.minside div.hidesearch {
 
 div.minside div.pagination {
     width:80%;
-    /*margin:auto;*/
     margin-left:3em;
 }
 
 div.minside div.arkivunder {
     width:90%;
-    /*padding-left: 1em;*/
     padding-top: 0.5em;
     margin:auto;
     padding-left:3em;
