@@ -8,6 +8,7 @@ div.minside {
     padding-left:1.5em;
     padding-right:1.5em;
     padding-bottom:3em;
+    overflow: hidden;
 	font: normal normal normal 9pt/normal 'bold Verdana', 'Lucida Grande', Lucida, Helvetica, Arial, sans-serif;
 }
 
