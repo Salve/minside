@@ -998,18 +998,7 @@ class NyhetGen {
         $numhits = $data['pages']['count'];
         $currpage = $data['pages']['currpage'];
         $numpages = $data['pages']['numpages'];
-        $forrige = ($currpage > 1) 
-            ? '<a href="'.$selflink.'&amp;visside='.($currpage - 1).'">forrige</a> '
-            : '';
-        $neste = ($currpage < $numpages) 
-            ? '<a href="'.$selflink.'&amp;visside='.($currpage + 1).'">neste</a>'
-            : '';
-        for($i=1;$i<=$numpages;$i++) {
-            $pagelinks .= ($currpage == $i)
-                ? '<strong>' . $i . '</strong>&nbsp;'
-                : '<a href="'.$selflink.'&amp;visside='.$i.'">'.$i.'</a>&nbsp;';
-        }
-        $html_pagination = ($numhits) ? 'Side: ' . $forrige . $pagelinks . $neste : '';
+        $html_pagination = self::getPagination($numpages, $currpage, $selflink.'&amp;visside=');
         
         // Selflink
         $html_selflink = '<a href="'.$selflink.'&amp;visside='.$currpage.'">Link til dette søket</a>';
@@ -1235,6 +1224,32 @@ class NyhetGen {
 
         return $arCollections;
         
+    }
+    
+    static function getPagination($numpages, $currpage, $selflink) {
+        if($numpages < 1) return '';
+        if($currpage < 1) $currpage = 1;
+        if($currpage > $numpages) $currpage = $numpages;
+        
+        $forrige = ($currpage > 1) 
+            ? '<a href="'.$selflink . ($currpage - 1).'">&lt;forrige</a> '
+            : '';
+        $neste = ($currpage < $numpages) 
+            ? '<a href="'.$selflink . ($currpage + 1).'">neste&gt;</a>'
+            : '';
+            
+        $start = ($currpage > 10) ? $currpage - 10 : 1;
+        $end = ($currpage + 10 < $numpages) ? $currpage + 10 : $numpages;
+        for($i=$start;$i <= $end;$i++) {
+            $pagelinks .= ($currpage == $i)
+                ? '<strong>' . $i . '</strong>&nbsp;'
+                : '<a href="' . $selflink . $i . '">' . $i . '</a> ';
+        }
+        if($start > 1) $startinfo = '<a href="' . $selflink . '1">1</a>' . ' &#8230; ';
+        if($end < $numpages) $sluttinfo = ' &#8230; ' . '<a href="' . $selflink . $numpages . '">' . $numpages . '</a> ';
+        $output = 'Side: ' . $forrige . $startinfo . $pagelinks . $sluttinfo . $neste;
+        
+        return $output;
     }
 	
 }
