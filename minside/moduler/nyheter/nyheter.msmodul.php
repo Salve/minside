@@ -925,8 +925,20 @@ class msmodul_nyheter implements msmodul {
                 $failoutput .= $failtekst . "\n---------------\n" . $match[0] . "\n\n\n";
             } else {
                 $okcounter++;
+                
+                // Lagre path til bruk i webbugs for å oppdatere indexes
+                $webbugs[] = $objNyhet->getWikiPath();
             }
         }
+        
+        // Update indexes
+        if(MinSide::DEBUG) msg('Generer ' . count($webbugs) . ' webbugs, for å oppdatere indexes.');
+        $output .= '<div class="no">';
+        foreach ($webbugs as $path) {
+            $output .= '<img src="'.DOKU_BASE.'lib/exe/indexer.php?id='.$path.'" width="1" height="1" alt="" />' . "\n";
+        }
+        $output .= '</div>';
+        
         
         msg('Importsekvens ferdig. ' . $okcounter . ' nyheter importert, ' . $failcounter . ' feilet.');
         
@@ -936,7 +948,7 @@ class msmodul_nyheter implements msmodul {
         }
         
         
-        return $testoutput;
+        return $output;
     }
     
     public function gen_tag_admin() {
