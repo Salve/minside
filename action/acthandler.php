@@ -197,10 +197,10 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
     function handleSearchQueryPagelookup(&$event, $param) {
     
         $nyhet_hits = array();
-        foreach($event->result as $key => $id) {
+        foreach($event->result as $key => $info) {
             // Funksjonen returnerer int(0) på match
-            if(strlen($id) > 10 && substr_compare($id, 'msnyheter:', 0, 10, true) === 0) {
-                $nyhet_hits[] = $id;
+            if((strlen($key) > 10) && (substr_compare($key, 'msnyheter:', 0, 10, true) === 0)) {
+                $nyhet_hits[] = $key;
                 // Sørg for at nyhet-hits ikke vises i normalt resultat
                 unset($event->result[$key]);
             }
