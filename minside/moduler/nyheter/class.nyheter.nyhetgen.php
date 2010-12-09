@@ -152,7 +152,7 @@ class NyhetGen {
 		}
         if(array_search('lest', $inoptions)) {
             $lest_html = '<div class="nyhetlestbox"><a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=lest&amp;nyhetid=$id\">" .
-            '<img src="' . MS_IMG_PATH . '/konv.png"> Merk som lest</a></div>';
+            '<img src="' . MS_IMG_PATH . 'konv.png"> Merk som lest</a></div>';
         } else {
             $lest_html = '';
         }
