@@ -588,8 +588,8 @@ div.minside div.nyhetinfo div.nyhetinforight {
 }
 
 div.minside div.nyhetinfo div.nyhetinfoleft {
-
     position: absolute;
+    width: 200%;
     bottom: 0.5em;
     float: left;
 }
@@ -598,7 +598,7 @@ div.minside div.nyhettopbar div.seksjontopp {
     padding-top: 0.5em;
     padding-left: 0.5em;
     padding-right: 0.5em;
-    margin-bottom: 0.75em;
+    padding-bottom: 0.75em;
 }
 
 div.minside div.nyhetomrade, div.nyhetkategori {
