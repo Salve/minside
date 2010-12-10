@@ -576,7 +576,7 @@ div.minside div.nyhetinfo {
 }
 
 div.minside div.nyhetinfo div.nyhetinforight {
-    float: right;
+    /*float: right;*/
 }
 
 div.minside div.nyhetinfo div.nyhetinfoleft {
