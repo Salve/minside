@@ -57,7 +57,8 @@ class msmodul_nyheter implements msmodul {
         // Arkiv
 		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
         // Upubliserte
-		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_2);
+		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_3);
+		$dispatcher->addActHandler('pubnaa', 'publiser_nyhet', MSAUTH_3);
         // Slett nyhet (bruker returnto, dispatcher direkte) og slettede nyheter
 		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
 		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
@@ -128,6 +129,7 @@ class msmodul_nyheter implements msmodul {
                     case 'arkiv':
                         $objStrong = $menyitem_arkiv;
                         break;
+                    case 'pubnaa':
                     case 'upub':
                         $objStrong = $menyitem_upub;
                         break;
@@ -394,10 +396,40 @@ class msmodul_nyheter implements msmodul {
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'upub');
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('publiser'), 'upub');
         }
         
 		return $pre . $output . $post;
+    }
+    
+    public function publiser_nyhet() {
+        $inputid = (int) $_REQUEST['nyhetid'];
+        
+        try{
+            $objNyhet = NyhetFactory::getNyhetById($inputid);
+        } catch (Exception $e) {
+            msg('Klarte hente nyhet med id: ' . htmlspecialchars($inputid), -1);
+            return false;
+        }
+        
+        if($objNyhet->getAcl() < MSAUTH_3) throw new Exception('Kan ikke publisere nyhet: manglende tilgang.');
+        if($objNyhet->isDeleted()) throw new Exception('Kan ikke publisere nyhet, nyhet er slettet.');
+        if($objNyhet->isPublished()) throw new Exception('Kan ikke publisere nyhet, nyhet er allerde publisert. Rediger nyher for å endre publiseringstidspunkt.');
+        
+        
+        if ($objNyhet->publiserNaa()) {
+            msg('Nyhet publisert: "'. $objNyhet->getTitle(true) .'"', 1);
+        } else {
+            msg("Klarte ikke å publisere nyhet", -1);
+        }
+        
+        if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            $this->_msmodulact = 'upub';
+            return self::$dispatcher->dispatch('upub');
+        }
     }
 	
 	public function gen_nyheter_del() {

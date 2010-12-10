@@ -456,6 +456,21 @@ class MsNyhet {
         
         return $res;
     }
+    
+    public function publiserNaa() {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        
+        $sql = "UPDATE nyheter_nyhet
+                SET pubtime = NOW()
+                WHERE nyhetid = $safenyhetid
+                LIMIT 1;";
+                
+        $res = $msdb->exec($sql);
+        
+        return (bool) $res;
+    }
 	
 	public function slett() {
 		if ($this->isDeleted()) {

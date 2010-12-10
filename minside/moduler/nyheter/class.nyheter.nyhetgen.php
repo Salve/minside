@@ -140,6 +140,9 @@ class NyhetGen {
         $opt['stats'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=nyhetstats&amp;nyhetid=$id\">" .
             '<img alt="stats" title="Statistikk for enkeltnyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'bargraf.gif" /></a>';
+        $opt['publiser'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=pubnaa&amp;nyhetid=$id\">" .
+            '<img alt="stats" title="Publiser nyhet nå" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'iconCalendar.gif" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
             if (array_key_exists($v, $opt)) {
