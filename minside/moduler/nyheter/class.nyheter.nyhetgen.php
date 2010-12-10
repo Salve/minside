@@ -90,14 +90,15 @@ class NyhetGen {
         $returnto_html = ($returnto) ? '&amp;returnto='.$returnto.$extra_url_params : $extra_url_params;
         $omrade_html = '<div class="nyhetomrade">Område: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fomrader[]='. $omrade . 
                 '" title="område:' . $omrade . '">' . $omradeinfo['visningsnavn'] . '</a></div>';
-        $omrade_farge = ($omradeinfo['farge']) ? ' style="background-color: #' . $omradeinfo['farge'] . ';"' : '';
+        if($_GET['pink'] == 'manly') {
+            $farge = 'FF00FF';
+        } else {
+            $farge = $omradeinfo['farge'];
+        }
+        $omrade_farge = ($farge) ? ' style="background-color: #' . $farge . ';"' : '';
         $kategori_html = '<div class="nyhetkategori">Kategori: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fkat[]='. $objKategori->getId() . 
                 '" title="kategori:' . $objKategori->getNavn() . '">' . $objKategori->getNavn() . '</a></div>';
         $tags_html = self::genTagList($nyhet->getTags());
-        $create = ($nyhet->isSaved())
-			? '<div class="nyhetcreate">Opprettet '. self::dispTime($nyhet->getCreateTime()) .
-				' av ' . self::getMailLink($nyhet->getCreateByNavn(), $nyhet->getCreateByEpost()) . '</div>'
-			: '';
         $lastmod = ($nyhet->isModified())
 			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
 				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'

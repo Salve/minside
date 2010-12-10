@@ -673,7 +673,7 @@ class msmodul_nyheter implements msmodul {
         
         if ($objNyhet->merkLest($this->_userID)) {
             if(MinSide::DEBUG) {
-                msg("Merket nyhetid $inputid som lest", 1);
+                msg('Merket nyhet som lest: "'. $objNyhet->getTitle(true) .'"', 1);
             }
         } else {
             msg("Klarte ikke å merke nyhet som lest", -1);

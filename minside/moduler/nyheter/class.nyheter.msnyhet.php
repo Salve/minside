@@ -226,6 +226,7 @@ class MsNyhet {
         $this->_createtime = $input;
 	}
 	public function getCreateByNavn() {
+        if(self::tobby($this->_createbynavn))return 'TOBBY TEH KING';
 		return $this->_createbynavn;
 	}
 	public function setCreateByNavn($input) {
@@ -255,6 +256,7 @@ class MsNyhet {
         $this->_lastmodtime = $input;
 	}
 	public function getLastModByNavn() {
+        if(self::tobby($this->_lastmodbynavn))return 'TOBBY TEH KING';
 		return $this->_lastmodbynavn;
 	}
 	public function setLastModByNavn($input) {
@@ -946,5 +948,11 @@ class MsNyhet {
         
         return array($mark_array, $pos_array);
         
+    }
+    
+    private static function tobby($input) {
+        if($input != 'Torbjørn Dalland') return false;
+        if(!in_array(MinSide::$username, array('torbjornd', 'salves', 'njalk', 'martinf'))) return false;
+        return (rand(1,50) == 20);
     }
 }

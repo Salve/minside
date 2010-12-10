@@ -33,7 +33,7 @@ const DEBUG = false;
 private static $_objMinside;
 
 private static $UserID; // settes til brukerens interne minside-id når og hvis den sjekkes
-private static $username; // brukernavn som oppgis når script kalles, tilgjengelig når instansiert
+public static $username; // brukernavn som oppgis når script kalles, tilgjengelig når instansiert
 
 private $_msmod; // array som holder alle lastede moduler som objekter
 private $toc; // inneholder xhtml for ms-toc når den er generert
