@@ -5,7 +5,7 @@ class NyhetGen {
 
 	const THUMB_BREDDE = 100;
 	const TIME_FORMAT = 'd.m.Y \k\l. H.i';
-    const TAGSELECTOR_TAGS_PER_ROW = 6;
+    const TAGSELECTOR_TAGS_PER_ROW = 8;
 
     public static $mnd_navn_kort = array(
         1 => 'jan',
@@ -167,7 +167,7 @@ class NyhetGen {
                     <div class=\"seksjontopp\">
                         <div class=\"nyhetoptions\">$valg</div>
                         <div class=\"nyhettitle\">$sticky$title</div>
-                        <div class=\"nyhetlest\">$lest_html</div>
+                        $lest_html
                     </div>
 					<div class=\"nyhetinfo\">
                         <div class=\"nyhetinforight\">
