@@ -316,6 +316,55 @@ class NyhetFactory {
         
     }
     
+    public static function getReadLog($fra=null, $til=null) {
+        global $msdb;
+        $til = ($til) ? $msdb->quote($til) : 'NOW()';
+        $fra = ($fra) ? ' AND lest.readtime > ' . $msdb->quote($fra) : '';
+        
+        $sql = "
+            SELECT lest.nyhetid, nyhet.pubtime, lest.readtime, users.wikifullname, kat.kategori, tags.tagnavn
+            FROM
+                    nyheter_lest AS lest
+                LEFT JOIN
+                    nyheter_nyhet AS nyhet
+                        ON lest.nyhetid = nyhet.nyhetid
+                LEFT JOIN 
+                    internusers AS users
+                        ON nyhet.createby = users.id
+                LEFT JOIN
+                    (
+                        SELECT link.nyhetid, tag.tagnavn as kategori
+                        FROM 
+                                nyheter_tag_x_nyhet AS link
+                            LEFT JOIN
+                                nyheter_tag AS tag
+                                    ON link.tagid = tag.tagid
+                        WHERE 
+                            tag.tagtype = 2
+                        GROUP BY
+                            link.nyhetid
+                    ) AS kat 
+                        ON kat.nyhetid = lest.nyhetid
+                LEFT JOIN
+                    (
+                        SELECT link.nyhetid, GROUP_CONCAT(tag.tagnavn) AS tagnavn
+                        FROM 
+                                nyheter_tag_x_nyhet AS link
+                            LEFT JOIN
+                                nyheter_tag AS tag
+                                    ON link.tagid = tag.tagid
+                        WHERE 
+                            tag.tagtype = 3
+                        GROUP BY
+                            link.nyhetid
+                    ) AS tags
+                        ON tags.nyhetid = lest.nyhetid
+            WHERE lest.readtime < $til $fra
+            ORDER BY readtime DESC
+        ";
+        return $msdb->assoc($sql);
+    }
+    
     protected static function createNyhetCollectionFromDbResult(array &$result, $linktags=true) {
         $objNyhetCol = new NyhetCollection();
         

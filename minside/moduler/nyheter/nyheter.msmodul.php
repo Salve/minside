@@ -70,23 +70,29 @@ class msmodul_nyheter implements msmodul {
         // Admin
         $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_readlog_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('admin', 'gen_import_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'import_nyheter', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('doimport', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_readlog_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('doimport', 'gen_import_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_readlog_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subtagadm', 'gen_import_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
         $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_readlog_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('sletttag', 'gen_import_admin', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
 		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
         $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'gen_readlog_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subomradeadm', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('readlog', 'gen_read_log', MSAUTH_5);
         // System / interne
 		$dispatcher->addActHandler('searchpagelookup', 'gen_searchpagelookup', MSAUTH_1);
 		$dispatcher->addActHandler('searchfullpage', 'gen_searchfullpage', MSAUTH_1);
@@ -129,6 +135,7 @@ class msmodul_nyheter implements msmodul {
                         $objStrong = $menyitem_opprett;
                         break;
                     case 'subtagadm':
+                    case 'readlog':
                     case 'sletttag':
                     case 'subomradeadm':
                     case 'doimport':
@@ -1082,6 +1089,35 @@ class msmodul_nyheter implements msmodul {
                 window.location="'.DOKU_BASE.'doku.php"
             //--><!]]></script>
             ';
+        return $output;
+    }
+    
+    public function gen_readlog_admin() {
+        return NyhetGen::genReadLogAdmin();
+    }
+    
+    public function gen_read_log() {
+        $fra = ($_POST['fratid']) ? date('Y-m-d H:i:s', strtotime($_POST['fratid'])) : null;
+        $til = ($_POST['tiltid']) ? date('Y-m-d H:i:s', strtotime($_POST['tiltid'])) : null;
+        
+        msg('Fratid: ' . $fra);
+        msg('Tiltid: ' . $til);
+        
+        $log = NyhetFactory::getReadLog($fra, $til);
+        
+        $output = '<h1>Logg over leste nyheter</h1><pre>';
+        $output .= "NyhetsID\tPublisert\tMerket som lest\tOpprettet av\tKategori\tTags\n";
+        foreach($log as $item) {
+            $output .= 
+                $item['nyhetid'] . "\t" .
+                $item['pubtime'] . "\t" .
+                $item['readtime'] . "\t" .
+                $item['wikifullname'] . "\t" .
+                $item['kategori'] . "\t" .
+                $item['tagnavn'] . "\n";
+        }
+        $output .= '</pre>';
+        
         return $output;
     }
 

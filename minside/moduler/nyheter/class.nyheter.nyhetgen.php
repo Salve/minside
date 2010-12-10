@@ -423,6 +423,18 @@ class NyhetGen {
 		return '<div class="mswarningbar"><strong>Ingen nyheter her!</strong><br /><br />'.$ekstratekst.'</div>';
 	}
     
+    public static function genReadLogAdmin() {
+        return '<h2>Logg over leste nyheter</h2>
+                    <div class="readlogadm level3">
+                    <form action="' . MS_NYHET_LINK . '&amp;act=readlog" method="POST">
+                    <p>Flere formater på dato kan benyttes, hvis / benyttes som skilletegn oppfattes dato som amerikansk format.<br />
+                    Kan også skrive relative datoer, f.eks. -1 week, last monday eller first day last month<br />
+                    La felt stå blanke for ingen begrensning.</p>
+                    Fratid:&nbsp;<input type="text" name="fratid" value="-1 week" /><br />
+                    Tiltid:&nbsp;&nbsp;<input type="text" name="tiltid" value="now" />
+                    <br /><br /><input type="submit" value="Hent logg" class="button" /></form></div>';
+    }
+    
     public static function genOmradeAdmin($colOmrader) {
         $output .= "<h2>Områdeadministrasjon</h2>\n";
         

@@ -815,6 +815,11 @@ div.minside ul.nyhetstatspreselect {
     float: left;
 }
 
+/* Read log adm */
+div.minside div.readlogadm {
+    margin:2em;
+}
+
 /* Område ADM */
 
 div.minside div.omradeadmwrap {
