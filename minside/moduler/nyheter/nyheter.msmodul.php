@@ -177,14 +177,20 @@ class msmodul_nyheter implements msmodul {
 	public function gen_nyheter_full() {
 		
         $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
-		
+		$objUlestCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter('Her vises kun nyheter publisert de siste syv dagene. '.
                 'Se <a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.');
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
-            $nyhet = NyhetGen::genFullNyhet($objNyhet, array(), 'list');
+            if($objUlestCol->exists( $objNyhet->getId() )) {
+                $options = array('lest');
+            } else {
+                $options = array();
+            }
+            $nyhet = NyhetGen::genFullNyhet($objNyhet, $options, 'list');
             if ($objNyhet->isSticky()) {
                 $sticky .= $nyhet;
             } else {
