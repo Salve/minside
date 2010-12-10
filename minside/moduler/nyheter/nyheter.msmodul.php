@@ -661,6 +661,9 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
+        if($objNyhet->getAcl() < AUTH_READ) throw new Exception('Kan ikke merke nyhet som lest, du har ikke tilgang til denne nyheten.');
+        if($objNyhet->isDeleted() || !$objNyhet->isPublished()) throw new Exception('Kan ikke merke nyhet som lest, nyhet er slettet eller ikke publisert.');
+        
         
         if ($objNyhet->merkLest($this->_userID)) {
             if(MinSide::DEBUG) {
