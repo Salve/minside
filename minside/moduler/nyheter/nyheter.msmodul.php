@@ -735,7 +735,7 @@ class msmodul_nyheter implements msmodul {
                 continue;
             }
             
-            if($objNyhet->isPublished() && $objNyhet->getAcl() >= MSAUTH_1) {
+            if($objNyhet->getAcl() >= MSAUTH_1 && $objNyhet->isPublished() && !$objNyhet->isDeleted()) {
                 $colPubNyheter->addItem($objNyhet, $objNyhet->getId());
             } else {
                 if(MinSide::DEBUG) msg('Nyhet med path: ' . $nyhet_wikipath . ' ble blokkert fra visning grunnet pub dato eller acl.');
@@ -764,7 +764,7 @@ class msmodul_nyheter implements msmodul {
                 continue;
             }
             
-            if($objNyhet->isPublished() && $objNyhet->getAcl() >= MSAUTH_1) {
+            if($objNyhet->getAcl() >= MSAUTH_1 && $objNyhet->isPublished() && !$objNyhet->isDeleted()) {
                 $colPubNyheter->addItem($objNyhet, $objNyhet->getId());
             } else {
                 if(MinSide::DEBUG) msg('Nyhet med path: ' . $nyhet_wikipath . ' ble blokkert fra visning grunnet pub dato eller acl.');
