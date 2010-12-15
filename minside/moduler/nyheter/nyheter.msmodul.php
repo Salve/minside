@@ -170,7 +170,7 @@ class msmodul_nyheter implements msmodul {
 					$toppmeny->addChild($menyitem_showdel);
 				}
                 $toppmeny->addChild($menyitem_arkiv);
-                if ($lvl >= MSAUTH_5) {
+                if ($lvl >= MSAUTH_ADMIN) {
 					$toppmeny->addChild($menyitem_admin);
 				}
 			}
