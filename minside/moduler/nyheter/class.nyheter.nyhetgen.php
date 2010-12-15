@@ -1211,11 +1211,17 @@ class NyhetGen {
             $antall_full_rows--;
         }
         
+        // Opprett collections for hver kolonne
+        $arKolonneCols = array();
+        for($i=0;$i<$items_per_row;$i++) {
+            $arKolonneCols[$i] = new NyhetTagCollection();
+        }
+        
         // Opprett collections - en mer enn antall_full_rows
         // Hver collection holder en rad med tags
-        $arCollections = array();
+        $arRowCols = array();
         for($i=0;$i<=$antall_full_rows;$i++) {
-            $arCollections[$i] = new NyhetTagCollection();
+            $arRowCols[$i] = new NyhetTagCollection();
         }
         
         // Sorter etter streng-lengde på tagnavn
@@ -1227,19 +1233,30 @@ class NyhetGen {
             $arIndexed[] =  $objTag;
         }
 
-        // Tildel tags til collections (rader i tabell)
-        $j = 0; // Hvilken rad vi skriver til for øyeblikket
+        // Tildel tags til collections (kolonner i tabell)
+        $j = 0; // Hvilken kolonne vi skriver til for øyeblikket
+        $i = 1; // Counter i kolonnen
         foreach($arIndexed as $key => $objTag) {
-            $arCollections[$j]->addItem($objTag, $objTag->getId());
-            $maxrow = ($key > $siste_item_i_siste_row) ? $antall_full_rows - 1 : $antall_full_rows; // - 1 pga 0indeksering i $arCollections
-            if($j == $maxrow) {
-                $j = 0;
-            } else {
+            $arKolonneCols[$j]->addItem($objTag);
+            $maxkol = ($key > $siste_item_i_siste_row) ? $antall_full_rows : $antall_full_rows + 1;
+            if($i >= $maxkol) {
+                $i = 1;
                 $j++;
+            } else {
+                $i++;
             }
         }
-
-        return $arCollections;
+        
+        foreach($arKolonneCols as $objCol) {
+            // Sorter kolonne alfabetisk
+            $objCol->usort(array('NyhetTag', 'compare_alpha_navn'));
+            // Fordel tags i kolonne på rader
+            foreach($objCol as $key => $objTag) {
+                $arRowCols[$key]->addItem($objTag, $objTag->getId());
+            }
+        }
+        
+        return $arRowCols;
         
     }
     

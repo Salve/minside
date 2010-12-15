@@ -159,6 +159,13 @@ class NyhetTag {
         return ($lenA > $lenB) ? +1 : -1;
     }
     
+    public static function compare_alpha_navn(NyhetTag $a, NyhetTag $b) {
+        $navnA = $a->getNavn();
+        $navnB = $b->getNavn();
+        if($navnA == $navnB) return 0;
+        return ($navnA > $navnB) ? +1 : -1;
+    }
+    
     public function getKategoriUpdateFunction() {
         if (!$this->isSaved()) throw new Exception('Kan ikke generere DB-update funksjon for kategori som ikke er lagret.');
         if ($this->getType() !== self::TYPE_KATEGORI) throw new Exception('Kan ikke generere DB-update funksjon for tags som ikke er av type kategori.');
