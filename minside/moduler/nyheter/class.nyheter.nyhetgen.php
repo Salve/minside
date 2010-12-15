@@ -706,9 +706,8 @@ class NyhetGen {
         $section_tabell = '<h2>Datagrunnlag</h2><div class="level3">';
         $section_tabell .= 'Tab-separert data over lesetidspunkt. Kan kopieres rett inn i Excel.<br>
             Brukere med blankt lesetidspunkt har ikke markert nyhet som lest.<pre>';
-        $section_tabell .= "BrukerID\tAdgangsgruppe\tTidspunkt lest\n";
+        $section_tabell .= "Adgangsgruppe\tTidspunkt lest\n";
         foreach($arReadList as $readevent) {
-            $section_tabell .= $readevent['brukerid'] . "\t";
             $section_tabell .= $readevent['brukergrupper'] . "\t";
             $section_tabell .= $readevent['readtime'] . "\n";
         }

@@ -727,7 +727,8 @@ class MsNyhet {
             users.createtime < $safecreate
         ORDER BY
             ikkelest,
-            readtime
+            readtime,
+            brukergrupper
         ";
         $data = $msdb->assoc($sql);
         
