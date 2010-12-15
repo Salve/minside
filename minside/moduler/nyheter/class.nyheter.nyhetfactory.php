@@ -322,7 +322,7 @@ class NyhetFactory {
         $fra = ($fra) ? ' AND lest.readtime > ' . $msdb->quote($fra) : '';
         
         $sql = "
-            SELECT lest.nyhetid, nyhet.pubtime, lest.readtime, users.wikifullname, kat.kategori, tags.tagnavn
+            SELECT lest.nyhetid, nyhet.pubtime, nyhet.nyhettitle, lest.readtime, users.wikifullname, kat.kategori, tags.tagnavn
             FROM
                     nyheter_lest AS lest
                 LEFT JOIN

@@ -1138,12 +1138,13 @@ class msmodul_nyheter implements msmodul {
         $log = NyhetFactory::getReadLog($fra, $til);
         
         $output = '<h1>Logg over leste nyheter</h1><pre>';
-        $output .= "NyhetsID\tPublisert\tMerket som lest\tOpprettet av\tKategori\tTags\n";
+        $output .= "NyhetsID\tMerket som lest\tPublisert\tOverskrift\tOpprettet av\tKategori\tTags\n";
         foreach($log as $item) {
             $output .= 
                 $item['nyhetid'] . "\t" .
-                $item['pubtime'] . "\t" .
                 $item['readtime'] . "\t" .
+                $item['pubtime'] . "\t" .
+                $item['nyhettitle'] . "\t" .
                 $item['wikifullname'] . "\t" .
                 $item['kategori'] . "\t" .
                 $item['tagnavn'] . "\n";
