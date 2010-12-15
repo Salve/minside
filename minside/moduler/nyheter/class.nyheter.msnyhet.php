@@ -783,7 +783,8 @@ class MsNyhet {
             LEFT JOIN
                 nyheter_nyhet AS nyhet ON users.id = nyhet.createby
             WHERE nyhet.createby IS NOT NULL
-            GROUP BY users.id;";
+            GROUP BY users.id
+            ORDER BY users.wikifullname;";
         
         return $msdb->assoc($sql);
 

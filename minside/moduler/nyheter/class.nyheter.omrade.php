@@ -198,5 +198,12 @@ class NyhetOmrade {
         
         return $info;
     }
-
+    
+    public static function compare_omrade_alpha(NyhetOmrade $a, NyhetOmrade $b) {
+        $navnA = $a->getVisningsnavn();
+        $navnB = $b->getVisningsnavn();
+        if($navnA == $navnB) return 0;
+        return ($navnA > $navnB) ? +1 : -1;
+    }
+    
 }

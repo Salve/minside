@@ -27,7 +27,7 @@ class NyhetTagFactory {
             self::$objBlankKategori = $objNyhetTag;
         }
         
-        return self::$objBlankKategori;
+        return clone self::$objBlankKategori;
     }
     
     public static function getNyhetTagById($input_tagid) {
@@ -65,7 +65,7 @@ class NyhetTagFactory {
 		for($i=0; $i <= (count($limits) - 1); $i++) {
             $sql .= (($i === 0) ? 'WHERE ' : 'AND ') . $limits[$i] . "\n";
         }
-        $sql .= "ORDER BY tagtype, tagid\n";
+        $sql .= "ORDER BY tagtype, tagnavn\n";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetTagCollectionFromDbResult($res);

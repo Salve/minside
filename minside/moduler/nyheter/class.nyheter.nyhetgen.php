@@ -996,6 +996,7 @@ class NyhetGen {
              
         // Områdefilter
         $colOmrader = NyhetOmrade::getOmrader('msnyheter', MSAUTH_1);
+        $colOmrader->uasort(array('NyhetOmrade', 'compare_omrade_alpha')); // Sorterer alfabetisk
         if ($colOmrader->length() > 1) {
             foreach($colOmrader as $objOmrade) {
                 $selected = (in_array($objOmrade->getOmrade(), (array) $data['fomrader'])) ? ' selected' : '';
