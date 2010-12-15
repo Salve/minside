@@ -743,6 +743,11 @@ class MsNyhet {
         $this->_arreadlist = $arReadList;
     }
     
+    public function getWebbug() {
+        $path = rawurlencode($this->getWikiPath());
+        return '<img src="'.DOKU_BASE.'lib/exe/indexer.php?id='.$path.'&amp;'.time().'" width="1" height="1" alt=""  />';
+    }
+    
     public function getAcl($user=null) {
         $ns = curNS($this->getWikiPath());
         return self::_checkAcl($ns, $user);

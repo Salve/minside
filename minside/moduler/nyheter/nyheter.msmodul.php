@@ -606,7 +606,7 @@ class msmodul_nyheter implements msmodul {
             }
             $pre = '<h1>Visning av enkeltnyhet</h1><div class="level2">';
             $post = '</div>';
-            return $pre . NyhetGen::genFullNyhet($objNyhet) . $post;
+            return $pre . NyhetGen::genFullNyhet($objNyhet) . $objNyhet->getWebbug() . $post;
         } else {
             // Preview
             return NyhetGen::genEdit($objNyhet, true);
