@@ -463,7 +463,9 @@ class MsNyhet {
         $safenyhetid = $msdb->quote($this->getId());
         
         $sql = "UPDATE nyheter_nyhet
-                SET pubtime = NOW()
+                SET pubtime = NOW(),
+                modtime = NOW(),
+                modby = '" . MinSide::getUserID() . "'
                 WHERE nyhetid = $safenyhetid
                 LIMIT 1;";
                 
