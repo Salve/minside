@@ -400,7 +400,7 @@ class Rapport {
             WHERE 
                     INSTR(`wikigroups`, 'feilm') 
                 OR 
-                    INSTR(`wikigroups`, 'teaml')
+                    INSTR(`wikigroups`, 'admin')
             ORDER BY
                 wikifullname
                 ASC
