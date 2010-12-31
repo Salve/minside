@@ -160,8 +160,8 @@ class NyhetTag {
     }
     
     public static function compare_alpha_navn(NyhetTag $a, NyhetTag $b) {
-        $navnA = $a->getNavn();
-        $navnB = $b->getNavn();
+        $navnA = strtoupper($a->getNavn());
+        $navnB = strtoupper($b->getNavn());
         if($navnA == $navnB) return 0;
         return ($navnA > $navnB) ? +1 : -1;
     }
