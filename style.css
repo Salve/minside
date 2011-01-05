@@ -524,6 +524,10 @@ div.minside div.nyhet {
     border-style: solid;
 }
 
+div.minside li.msnyhetmsg {
+    margin-left:2em;
+}
+
 div.minside div.nyhettopbar {
     background-color: #dee7ef;
     height:100%;
