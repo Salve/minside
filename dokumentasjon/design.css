@@ -50,7 +50,7 @@ div.sidebarblokk_header a:active  {
 }
 
 div.mssidebar div.sidebarblokk_item {
-    font-weight: bold;
+    font-weight: normal;
     color: __text_alt__;
     height: 1.5em;
     line-height: 1.5em;
