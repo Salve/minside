@@ -226,8 +226,8 @@ class msmodul_nyheter implements msmodul {
         }
         
 		if ($objNyhetCol->length() === 0) {
-			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har markert som lest, '.
-                'andre nyheter finner du her: <ul><li><a href="'.MS_NYHET_LINK.'&amp;act=show">Aktuelle nyheter</a></li><li><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">Arkivet</a> - eldre nyheter.</li></ul>') . $post;
+			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br> '.
+                'Trykk på <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.</li>') . $post;
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
