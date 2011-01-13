@@ -113,7 +113,7 @@ class Teller {
 		global $msdb;
 		
 		$datum = $msdb->num('SELECT tellerorder FROM feilrap_teller ORDER BY tellerorder DESC LIMIT 1');
-		$nyorder = $datum[0] + 1;
+		$nyorder = $datum[0][0] + 1;
 		
 		$safetellerid = $msdb->quote($this->_id);
 		$safenyorder = $msdb->quote($nyorder);
