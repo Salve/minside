@@ -15,14 +15,19 @@ require_once('class.feilmrapport.notatcollection.php');
 require_once('class.feilmrapport.rapportcollection.php');
 require_once('class.feilmrapport.skiftcollection.php');
 
+
+// "Forord" :p
+// Feilmrapport-modulen er dessverre relativt rotete. Hovedproblemet er at displaykode/html er tett integrert i logikken.
+// Heldigvis er nyhetsmodulen noe bedre ;) Husk å teste ting 5 ganger dersom html/display-kode endres, en del subtle bugs som kan oppstå.
+
 class msmodul_feilmrapport implements msmodul{
 
-	private $_msmodulact;
-	private $_msmodulvars;
-	private $_frapout;
-	private $_userId;
-	private $_accessLvl;
-	private $_currentSkiftId;
+	private $_msmodulact; // Holder variablen "act" som kommer inn via url, handling som skal utføres
+	private $_msmodulvars; // Kan holde data som sendes til modulen sammen med act, brukes kun i "custom" visninger
+	private $_frapout; // Modulens output bygges opp her
+	private $_userId; // Numerisk id fra minside, som henter den fra db basert på username gitt fra wikien
+	private $_accessLvl; // Brukerens ACL-tilgangsnivå på denne modulen, INT, se definisjon øverst i minside.php
+	private $_currentSkiftId; // Cache verdi av skiftid, bruk accessor, ikke denne verdien
 	private static $monthnames = array(
 			1 => 'januar',
 			2 => 'februar',
@@ -39,6 +44,8 @@ class msmodul_feilmrapport implements msmodul{
 	);
 	
 	public function __construct($UserID, $accesslvl) {
+        // Constructor kjøres hver gang minside lastes, uavhengig av om denne modulen skal gjøre noe arbeid
+        // Ikke utfør tungt arbeid her!
 		$this->_userId = $UserID;
 		$this->_accessLvl = $accesslvl;
 	}
@@ -48,13 +55,15 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	public function gen_msmodul($act, $vars){
+        // Denne metoden kjøres når modul loades og output ønskes, altså er
+        // page=feilmrapport i url.
+        
 		$this->_msmodulact = $act;
 		$this->_msmodulvars = $vars;
 		
 		if (!$this->_accessLvl > MSAUTH_NONE) return '';
 		
-		//$this->_frapout .= 'Output fra feilmrapport: act er: '. $this->_msmodulact . ', userid er: ' . $this->_userId . '<br />';
-		
+        // Nye handlinger legges til her, kjør kode som nødvendig, output concates på $this->_frapout
 		switch($this->_msmodulact) {
 			case "stengskift":
 				if (isset($_REQUEST[skiftid])) $this->_closeSkift($_REQUEST[skiftid]);
@@ -169,12 +178,19 @@ class msmodul_feilmrapport implements msmodul{
 		}
         
         $output = $this->_frapout;
+        // frapout nullstilles i tillfelle modulen genererer output mer enn en gang
         $this->_frapout = '';
 		return $output;
 	
 	}
 	
 	private function genNotat($objNotat, $edit = false) {
+        // Metode som genererer html gitt et notatobjekt. Gjør en av tre ting:
+        // - Genererer en tom form dersom edit er true og objNotat IKKE er et notatobjekt
+        // - Genererer en form med gitt notatobjekt fyllt ut for redigering dersom edit er true og objNotat ER et notatobjekt
+        // - Genererer notattekst med bilde-lenker for å redigere eller slette, dersom edit er false
+        
+        
 		if ($edit) {
 			$output .= '<p>';
 			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
@@ -199,9 +215,15 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportArkiv($forside = false) {
+        // Dersom bruker har tilgang MSAUTH_1 eller 2 vises kun oversikt over rapporter generert det siste døgnet.
+        // Dersom bruker har tilgang MSAUTH_3 eller høyere vises oversikt over rapporter i en gitt måned (dersom måned er valgt),
+        // eller samme oversikt som normalt, med rapporter fra siste døgn. Uansett får disse brukerne se oversikt over år/måneder som kan
+        // velges for å se alle rapporter.
+    
 				
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
-		
+            // Rapporter generert siste 24 timer
+            
 			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
 			
 			
@@ -210,7 +232,8 @@ class msmodul_feilmrapport implements msmodul{
 			$output .= $this->_genRapportListe($rapportcol);
 		
 		} else {
-		
+            // Rapporter fra spesifikk måned
+            
 			$inputstr = $_REQUEST['arkivmnd'];
 			list($inputyear, $inputmonth) = explode('-', $inputstr);
 			
@@ -232,10 +255,10 @@ class msmodul_feilmrapport implements msmodul{
 			
 		}
 		
-		
-		
+		// År/månedsoversikt legges til
 		if ($this->_accessLvl >= MSAUTH_3) $output .= $this->_genRapportArkivMenu();
 		
+        // Hack da denne outputen også vises på forsiden, med spesiell parameter gitt
 		if(!$forside) {
             $pre = '<h1>Rapportarkiv</h1><div class="rapportarkiv level2">';
             $post = '</div>';
@@ -249,7 +272,14 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
-		
+		// Metoden genererer oversikt over alle rapporter i en gitt måned. Sortert etter uke og
+        // dato.
+        
+        // Tenk deg om fem ganger før du messer med denne koden, html-tags er veldig knyttet til loopene, endrer du
+        // noe må du sjekke at html fremdeles er valid. Hadde i utgangspunktet tenkt å bygge opp en datastruktur først,
+        // så outputte denne, for å slippe kytning mellom loops og html.
+        
+        
 		$output = "\n\n" . '<div class="rapparkivliste">';
 		
 		$currUkeNummer = 100;
@@ -374,6 +404,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportArkivMenu() {
+        // Oversikt over alle år og måneder som har genererte rapporter.
+        // Kalles fra _genRapportArkiv
+        
 		global $msdb;
 	
 		$sql = "SELECT YEAR(createtime) AS 'YEAR', GROUP_CONCAT(DISTINCT MONTH(createtime)) AS 'MONTHS' FROM feilrap_rapport GROUP BY `YEAR`;";
@@ -412,6 +445,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapport() {
+        // Viser en spesifikk rapport
+    
 		if (isset($_REQUEST['rapportid'])) {
 			$rapportid = $_REQUEST['rapportid'];
 			
@@ -439,6 +474,7 @@ class msmodul_feilmrapport implements msmodul{
 				return;
 			}
 			
+            // Liste med brukere som kan få rapport tilsendt per epost
 			$output .= $objRapport->genMailForm();
 			
 			return $output;
@@ -450,6 +486,7 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genModRapport(){
+            // Genererer output bruker får når han/hun skal opprette rapport (på slutten av hvert skift) 
 			
 			if (RapportTemplateFactory::getCurrentTplId() === false) {
 				msg('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.', -1);
@@ -532,7 +569,7 @@ class msmodul_feilmrapport implements msmodul{
 				$rappoutput = $objRapport->genRapport();
 				$rappoutput .= $objRapport->genMailForm();
 			
-			} elseif ($submitsave) {
+			} elseif ($submitsave) { // Bruker har forsøkt å lagre, men feil/mangler i inndata
 				$rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
 				try {
 					$rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
@@ -541,7 +578,7 @@ class msmodul_feilmrapport implements msmodul{
 					die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
 				}
 				
-			} else {
+			} else { // Bruker har ikke forsøkt å lagre, vis rapport med tomme inndata-felt
 				try {
 					$rappoutput = $objRapport->genRapportTemplate();
 				}
@@ -574,6 +611,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _sendRapportMail() {
+        // Mail sender. Denne ble hevet sammen ganske raskt, dersom det oppstår problemer med mailutsendelse
+        // bør DokuWikis funksjoner for mailutsendelse sjekkes, disse er mye bedre.
+        
 		global $INFO;
 		
 		if (isset($_REQUEST['rapportid'])) {
@@ -642,7 +682,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _validateRapportInput(&$validinput, &$invalidinput, &$skiftcol) {
-	
+        // Validerer input til nye rapporter, forskjellige validator basert på hver gruppe input(bool, litetall osv.)
+        // Faktisk validationlogikk ligger i callsen RappValidator.
+        
 		$validationerrors = 0;
 	
 		if (is_array($_POST['rappinn']['bool'])) {
@@ -723,6 +765,7 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _genRapportSelectSkift(){
+        // Genererer oversikt over skift som kan inkluderes i en rapport
 	
 		$skiftcol = SkiftFactory::getMuligeSkiftForRapport();
 	
@@ -808,7 +851,10 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	public function genSkift(){
-
+        // Genererer "normal/default" output, altså visning av status på tellere/notater i brukerens åpne skift.
+        // Denne metoden er trolig den værste synderen av blandig av loggikk og output. Valider html når endringer
+        // utføres.
+        
 		$skiftID = $this->getCurrentSkiftId();
 		if ($skiftID === false) return $this->_genNoCurrSkift();
 		
@@ -901,7 +947,6 @@ class msmodul_feilmrapport implements msmodul{
 			}
 		}
 
-		
 		if ($colSecTeller->length() > 0){
 			$skiftout .= '<tr>' . "\n";
 			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
@@ -1014,6 +1059,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _modTellerOrder($orderact) {
+        // Flytter tellere opp/ned (i teller-admin)
+        
 		$tellerid = $_GET['tellerid'];
 		
 		if (!isset($tellerid)) die('TellerID ikke gitt!');
@@ -1163,6 +1210,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _flipTeller() {
+        // Deaktiverer/aktiverer teller (motsatt av det den var)
+        
 		global $msdb;
 		
 		$tellerid = $_REQUEST['tellerid'];
@@ -1198,6 +1247,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	public function getCurrentSkiftId($userid = false) {
+        // Henter gitt brukers skiftid, hvis noen. Ser nå at denne vil faile hardt på andre brukerider enn innlogget bruker
+        // grunnet caching. Hvis denne funksjonaliteten skal brukes i fremtiden må resultat caches per brukerid.
+        
 		if ($userid === false) $userid = $this->_userId;
 		if (isset($this->_currentSkiftId) && $userid == $this->_userId) return $this->_currentSkiftId;
 		
@@ -1215,6 +1267,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _undoAkt() {
+        // Undoer siste aktivitet, tror ikke denne funksjonen brukes direkte etter vi fikk ny oversikt over siste endringer
+        
 		global $msdb;
 		$skiftid = $this->getCurrentSkiftId();
 		$safetelleraktid = $msdb->quote($_REQUEST['aktid']);
@@ -1239,8 +1293,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _changeTeller() {
+        // Bruker trykker pluss/minus på en teller
 
-			$inputverdi = $_REQUEST['modtellerverdi'];
+        $inputverdi = $_REQUEST['modtellerverdi'];
 
 		if (!isset($inputverdi)) {
 			msg('Klarte ikke å endre teller: Ingen verdi angitt', -1);
@@ -1390,6 +1445,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _closeCurrSkift() {
+        // Avslutt innlogget brukers aktive skift
+        
 		if ($this->getCurrentSkiftId() === false) { die('Kan ikke avslutte skift: Finner ikke aktivt skift.'); }
 		
 		if (!$this->_closeSkift($this->getCurrentSkiftId())) {
@@ -1403,6 +1460,8 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _closeSkift($skiftid) {	
+        // Avslutt en hvilken som helst brukers skift
+        
 		try {
 			$objSkift = SkiftFactory::getSkift($skiftid);
 		}
@@ -1432,6 +1491,7 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _saveRapportTemplate() {
+        // Lagre template via template admin
 		
 		$templateid = (int) $_REQUEST['templateid'];
 		$inputtekst = $_REQUEST['inputtpl'];
@@ -1548,6 +1608,9 @@ class msmodul_feilmrapport implements msmodul{
 	}
 	
 	private function _modTemplateLive() {
+        // Endre template fra draft til live.
+        // Når template går live blir det automatisk gjeldende template.
+        
 		if (isset($_REQUEST['templateid'])) {
 			$templateid = $_REQUEST['templateid'];
 		} else {
@@ -1685,6 +1748,8 @@ class msmodul_feilmrapport implements msmodul{
 		
 			$toppmeny = new Menyitem('FeilM Rapport','&amp;page=feilmrapport');
             
+            // "notoc" kan passes inn via msmodulvars når moduler lastes i en wiki-side, dette indikerer at modulen 
+            // IKKE skal vise utvidet meny i sidebaren, selv om en feilmrapport-handlig utføres.
             if (isset($act) && array_search('notoc', (array) $this->_msmodulvars) === false) {
                 $telleradmin = new Menyitem('Rediger tellere','&amp;page=feilmrapport&amp;act=telleradm');
                 $genrapport = new Menyitem('Lag rapport','&amp;page=feilmrapport&amp;act=genrapportsel');
