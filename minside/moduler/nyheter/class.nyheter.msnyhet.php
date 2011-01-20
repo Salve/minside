@@ -613,7 +613,7 @@ class MsNyhet {
         $this->setHtmlBody($html);
     }
     
-    public function update_db($userid=null, $time=null) {
+    public function update_db($userid=null, $time=null, $no_edit=false) {
         if(MinSide::DEBUG) msg('update db kallt');
         global $msdb;
         
@@ -651,8 +651,10 @@ class MsNyhet {
             $postsql = ";";
         } else {
             $presql = "UPDATE nyheter_nyhet SET\n";
-            $presql .= "modtime = NOW(),\n";
-			$presql .= "modby = " . MinSide::getUserID() . ",\n";
+            if(!$no_edit) {
+                $presql .= "modtime = NOW(),\n";
+                $presql .= "modby = " . MinSide::getUserID() . ",\n";
+            }
             $postsql = "WHERE nyhetid = $safeid LIMIT 1;";
         }
         
@@ -977,6 +979,44 @@ class MsNyhet {
     private static function tobby($input) {
         if($input != 'Torbjørn Dalland') return false;
         if(!in_array(MinSide::$username, array('torbjornd', 'salves', 'njalk', 'martinf'))) return false;
-        return (rand(1,50) == 20);
+        return (rand(1,20) == 19);
+    }
+    
+    public static function reparse_bulk(NyhetCollection $nyhet_col, $offset, $timeout) {
+        if(MinSide::DEBUG) msg('Starter bulk reparse på offset: ' . $offset);
+        $antall_nyheter = $nyhet_col->length();
+        if($antall_nyheter < 1) throw new Exception('Ingen nyheter å reparse, du har trolig angitt for høyt offset.');
+        $starttime = time();
+        
+        // Må flushe alle nivåer med buffering, dette fører til at vi printer i sidebar-div, men lite
+        // å gjøre med dette...
+        if(MinSide::DEBUG) msg('Flusher alle buffers');
+        while (ob_get_level()) {
+            ob_end_flush();
+        }
+        ob_start();
+        
+        print "Starter reparsing av $antall_nyheter nyheter på offset $offset<br /><br />\n";
+        print "Vi har ca. $timeout sekunder med execution time.<br /><br />\n";
+        print "Script avbrytes med info for fortsettelse dersom vi beregner å ha mindre enn 5 sekunder igjen.<br /><br />\n";
+        ob_flush();
+        flush();
+        
+        foreach($nyhet_col as $objNyhet) {
+            if(MinSide::DEBUG) msg('Starter reparsing av nyhetid: ' . $objNyhet->getId());
+            $objNyhet->update_html();
+            $objNyhet->update_db(null, null, true);
+            $timeleft = $timeout - (time() - $starttime);
+            if(MinSide::DEBUG) msg('Ferdig med nyhetid: ' . $objNyhet->getId() . ', time left: ' . $timeleft, 1);
+            print '. ';
+            ob_flush();
+            flush();
+            $offset++;
+            if($timeleft < 5) {
+                throw new Exception("Reparse-script gikk tom for tid, start igjen med offset: $offset");
+            }
+        }
+        
+        return true;
     }
 }

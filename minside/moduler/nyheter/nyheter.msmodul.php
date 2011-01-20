@@ -42,63 +42,69 @@ class msmodul_nyheter implements msmodul {
 	
 	private function _setHandlers(&$dispatcher) {
         // Siste nyheter
-		$dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
-		$dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
+        $dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
+        $dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
         // Uleste nyheter / merk lest
-		$dispatcher->addActHandler('forside', 'gen_nyheter_ulest', MSAUTH_1, 'redirforside');
-		$dispatcher->addActHandler('redirforside', 'gen_redirect_forside', MSAUTH_1);
-		$dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
+        $dispatcher->addActHandler('forside', 'gen_nyheter_ulest', MSAUTH_1, 'redirforside');
+        $dispatcher->addActHandler('redirforside', 'gen_redirect_forside', MSAUTH_1);
+        $dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
         $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
-		$dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
+        $dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
         // Rediger / opprett
-		$dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
+        $dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
         $dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
         $dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
         // Arkiv
-		$dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
+        $dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
         // Upubliserte
-		$dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_3);
-		$dispatcher->addActHandler('pubnaa', 'publiser_nyhet', MSAUTH_3);
+        $dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_3);
+        $dispatcher->addActHandler('pubnaa', 'publiser_nyhet', MSAUTH_3);
         // Slett nyhet (bruker returnto, dispatcher direkte) og slettede nyheter
-		$dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
-		$dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
-		$dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
-		$dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
-		$dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
-		$dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
+        $dispatcher->addActHandler('slett', 'slett_nyhet', MSAUTH_2);
+        $dispatcher->addActHandler('showdel', 'gen_nyheter_del', MSAUTH_5);
+        $dispatcher->addActHandler('restore', 'restore_nyhet', MSAUTH_5);
+        $dispatcher->addActHandler('restore', 'gen_nyheter_del', MSAUTH_5);
+        $dispatcher->addActHandler('permslett', 'permslett_nyhet', MSAUTH_5);
+        $dispatcher->addActHandler('permslett', 'gen_nyheter_del', MSAUTH_5);
         // Stats
         $dispatcher->addActHandler('nyhetstats', 'gen_nyhet_stats', MSAUTH_5);
         // Admin
         $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('admin', 'gen_readlog_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('admin', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_reparse_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'import_nyheter', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'gen_omrade_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('doimport', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'gen_readlog_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('doimport', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_reparse_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'gen_readlog_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subtagadm', 'gen_import_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
         $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('sletttag', 'gen_readlog_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('sletttag', 'gen_import_admin', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
-		$dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
+        $dispatcher->addActHandler('sletttag', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
         $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subomradeadm', 'gen_readlog_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subomradeadm', 'gen_import_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'gen_reparse_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('readlog', 'gen_read_log', MSAUTH_5);
+        $dispatcher->addActHandler('doreparse', 'do_reparse', MSAUTH_ADMIN);
         // System / interne
-		$dispatcher->addActHandler('searchpagelookup', 'gen_searchpagelookup', MSAUTH_1);
-		$dispatcher->addActHandler('searchfullpage', 'gen_searchfullpage', MSAUTH_1);
+        $dispatcher->addActHandler('searchpagelookup', 'gen_searchpagelookup', MSAUTH_1);
+        $dispatcher->addActHandler('searchfullpage', 'gen_searchfullpage', MSAUTH_1);
         $dispatcher->addActHandler('extupdate', 'update_nyhet_from_wp', MSAUTH_NONE);
-		$dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
+        $dispatcher->addActHandler('extview', 'gen_ext_view', MSAUTH_NONE);
 	}
 	
 	public function registrer_meny(MenyitemCollection &$meny) {
@@ -141,6 +147,7 @@ class msmodul_nyheter implements msmodul {
                     case 'sletttag':
                     case 'subomradeadm':
                     case 'doimport':
+                    case 'doreparse':
                     case 'admin':
                         $objStrong = $menyitem_admin;
                         break;
@@ -804,6 +811,29 @@ class msmodul_nyheter implements msmodul {
         }
 
         return NyhetGen::genSearchHits($colPubNyheter);
+    }
+    
+    public function gen_reparse_admin() {
+        return NyhetGen::genReparseAdmin();
+    }
+    
+    public function do_reparse() {
+        // Forsøk å øke execution time:
+        if( !ini_get('safe_mode') ){
+            set_time_limit(290);
+        } 
+        $timeout = (int) ini_get('max_execution_time');
+        if($timeout < 10 && $timeout != 0) throw new Exception('max_execution_time er satt til mindre enn 10 sekund og scriptet klarte ikke å øke denne. Må økes manuellt.');
+
+        $start_nyhet_nr = (int) $_POST['reparse_offset'];
+        $colNyheter = NyhetFactory::getAlleNyheter($start_nyhet_nr);
+        
+        $res = MsNyhet::reparse_bulk($colNyheter, $start_nyhet_nr, $timeout); // Denne skriver direkte
+        if($res === true) {
+            msg('Reparse fullført!', 1);
+        }
+        
+        // Returnerer ikke noe her, da vi outputer til sidebar, grunnet buffer-flushes i reparse-kode.
     }
     
     public function gen_import_admin() {

@@ -728,6 +728,30 @@ class NyhetGen {
         return $output;
     }
     
+    public static function genReparseAdmin() {
+        $output .= "<h2>Reparse nyheter</h2>\n";
+        $output .= '<div class="reparseadm">';
+        $output .= '<div class="level3">';
+        $output .= '<p>Dette verktøyet forsøker å parse <strong>ALLE</strong> nyheter i databasen på nytt, ved å lese wiki-pathen nyheten
+            peker mot, og kjøre denne gjennom DW-rendreren. Verktøyet påvirker ikke andre felter, som tittel eller datoer for publisering/endring.</p>
+            
+            <p>Avhengig av antall nyheter i databasen kan dette ta svært lang tid,
+            scriptet forsøker å øke/oppdage max execution time på serveren, og avslutte før denne er utløpt. Skjer dette vil du få
+            et tall som kan angis i feltet under, slik at scriptet fortsetter der det sist avsluttet.</p>
+            
+            <p>Verktøyet kan brukes dersom det er behov for å regenerere linker eller annet dynamisk innhold (f.eks. hvis wikiens path endres).
+            Kan også være nyttig dersom nyhetene batch-behandles på disk. Veldig viktig å ta full backup av databasen før dette verktøyet kjøres,
+            <strong>DET KAN GÅ VELDIG GALT!</strong></p>';
+        
+        $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=doreparse" method="POST">
+                Start med nyhet nr.: <input type="text" name="reparse_offset" value="0" />
+                <br /><br /><input type="submit" value="Start reparsing" onClick="return heltSikker()" class="button" /></form>';
+        
+        $output .= '</div></div>'; // reparseadm og level3
+        
+        return $output;
+    }
+    
 	public static function genTagAdmin(NyhetTagCollection $colTags) {
         $output .= "<h2>Kategori og tag-administrasjon</h2>\n";
         

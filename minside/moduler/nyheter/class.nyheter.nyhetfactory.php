@@ -115,6 +115,21 @@ class NyhetFactory {
         
     }
     
+    public static function getAlleNyheter($offset=0) {
+        global $msdb;
+		
+        $safe_offset = (int) $offset;
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" ORDER BY nyhetid ASC
+            LIMIT $safe_offset, 18446744073709551615;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+    
     public static function getAllePubliserteNyheter() {
         global $msdb;
 		
