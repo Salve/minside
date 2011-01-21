@@ -440,6 +440,7 @@ class msmodul_nyheter implements msmodul {
         $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
         
         $arkiv_selflink_params = NyhetGen::genArkivLinkParams($limits);
+        $returntoextras = $arkiv_selflink_params . '&amp;visside=' . $limits['pages']['currpage'];
         $html_tools = NyhetGen::genArkivOptions($limits, $arkiv_selflink_params);
         $output = $html_tools[0];
         $pagination = $html_tools[1];
@@ -452,7 +453,7 @@ class msmodul_nyheter implements msmodul {
             if($objMineNyheterCol->exists( $objNyhet->getId() )) {
                 $options[] = 'fjernmine';
             }
-            $output .= NyhetGen::genFullNyhet($objNyhet, $options, 'arkiv', $arkiv_selflink_params);
+            $output .= NyhetGen::genFullNyhet($objNyhet, $options, 'arkiv', $returntoextras);
         }
         
         $pre = '<h1>Nyhetsarkiv</h1><div class="level2">';
