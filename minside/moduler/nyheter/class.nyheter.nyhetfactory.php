@@ -115,7 +115,7 @@ class NyhetFactory {
         
     }
     
-    public static function getAlleNyheter($offset=0) {
+    public static function getAlleNyheter($offset=0, $attachtags=true) {
         global $msdb;
 		
         $safe_offset = (int) $offset;
@@ -126,7 +126,7 @@ class NyhetFactory {
             LIMIT $safe_offset, 18446744073709551615;";
         $res = $msdb->assoc($sql);
         
-        return self::createNyhetCollectionFromDbResult($res);
+        return self::createNyhetCollectionFromDbResult($res, $attachtags);
         
     }
     
@@ -167,7 +167,7 @@ class NyhetFactory {
         
     }
     
-    public static function getMineNyheterForBrukerId($brukerid) {
+    public static function getMineNyheterForBrukerId($brukerid, $attachtags=true) {
         global $msdb;
         
         $omrader = self::getSafeOmrader(MSAUTH_1);
@@ -189,7 +189,7 @@ class NyhetFactory {
             
         $res = $msdb->assoc($sql);
         
-        return self::createNyhetCollectionFromDbResult($res);
+        return self::createNyhetCollectionFromDbResult($res, $attachtags);
     }
     
     public static function getUpubliserteNyheter() {
@@ -211,7 +211,7 @@ class NyhetFactory {
         
     }
     
-    public static function getUlesteNyheterForBrukerId($brukerid) {
+    public static function getUlesteNyheterForBrukerId($brukerid, $attachtags=true) {
         global $msdb;
         
 		$omrader = self::getSafeOmrader(MSAUTH_1);
@@ -236,7 +236,7 @@ class NyhetFactory {
             
         $res = $msdb->assoc($sql);
         
-        return self::createNyhetCollectionFromDbResult($res);
+        return self::createNyhetCollectionFromDbResult($res, $attachtags);
         
     }
 	

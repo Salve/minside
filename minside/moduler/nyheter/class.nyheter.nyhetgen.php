@@ -53,6 +53,9 @@ class NyhetGen {
                 $arOptions[] = 'slett';
             case MSAUTH_1:
                 $arOptions[] = 'link';
+                if(!in_array('fjernmine', $extraoptions)) {
+                    $arOptions[] = 'mine';
+                }
                 break;
             case MSAUTH_NONE:
                 break;
@@ -143,6 +146,12 @@ class NyhetGen {
         $opt['publiser'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=pubnaa&amp;nyhetid=$id\">" .
             '<img alt="stats" title="Publiser nyhet nå" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'iconCalendar.gif" /></a>';
+        $opt['mine'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=addmine&amp;nyhetid=$id\">" .
+            '<img alt="flag" title="Legg nyhet i &quot;Mine nyheter&quot;" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'flag.png" /></a>';
+        $opt['fjernmine'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=fjernmine&amp;nyhetid=$id\">" .
+            '<img alt="unflag" title="Fjern nyhet fra &quot;Mine nyheter&quot;" width="16" ' .
+            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
             if (array_key_exists($v, $opt)) {
