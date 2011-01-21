@@ -255,11 +255,12 @@ class msmodul_nyheter implements msmodul {
 	}
     
     public function gen_nyheter_mine() {
-        $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        $objNyhetCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID);
         
 		if ($objNyhetCol->length() === 0) {
-			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br> '.
-                'Trykk på <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.</li>') . $post;
+			return NyhetGen::genIngenNyheter('<p>Her vises nyheter du har lagt til i "Mine nyheter". '.
+                'Bruk "Mine nyheter" ikonet oppe til høyre på en nyhet for å legge den til her.</p>'.
+                '<p>Her kan du legge inn nyheter du ofte refererer til, eller må huske på.</p>');
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {

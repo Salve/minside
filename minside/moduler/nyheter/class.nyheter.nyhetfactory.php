@@ -159,12 +159,37 @@ class NyhetFactory {
                 AND pubtime < NOW()
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY pubtime DESC, nyhetid ASC
+			ORDER BY pubtime DESC, nyhetid DESC
             LIMIT 100;";
         $res = $msdb->assoc($sql);
         
         return self::createNyhetCollectionFromDbResult($res);
         
+    }
+    
+    public static function getMineNyheterForBrukerId($brukerid) {
+        global $msdb;
+        
+        $omrader = self::getSafeOmrader(MSAUTH_1);
+		
+        $safebrukerid = $msdb->quote($brukerid);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . "
+                FROM nyheter_nyhet 
+                LEFT JOIN nyheter_minenyheter 
+                ON nyheter_nyhet.nyhetid = nyheter_minenyheter.nyhetid 
+                    AND nyheter_minenyheter.brukerid = $safebrukerid " . 
+				self::SQL_FULLNAME_JOINS .
+               "WHERE nyheter_minenyheter.nyhetid IS NOT NULL
+                    AND nyheter_nyhet.omrade IN ($omrader)
+					AND pubtime < NOW()
+					AND deletetime IS NULL
+                ORDER BY nyheter_minenyheter.added DESC, nyheter_nyhet.nyhetid DESC
+            ;";
+            
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
     }
     
     public static function getUpubliserteNyheter() {
