@@ -50,6 +50,8 @@ class msmodul_nyheter implements msmodul {
         $dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
         $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
         $dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
+        // Mine nyheter
+        $dispatcher->addActHandler('mine', 'gen_nyheter_mine', MSAUTH_1);
         // Rediger / opprett
         $dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
         $dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
@@ -117,6 +119,7 @@ class msmodul_nyheter implements msmodul {
                 $menyitem_opprett = new Menyitem('Opprett nyhet','&amp;page=nyheter&amp;act=addnyhet');
                 $menyitem_list = new Menyitem('Aktuelle nyheter','&amp;page=nyheter&amp;act=list');
                 $menyitem_ulest = new Menyitem('Uleste nyheter','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_mine = new Menyitem('Mine nyheter','&amp;page=nyheter&amp;act=mine');
                 $menyitem_upub = new Menyitem('Upublisert','&amp;page=nyheter&amp;act=upub');
                 $menyitem_showdel = new Menyitem('Slettet','&amp;page=nyheter&amp;act=showdel');
                 $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
@@ -131,6 +134,9 @@ class msmodul_nyheter implements msmodul {
                     case 'allelest':
                     case 'ulest':
                         $objStrong = $menyitem_ulest;
+                        break;
+                    case 'mine':
+                        $objStrong = $menyitem_mine;
                         break;
                     case 'arkiv':
                         $objStrong = $menyitem_arkiv;
@@ -166,6 +172,7 @@ class msmodul_nyheter implements msmodul {
                 }
                 
                 $toppmeny->addChild($menyitem_ulest);
+                $toppmeny->addChild($menyitem_mine);
                 $toppmeny->addChild($menyitem_list);
                 if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild($menyitem_opprett);
@@ -246,6 +253,22 @@ class msmodul_nyheter implements msmodul {
 		return $pre . $output . $post;
 		
 	}
+    
+    public function gen_nyheter_mine() {
+        $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        
+		if ($objNyhetCol->length() === 0) {
+			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br> '.
+                'Trykk på <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.</li>') . $post;
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), $returnto);
+        }
+        
+
+		return $output;
+    }
     
     public function gen_nyhet_stats() {
         $nyhetid = $_REQUEST['nyhetid'];
