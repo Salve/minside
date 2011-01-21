@@ -151,7 +151,7 @@ class NyhetGen {
             'height="16" src="' . MS_IMG_PATH . 'flag.png" /></a>';
         $opt['fjernmine'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=fjernmine&amp;nyhetid=$id\">" .
             '<img alt="unflag" title="Fjern nyhet fra &quot;Mine nyheter&quot;" width="16" ' .
-            'height="16" src="' . MS_IMG_PATH . 'success.png" /></a>';
+            'height="16" src="' . MS_IMG_PATH . 'unflag.png" /></a>';
 		
 		foreach ($inoptions as $k => $v) {
             if (array_key_exists($v, $opt)) {
