@@ -195,7 +195,11 @@ class action_plugin_minside_acthandler extends DokuWiki_Action_Plugin {
     }
     
     function handleSearchQueryPagelookup(&$event, $param) {
-    
+        // Sjekker om $ACT = search, for å ungå å behandle data når det søkes via js/ajax
+        // environment er da ikke på plass og vi får exception text i popup
+        global $ACT;
+        if($ACT != 'search') return false;
+        
         $nyhet_hits = array();
         foreach($event->result as $key => $info) {
             // Funksjonen returnerer int(0) på match
