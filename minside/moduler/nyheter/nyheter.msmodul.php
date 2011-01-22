@@ -50,6 +50,10 @@ class msmodul_nyheter implements msmodul {
         $dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
         $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
         $dispatcher->addActHandler('allelest', 'merk_alle_lest', MSAUTH_1);
+        // Mine nyheter
+        $dispatcher->addActHandler('mine', 'gen_nyheter_mine', MSAUTH_1);
+        $dispatcher->addActHandler('addmine', 'add_nyheter_mine', MSAUTH_1); // Bruker returnto
+        $dispatcher->addActHandler('fjernmine', 'fjern_nyheter_mine', MSAUTH_1); // Bruker returnto
         // Rediger / opprett
         $dispatcher->addActHandler('addnyhet', 'gen_add_nyhet', MSAUTH_3);
         $dispatcher->addActHandler('edit', 'gen_edit_nyhet', MSAUTH_2);
@@ -117,6 +121,7 @@ class msmodul_nyheter implements msmodul {
                 $menyitem_opprett = new Menyitem('Opprett nyhet','&amp;page=nyheter&amp;act=addnyhet');
                 $menyitem_list = new Menyitem('Aktuelle nyheter','&amp;page=nyheter&amp;act=list');
                 $menyitem_ulest = new Menyitem('Uleste nyheter','&amp;page=nyheter&amp;act=ulest');
+                $menyitem_mine = new Menyitem('Mine nyheter','&amp;page=nyheter&amp;act=mine');
                 $menyitem_upub = new Menyitem('Upublisert','&amp;page=nyheter&amp;act=upub');
                 $menyitem_showdel = new Menyitem('Slettet','&amp;page=nyheter&amp;act=showdel');
                 $menyitem_arkiv = new Menyitem('Arkiv','&amp;page=nyheter&amp;act=arkiv');
@@ -131,6 +136,9 @@ class msmodul_nyheter implements msmodul {
                     case 'allelest':
                     case 'ulest':
                         $objStrong = $menyitem_ulest;
+                        break;
+                    case 'mine':
+                        $objStrong = $menyitem_mine;
                         break;
                     case 'arkiv':
                         $objStrong = $menyitem_arkiv;
@@ -166,6 +174,7 @@ class msmodul_nyheter implements msmodul {
                 }
                 
                 $toppmeny->addChild($menyitem_ulest);
+                $toppmeny->addChild($menyitem_mine);
                 $toppmeny->addChild($menyitem_list);
                 if ($lvl >= MSAUTH_3) {
 					$toppmeny->addChild($menyitem_opprett);
@@ -193,7 +202,8 @@ class msmodul_nyheter implements msmodul {
 	public function gen_nyheter_full() {
 		
         $objNyhetCol = NyhetFactory::getNyligePubliserteNyheter();
-		$objUlestCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
+		$objUlestCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID, false);
         
 		if ($objNyhetCol->length() === 0) {
 			return NyhetGen::genIngenNyheter('Her vises kun nyheter publisert de siste syv dagene. '.
@@ -201,11 +211,14 @@ class msmodul_nyheter implements msmodul {
 		}
         
         foreach ($objNyhetCol as $objNyhet) {
+            $options = array();
             if($objUlestCol->exists( $objNyhet->getId() )) {
-                $options = array('lest');
-            } else {
-                $options = array();
+                $options[] = 'lest';
             }
+            if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                $options[] = 'fjernmine';
+            }
+            
             $nyhet = NyhetGen::genFullNyhet($objNyhet, $options, 'list');
             if ($objNyhet->isSticky()) {
                 $sticky .= $nyhet;
@@ -224,6 +237,7 @@ class msmodul_nyheter implements msmodul {
 	public function gen_nyheter_ulest($returnto='ulest') {
 		
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
         
         if ($returnto == 'redirforside') {
             $pre = $post = '';
@@ -233,12 +247,17 @@ class msmodul_nyheter implements msmodul {
         }
         
 		if ($objNyhetCol->length() === 0) {
-			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br> '.
-                'Trykk på <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">arkivet</a> for eldre nyheter.</li>') . $post;
+			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br /><br /> '.
+                'For andre nyheter, se: <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">Aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">Arkivet</a></li>') . $post;
 		}
 		
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array('lest'), $returnto);
+            $options = array('lest');
+            if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                $options[] = 'fjernmine';
+            }
+            
+            $output .= NyhetGen::genFullNyhet($objNyhet, $options, $returnto);
         }
         
         $output = '<p><a href="'.MS_NYHET_LINK.'&amp;returnto='.$returnto.'&amp;act=allelest">Merk alle nyheter lest</a></p>' . $output;
@@ -246,6 +265,72 @@ class msmodul_nyheter implements msmodul {
 		return $pre . $output . $post;
 		
 	}
+    
+    public function add_nyheter_mine() {
+        $nyhetid = (int) $_REQUEST['nyhetid'];
+		
+        try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			$error_text = 'Klarte ikke å legge nyhet til i &quot;Mine nyheter&quot: ' . $e->getMessage();
+            throw new Exception($error_text);
+		}
+        
+        if ($objNyhet->getAcl() < MSAUTH_1) throw new Exception('Du har ikke lesetilgang på denne nyheten!');
+		
+		($objNyhet->flag_mine_nyheter($this->_userID))
+			? msg('La nyhet til i &quot;Mine nyheter&quot;: ' . $objNyhet->getTitle(true), 1)
+			: msg('Klarte ikke å legge nyhet til i &quot;Mine nyheter&quot;! Id: ' . $objNyhet->getId(), -1);
+            
+        if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            $this->_msmodulact = 'mine';
+            return self::$dispatcher->dispatch('mine');
+        }
+		
+    }
+    
+    public function fjern_nyheter_mine() {
+        $nyhetid = (int) $_REQUEST['nyhetid'];
+		
+        try{
+			$objNyhet = NyhetFactory::getNyhetById($nyhetid);
+		} catch (Exception $e) {
+			$error_text = 'Klarte ikke å fjerne nyhet fra &quot;Mine nyheter&quot;: ' . $e->getMessage();
+            throw new Exception($error_text);
+		}
+		
+		($objNyhet->unflag_mine_nyheter($this->_userID))
+			? msg('Fjernet nyhet fra &quot;Mine nyheter&quot;: ' . $objNyhet->getTitle(true), 1)
+			: msg('Klarte ikke å fjerne nyhet fra &quot;Mine nyheter&quot;! Id: ' . $objNyhet->getId(), -1);
+        
+        if (isset($_REQUEST['returnto'])) {
+            $this->_msmodulact = $_REQUEST['returnto'];
+            return self::$dispatcher->dispatch($_REQUEST['returnto']);
+        } else {
+            $this->_msmodulact = 'mine';
+            return self::$dispatcher->dispatch('mine');
+        }
+        
+    }
+    
+    public function gen_nyheter_mine() {
+        $objNyhetCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID);
+        
+		if ($objNyhetCol->length() === 0) {
+			return NyhetGen::genIngenNyheter('<p>Her vises nyheter du har lagt til i "Mine nyheter". '.
+                'Bruk "Mine nyheter" ikonet oppe til høyre på en nyhet for å legge den til her.</p>'.
+                '<p>Her kan du legge inn nyheter du ofte refererer til, eller må huske på.</p>');
+		}
+		
+        foreach ($objNyhetCol as $objNyhet) {
+            $output .= NyhetGen::genFullNyhet($objNyhet, array('fjernmine'), 'mine');
+        }
+        
+		return $output;
+    }
     
     public function gen_nyhet_stats() {
         $nyhetid = $_REQUEST['nyhetid'];
@@ -352,7 +437,10 @@ class msmodul_nyheter implements msmodul {
         }
 
         $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
+        
         $arkiv_selflink_params = NyhetGen::genArkivLinkParams($limits);
+        $returntoextras = $arkiv_selflink_params . '&amp;visside=' . $limits['pages']['currpage'];
         $html_tools = NyhetGen::genArkivOptions($limits, $arkiv_selflink_params);
         $output = $html_tools[0];
         $pagination = $html_tools[1];
@@ -361,7 +449,11 @@ class msmodul_nyheter implements msmodul {
 			return $output . '<br />' . NyhetGen::genIngenNyheter('<br />Ingen nyheter matcher filterne du satt.');
 		}
         foreach ($objNyhetCol as $objNyhet) {
-            $output .= NyhetGen::genFullNyhet($objNyhet, array(), 'arkiv', $arkiv_selflink_params);
+            $options = array();
+            if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                $options[] = 'fjernmine';
+            }
+            $output .= NyhetGen::genFullNyhet($objNyhet, $options, 'arkiv', $returntoextras);
         }
         
         $pre = '<h1>Nyhetsarkiv</h1><div class="level2">';
@@ -372,7 +464,7 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function gen_ext_view() {
-        $inputpath = $this->_msmodulvars;
+        $inputpath = ($this->_msmodulvars) ?: $_REQUEST['id'];
         
         try{
             $objNyhet = NyhetFactory::getNyhetByWikiPath($inputpath);
@@ -390,7 +482,19 @@ class msmodul_nyheter implements msmodul {
             return false;
         }
         
-        return '<div class="minside"><p>' . NyhetGen::genFullNyhet($objNyhet) . '</p></div>';
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
+        $objUlestCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID, false);
+        $options = array();
+        if($objUlestCol->exists( $objNyhet->getId() )) {
+            $options[] = 'lest';
+        }
+        if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+            $options[] = 'fjernmine';
+        }
+        
+        $id_for_returnto = '&amp;id=' . $objNyhet->getWikiPath();
+        
+        return '<div class="minside"><p>' . NyhetGen::genFullNyhet($objNyhet, $options, 'extview', $id_for_returnto) . '</p></div>';
     }
     
     public function gen_nyheter_upub() {
@@ -736,7 +840,7 @@ class msmodul_nyheter implements msmodul {
     
     public function merk_alle_lest() {
         try{
-            $NyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+            $NyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID, false);
         } catch (Exception $e) {
             msg('Klarte ikke å hente uleste nyheter.', -1);
             return false;
@@ -826,7 +930,7 @@ class msmodul_nyheter implements msmodul {
         if($timeout < 10 && $timeout != 0) throw new Exception('max_execution_time er satt til mindre enn 10 sekund og scriptet klarte ikke å øke denne. Må økes manuellt.');
 
         $start_nyhet_nr = (int) $_POST['reparse_offset'];
-        $colNyheter = NyhetFactory::getAlleNyheter($start_nyhet_nr);
+        $colNyheter = NyhetFactory::getAlleNyheter($start_nyhet_nr, false);
         
         $res = MsNyhet::reparse_bulk($colNyheter, $start_nyhet_nr, $timeout); // Denne skriver direkte
         if($res === true) {

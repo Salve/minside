@@ -473,6 +473,63 @@ class MsNyhet {
         
         return (bool) $res;
     }
+    
+    public function flag_mine_nyheter($brukerid) {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        $safebrukerid = $msdb->quote($brukerid);
+        
+        $sql = "INSERT INTO nyheter_minenyheter SET
+                nyhetid = $safenyhetid,
+                brukerid = $safebrukerid,
+                added = NOW();";
+        
+        try{
+            $res = $msdb->exec($sql, true);
+        } catch(Exception $e) {
+            if(MinSide::DEBUG) {
+                $sqlstate = $e->errorInfo[0];
+                $mysqlcode = $e->errorInfo[1];
+                $mysqlmsg = $e->errorInfo[2];
+                msg("SQL-error oppstått i MsNyhet::flag_mine_nyheter(). Feilkode $mysqlcode (ANSI: $sqlstate): $mysqlmsg", -1);
+            }
+            $res = false;
+        }
+        
+        return (bool) $res;
+    }
+    
+    public function unflag_mine_nyheter($brukerid) {
+        global $msdb;
+        
+        $safenyhetid = $msdb->quote($this->getId());
+        $safebrukerid = $msdb->quote($brukerid);
+        
+        $sql = "DELETE 
+                FROM 
+                    nyheter_minenyheter
+                WHERE
+                        brukerid = $safebrukerid
+                    AND
+                        nyhetid = $safenyhetid
+                LIMIT 1
+                ;";
+        
+        try{
+            $res = $msdb->exec($sql, true);
+        } catch(Exception $e) {
+            if(MinSide::DEBUG) {
+                $sqlstate = $e->errorInfo[0];
+                $mysqlcode = $e->errorInfo[1];
+                $mysqlmsg = $e->errorInfo[2];
+                msg("SQL-error oppstått i MsNyhet::flag_mine_nyheter(). Feilkode $mysqlcode (ANSI: $sqlstate): $mysqlmsg", -1);
+            }
+            $res = false;
+        }
+        
+        return (bool) $res;
+    }
 	
 	public function slett() {
 		if ($this->isDeleted()) {

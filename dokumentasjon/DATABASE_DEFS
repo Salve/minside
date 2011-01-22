@@ -182,3 +182,12 @@ CREATE TABLE `nyheter_tag_x_nyhet` (
   KEY `tagnyhet` (`tagid`,`nyhetid`),
   KEY `nyhettag` (`nyhetid`,`tagid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `nyheter_minenyheter`;
+CREATE TABLE `nyheter_minenyheter` (
+  `brukerid` int(10) unsigned NOT NULL,
+  `nyhetid` int(10) unsigned NOT NULL,
+  `added` datetime NOT NULL,
+  UNIQUE KEY `brukernyhet` (`brukerid`,`nyhetid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
