@@ -73,37 +73,19 @@ class msmodul_nyheter implements msmodul {
         // Stats
         $dispatcher->addActHandler('nyhetstats', 'gen_nyhet_stats', MSAUTH_5);
         // Admin
-        $dispatcher->addActHandler('admin', 'gen_omrade_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('admin', 'gen_tag_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('admin', 'gen_readlog_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('admin', 'gen_import_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('admin', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('admin', 'gen_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('doimport', 'import_nyheter', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('doimport', 'gen_omrade_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('doimport', 'gen_tag_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('doimport', 'gen_readlog_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('doimport', 'gen_import_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('doimport', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('doimport', 'gen_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subtagadm', 'save_tag_changes', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subtagadm', 'gen_omrade_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subtagadm', 'gen_tag_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subtagadm', 'gen_readlog_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subtagadm', 'gen_import_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subtagadm', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subtagadm', 'gen_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('sletttag', 'slett_tag', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('sletttag', 'gen_omrade_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('sletttag', 'gen_tag_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('sletttag', 'gen_readlog_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('sletttag', 'gen_import_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('sletttag', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('sletttag', 'gen_admin', MSAUTH_ADMIN);
         $dispatcher->addActHandler('subomradeadm', 'save_omrade_changes', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subomradeadm', 'gen_omrade_admin', MSAUTH_ADMIN, true);
-        $dispatcher->addActHandler('subomradeadm', 'gen_tag_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subomradeadm', 'gen_readlog_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subomradeadm', 'gen_import_admin', MSAUTH_ADMIN);
-        $dispatcher->addActHandler('subomradeadm', 'gen_reparse_admin', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('subomradeadm', 'gen_admin', MSAUTH_ADMIN, true);
         $dispatcher->addActHandler('readlog', 'gen_read_log', MSAUTH_5);
         $dispatcher->addActHandler('doreparse', 'do_reparse', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('dobulklest', 'do_bulklest', MSAUTH_ADMIN);
+        $dispatcher->addActHandler('dobulklest', 'gen_admin', MSAUTH_ADMIN);
         // System / interne
         $dispatcher->addActHandler('searchpagelookup', 'gen_searchpagelookup', MSAUTH_1);
         $dispatcher->addActHandler('searchfullpage', 'gen_searchfullpage', MSAUTH_1);
@@ -265,6 +247,18 @@ class msmodul_nyheter implements msmodul {
 		return $pre . $output . $post;
 		
 	}
+    
+    public function gen_admin($force_reload=false) {
+        $output = '';
+        $output .= $this->gen_omrade_admin($force_reload);
+        $output .= $this->gen_tag_admin();
+        $output .= $this->gen_readlog_admin();
+        $output .= $this->gen_import_admin();
+        $output .= $this->gen_reparse_admin();
+        $output .= $this->gen_bulklest_admin();
+        
+        return $output;
+    }
     
     public function add_nyheter_mine() {
         $nyhetid = (int) $_REQUEST['nyhetid'];
@@ -915,6 +909,64 @@ class msmodul_nyheter implements msmodul {
         }
 
         return NyhetGen::genSearchHits($colPubNyheter);
+    }
+    
+    public function gen_bulklest_admin() {
+        return NyhetGen::genBulklestAdmin();
+    }
+    
+    public function do_bulklest() {
+        global $msdb;
+        $msdb->startTrans();
+        
+        if(!empty($_POST['bulklest_cutoff'])) {
+            $cutoff = strtotime($_POST['bulklest_cutoff']);
+        } else {
+            $cutoff = time();
+        }
+        
+        msg('Starter bulk-lesing av nyheter');
+        msg('Cutoff satt til: ' . date('d.m.Y H:i', $cutoff));
+        
+        $ulest_counter = 0;
+        
+        $arUsers = MinSide::getUsers();
+        $arActiveUserIds = array();
+        foreach($arUsers as $usr) {
+            if(!$usr['isactive']) {
+                continue;
+            }
+            
+            $colFiltered = new NyhetCollection();
+            $colUnfiltered = NyhetFactory::getUlesteNyheterForBrukerId($usr['id'], false);
+
+            foreach($colUnfiltered as $objNyhet) {
+                $pubtime = strtotime($objNyhet->getPublishTime());
+                if ($pubtime < $cutoff) {
+                    $colFiltered->addItem($objNyhet);
+                }
+            }
+            unset($colUnfiltered);
+            
+            $num_nyheter = $colFiltered->length();
+            $ulest_counter += $num_nyheter;
+            
+            if(MinSide::DEBUG) msg('Merker ' . $num_nyheter . ' nyheter lest for bruker: ' .
+                $usr['wikiname']);
+            
+            MsNyhet::merk_flere_lest($colFiltered, $usr['id']);
+        }
+        
+        msg('Merket ' . $ulest_counter . ' nyheter lest!', 1);
+        
+        if($_POST['bulklest_dryrun']) {
+            msg('Dry-run, roller back transaction!', 1);
+            $msdb->rollBack();
+        } else {
+            msg('Ikke dry-run, comitter transaction!', 2);
+            $msdb->commit();
+        }
+        
     }
     
     public function gen_reparse_admin() {

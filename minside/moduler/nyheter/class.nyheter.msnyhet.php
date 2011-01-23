@@ -824,14 +824,21 @@ class MsNyhet {
         }
 	}
     
-    public static function merk_flere_lest(NyhetCollection $col) {
+    public static function merk_flere_lest(NyhetCollection $col, $brukerid=null) {
         global $msdb;
         
         if ($col->length() == 0) return false;
         
+        $brukerid = (int) $brukerid;
+        if(!empty($brukerid)) {
+            $safebrukerid = $brukerid;
+        } else {
+            $safebrukerid = (int) MinSide::getUserID();
+        }
+        
         $sql = "INSERT INTO nyheter_lest (nyhetid, brukerid, readtime) VALUES ";
         foreach($col as $objNyhet) {
-            $inserts[] = sprintf("('%u', '%u', NOW())", $objNyhet->getId(), MinSide::getUserID());
+            $inserts[] = sprintf("('%u', '%u', NOW())", $objNyhet->getId(), $safebrukerid);
         }
         $sql .= implode(",\n", $inserts);
         

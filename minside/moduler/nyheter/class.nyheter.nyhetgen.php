@@ -737,6 +737,32 @@ class NyhetGen {
         return $output;
     }
     
+    public static function genBulklestAdmin() {
+        $output .= "<h2>Merk alle nyheter lest (godmode edition)</h2>\n";
+        $output .= '<div class="bulklestadm">';
+        $output .= '<div class="level3">';
+        $output .= '<p>Dette verktøyet henter alle uleste nyheter for alle aktive brukere
+            , filtrerer ut nyheter som er nyere enn tidspunkt angitt under og kjører så
+            én stor INSERT mot databasen med alle bruker/nyhet-kombinasjonene som skal merkes
+            lest.</p>
+            
+            <p>Det er ingen undo-mulighet via admin-panelet, så vær forsiktig. Handling kan manuellt
+            undoes ved å slette relevante rader fra tabellen nyheter_lest. Disse vil alle ha samme timestamp
+            (tidspunktet dette verktøyet ble kjørt).</p>
+            
+            <p>Backup anbefales alltid før bulk-operasjoner kjøres mot database. Worst case for bruk av dette
+            verktøyet er begrenset til at alle/ingen/noen nyheter blir markert lest for alle/ingen/noen brukere.</p>';
+        
+        $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=dobulklest" method="POST">
+                Tidspunkt for cutoff (nyere blir ikke merket lest): <input type="text" name="bulklest_cutoff" value="-1 week" />
+                <br /><input type="checkbox" name="bulklest_dryrun" checked="checked">&nbsp;Dry-run (database transaction rolles back - ingen endringer lagres)
+                <br /><br /><input type="submit" value="Start bulk-lesing" onClick="return heltSikker()" class="button" /></form>';
+        
+        $output .= '</div></div>'; // bulklestadm og level3
+        
+        return $output;
+    }
+    
     public static function genReparseAdmin() {
         $output .= "<h2>Reparse nyheter</h2>\n";
         $output .= '<div class="reparseadm">';
