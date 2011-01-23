@@ -743,8 +743,7 @@ class NyhetGen {
         $output .= '<div class="level3">';
         $output .= '<p>Dette verktøyet henter alle uleste nyheter for alle aktive brukere
             , filtrerer ut nyheter som er nyere enn tidspunkt angitt under og kjører så
-            én stor INSERT mot databasen med alle bruker/nyhet-kombinasjonene som skal merkes
-            lest.</p>
+            en insert mot databasen per bruker som har uleste nyheter.</p>
             
             <p>Det er ingen undo-mulighet via admin-panelet, så vær forsiktig. Handling kan manuellt
             undoes ved å slette relevante rader fra tabellen nyheter_lest. Disse vil alle ha samme timestamp
