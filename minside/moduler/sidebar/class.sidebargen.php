@@ -3,7 +3,7 @@ if(!defined('MS_INC')) die();
 
 class SidebarGen {
 	public static function GenSidebar(MenyitemCollection $objSidebar, $adgang) {
-        
+      
         if ($objSidebar->length() === 0) {
             return self::GenEmptySidebar($adgang);
         }
@@ -167,18 +167,19 @@ class SidebarGen {
         $objInfoItem = new Menyitem(
 			'Ingen meny satt opp!',
 			'doku.php',
-			'',
+            '',
+            false,
 			Menyitem::TYPE_NORMAL
 		);
-        
         $colDefaultSidebar->additem($objInfoItem);
         
         if ($adgang == MSAUTH_ADMIN){
-            $objSpacer = new Menyitem('Spacer', '', '', Menyitem::TYPE_SPACER);
+            $objSpacer = new Menyitem('Spacer', '', '', false, Menyitem::TYPE_SPACER);
             $objAdmin = new Menyitem(
                 'Administrer sidebar',
                 'doku.php?do=minside&amp;page=sidebar&amp;act=sidebaradmin',
                 '',
+                false,
                 Menyitem::TYPE_NORMAL
             );
             $colDefaultSidebar->additem($objSpacer);

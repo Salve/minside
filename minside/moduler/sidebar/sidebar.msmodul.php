@@ -170,8 +170,8 @@ class msmodul_sidebar implements msmodul{
 
     private function getSidebar() {
 	
-		$objSidebar = SidebarFactory::getSidebar();		
-		return SidebarGen::genSidebar($objSidebar, $this->_adgangsNiva);
+		$objSidebar = SidebarFactory::getSidebar();
+		return SidebarGen::GenSidebar($objSidebar, $this->_adgangsNiva);
 	
     }
 
