@@ -1,5 +1,5 @@
 <?php
-//die('Du har glemt å fjerne andre linje i main.php (tpl-mappen)...'); // Fjern denne linjen om siden kopieres inn i tpl...
+die('Du har glemt å fjerne andre linje i main.php (tpl-mappen)...'); // Fjern denne linjen om siden kopieres inn i tpl...
 /**
  * MinSide-Sidebar template til DokuWiki
  *
