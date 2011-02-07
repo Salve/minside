@@ -102,10 +102,6 @@ class NyhetGen {
         $kategori_html = '<div class="nyhetkategori">Kategori: <a href="'.MS_NYHET_LINK.'&amp;act=arkiv&amp;fkat[]='. $objKategori->getId() . 
                 '" title="kategori:' . $objKategori->getNavn() . '">' . $objKategori->getNavn() . '</a></div>';
         $tags_html = self::genTagList($nyhet->getTags());
-        $lastmod = ($nyhet->isModified())
-			? '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
-				' av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>'
-			: '';
 		$delete = ($nyhet->isDeleted()) 
 			? '<div class="nyhetdel">Nyhet slettet '. self::dispTime($nyhet->getDeleteTime()) .
 				' av ' . self::getMailLink($nyhet->getDeleteByNavn(), $nyhet->getDeleteByEpost()) . '</div>'
@@ -123,7 +119,13 @@ class NyhetGen {
         } else {
             $publish = '<div class="nyhetpub">Publiseres '. self::dispTime($nyhet->getPublishTime()) . '</div>';
         }
-		
+        if ($nyhet->isModified()) {
+            $tid_siden = $nyhet->getTidSidenMod();
+            $lastmod = '<div class="nyhetmod">Sist endret '. self::dispTime($nyhet->getLastModTime()) .
+            ' (' . $tid_siden . ' siden) av ' . self::getMailLink($nyhet->getLastModByNavn(), $nyhet->getLastModByEpost()) . '</div>';
+		} else {
+            $lastmod = '';
+        }
         // Options/icon
 		$opt['link'] = '<a href="' . wl($nyhet->getWikiPath()) . '">' .
             '<img alt="link" title="Direktelenke til nyhet" width="16" ' .
@@ -1341,6 +1343,31 @@ class NyhetGen {
         $output = 'Side: ' . $forrige . $startinfo . $pagelinks . $sluttinfo . $neste;
         
         return $output;
+    }
+    
+    public static function penTid($timediff) {
+        
+        if($timediff < 0) return false;
+        
+        $aar = floor($timediff / 31536000);
+        if($aar >= 1) return $aar . ' år';
+        $mnd = floor($timediff / 2628000);
+        if($mnd > 1) return $mnd . ' måneder';
+        if($mnd == 1) return '1 måned';
+        $uke = floor($timediff / 604800);
+        if($uke > 1) return $uke . ' uker';
+        if($uke == 1) return '1 uke';
+        $dag = floor($timediff / 86400);
+        if($dag > 1) return $dag . ' dager';
+        if($dag == 1) return '1 dag';
+        $time = floor($timediff / 3600);
+        if($time > 1) return $time . ' timer';
+        if($time == 1) return '1 time';
+        $min = floor($timediff / 60);
+        if($min > 1) return $min . ' minutter';
+        if($min == 1) return '1 minutt';
+        if($timediff > 1) return $timediff . ' sekunder';
+        return '1 sekund';
     }
 	
 }

@@ -158,27 +158,8 @@ class MsNyhet {
         $now = time();
         $pubdiff = $now - $pubtime;
         
-        if($pubdiff < 0) return false;
-        
-        $aar = floor($pubdiff / 31536000);
-        if($aar >= 1) return $aar . ' år';
-        $mnd = floor($pubdiff / 2628000);
-        if($mnd > 1) return $mnd . ' måneder';
-        if($mnd == 1) return '1 måned';
-        $uke = floor($pubdiff / 604800);
-        if($uke > 1) return $uke . ' uker';
-        if($uke == 1) return '1 uke';
-        $dag = floor($pubdiff / 86400);
-        if($dag > 1) return $dag . ' dager';
-        if($dag == 1) return '1 dag';
-        $time = floor($pubdiff / 3600);
-        if($time > 1) return $time . ' timer';
-        if($time == 1) return '1 time';
-        $min = floor($pubdiff / 60);
-        if($min > 1) return $min . ' minutter';
-        if($min == 1) return '1 minutt';
-        if($pubdiff > 1) return $pubdiff . ' sekunder';
-        return '1 sekund';
+        return NyhetGen::penTid($pubdiff);
+
     }
     public function isPublished() {
         // Sjekker at pubtime er definert og tidspunktet er passert
@@ -250,6 +231,14 @@ class MsNyhet {
 	public function isModified() {
 		return !empty($this->_lastmodtime);
 	}
+    public function getTidSidenMod() {
+        if(!isset($this->_lastmodtime)) return false;
+        $modtime = strtotime($this->_lastmodtime);
+        $now = time();
+        $moddiff = $now - $modtime;
+        
+        return NyhetGen::penTid($moddiff);
+    }
 	public function getLastModTime() {
 		return $this->_lastmodtime;
 	}
@@ -1082,4 +1071,5 @@ class MsNyhet {
         
         return true;
     }
+    
 }
