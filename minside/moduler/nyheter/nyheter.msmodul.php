@@ -671,7 +671,9 @@ class msmodul_nyheter implements msmodul {
             $inmin = $_POST['nyhetpubdato_minute'];
             if (!$objNyhet->isSaved()) {
                 $timestamp = strtotime($indato . ' ' . $inhour . ':' . $inmin);
-                if ($timestamp < time()) {
+                if ($timestamp && ($timestamp < time())) {
+                    // Hvis publiseringstid er angitt, men før nåtid, settes publiseringstid til nå
+                    // Dette da redigeringsskjema kan ha stått åpent lenge, og tidspunktet være gammelt.
                     $indato = date('Y-m-d');
                     $inhour = date('H');
                     $inmin = date('i');

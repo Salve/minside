@@ -199,11 +199,12 @@ class NyhetFactory {
 		$omrader = self::getSafeOmrader(MSAUTH_3);
         
         $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
-			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			", nyheter_nyhet.pubtime IS NOT NULL AS pubdefined
+            FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
 			" WHERE (pubtime > NOW() OR pubtime IS NULL)
 				AND nyheter_nyhet.omrade IN ($omrader)
 				AND deletetime IS NULL
-			ORDER BY pubtime DESC
+			ORDER BY pubdefined DESC, pubtime ASC, nyhetid DESC
             LIMIT 500;";
         $res = $msdb->assoc($sql);
         

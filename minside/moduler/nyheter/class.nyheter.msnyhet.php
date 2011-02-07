@@ -181,8 +181,9 @@ class MsNyhet {
         return '1 sekund';
     }
     public function isPublished() {
+        // Sjekker at pubtime er definert og tidspunktet er passert
         $pubtime = strtotime($this->_pubtime);
-        return ($pubtime < time());
+        return ($pubtime && ($pubtime < time()));
     }
 	public function setPublishTime($input) {
 		// Validerer ikke dersom objekt bygges av factory
@@ -631,10 +632,6 @@ class MsNyhet {
 		// $text = content som skal skrives, streng
 		// $summary = edit-notat, vises i endringslogg
 		// $minor = minor-edit checkbox i wiki-redigerings ui
-		
-        // Sørger for at IO_WIKIPAGE_WRITE handler i acthandler.php
-        // ikke trigger ekstra db-update når vi skriver til wiki.
-        
         
 		$id = $this->getWikiPath();
 		$text = $this->getWikiTekst();
@@ -644,6 +641,8 @@ class MsNyhet {
         if (empty($id) || empty($text)) throw new Exception('Logic error: Kan ikke lagre nyhet i wiki uten både wikipath og tekst.');
 		if(strlen($text) > 100000) throw new Exception('Nyhet body for lang. Maks 50 000 tegn.');
         
+        // Sørger for at IO_WIKIPAGE_WRITE handler i acthandler.php
+        // ikke trigger ekstra db-update når vi skriver til wiki.
         $GLOBALS['ms_writing_to_dw'] = true;
 		$resultat = saveWikiText($id, $text, $summary, $minor);
         $GLOBALS['ms_writing_to_dw'] = false;
