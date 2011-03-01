@@ -241,6 +241,7 @@ div.minside table {
 div.minside div.sisteendringer {
     position: relative;
     width: 80%;
+    z-index: 3000;
 }
 
 div.minside div.tellerakt {
@@ -300,7 +301,7 @@ div.minside #viewAct {
     padding:1em;
     background:white;
     border:1px solid #8CACBB;
-    z-index:1;
+    z-index:1000;
 }
 
 div.rapportarkiv {
