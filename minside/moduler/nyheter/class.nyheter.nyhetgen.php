@@ -133,7 +133,7 @@ class NyhetGen {
 		$opt['edit'] = '<a href="' . MS_NYHET_LINK . "&amp;act=edit&amp;nyhetid=$id\">" .
             '<img alt="rediger" title="Rediger nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'pencil.png" /></a>';
-		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=slett&amp;nyhetid=$id\"  onClick='return heltSikker()'>" .
+		$opt['slett'] = '<a href="' . MS_NYHET_LINK . $returnto_html . "&amp;act=slett&amp;nyhetid=$id\" onClick=\"return heltSikker()\">" .
             '<img alt="slett" title="Slett nyhet" width="16" ' .
             'height="16" src="' . MS_IMG_PATH . 'trash.png" /></a>';
 		$opt['permslett'] = '<a href="' . MS_NYHET_LINK . "&amp;act=permslett&amp;nyhetid=$id\"  onClick='return heltSikker()'>" .
@@ -757,7 +757,7 @@ class NyhetGen {
         $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=dobulklest" method="POST">
                 Tidspunkt for cutoff (nyere blir ikke merket lest): <input type="text" name="bulklest_cutoff" value="-1 week" />
                 <br /><input type="checkbox" name="bulklest_dryrun" checked="checked">&nbsp;Dry-run (database transaction rolles back - ingen endringer lagres)
-                <br /><br /><input type="submit" value="Start bulk-lesing" onClick="return heltSikker()" class="button" /></form>';
+                <br /><br /><input type="submit" value="Start bulk-lesing" onClick="return heltSikker(\'vil gjøre dette\')" class="button" /></form>';
         
         $output .= '</div></div>'; // bulklestadm og level3
         
@@ -781,7 +781,7 @@ class NyhetGen {
         
         $output .= '<form action="' . MS_NYHET_LINK . '&amp;act=doreparse" method="POST">
                 Start med nyhet nr.: <input type="text" name="reparse_offset" value="0" />
-                <br /><br /><input type="submit" value="Start reparsing" onClick="return heltSikker()" class="button" /></form>';
+                <br /><br /><input type="submit" value="Start reparsing" onClick="return heltSikker(\'parse alle nyheter på nytt\')" class="button" /></form>';
         
         $output .= '</div></div>'; // reparseadm og level3
         
@@ -906,7 +906,7 @@ class NyhetGen {
                 $output .= '<option value="' . $objOmrade->getOmrade() . '">' . $objOmrade->getVisningsnavn() . '</option>';
             }
             $output .= '</select>';
-            $output .= '<br /><br /><input type="submit" value="Start importering" onClick="return heltSikker()" class="button" /></form>';
+            $output .= '<br /><br /><input type="submit" value="Start importering" onClick="return heltSikker(\'importere nyheter\')" class="button" /></form>';
         }
         $output .= '</div>'; // level3
         $output .= '</div>'; // nyhet_import

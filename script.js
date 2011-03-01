@@ -1,7 +1,16 @@
 // Generelle funksjoner
-function heltSikker() {
-    msg = 'Er du helt sikker på at du vil slette elementet?';
-    return confirm(msg);
+function heltSikker(inputaction) {
+    if(!inputaction) inputaction = "slette elementet";
+    msg = 'Er du helt sikker på at du vil ' + inputaction + '?';
+    
+    var user_res = confirm(msg);
+    
+    // IE hack
+    if(window.event) {
+        window.event.returnValue = user_res;
+    }
+    return user_res;
+    
 }
 
 // Nyheter
