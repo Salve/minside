@@ -1317,7 +1317,9 @@ class msmodul_feilmrapport implements msmodul{
 		} elseif (array_key_exists('dec_teller', $_REQUEST)) {
 			$decrease = true;
 		} else {
-			die('Verken increase eller decrease teller er gitt.');
+            // Går ut fra increase dersom ikke gitt. Dersom bruker skriver tall i felt og trykker enter
+            // submittes form, men info om submitknapp sendes ikke (IE only).
+			$decrease = false;
 		}
 		
 		if ($tellerid == 'NOSEL') {
