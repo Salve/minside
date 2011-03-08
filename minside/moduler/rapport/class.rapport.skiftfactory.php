@@ -2,11 +2,17 @@
 if(!defined('MS_INC')) die();
 
 class SkiftFactory {
+    
+    protected $dbPrefix;
+    
+    public function __construct($dbprefix) {
+        $this->dbPrefix = $dbprefix;
+    }
 
-	public static function getSkift($id) {
+	public function getSkift($id) {
 		global $msdb;
 		
-		$sql = "SELECT feilrap_skift.skiftcreated, feilrap_skift.userid, feilrap_skift.skiftclosed, feilrap_skift.israpportert, feilrap_skift.rapportid, internusers.wikiname FROM feilrap_skift LEFT JOIN internusers ON feilrap_skift.userid = internusers.id WHERE skiftid = " . $msdb->quote($id) . ";";
+		$sql = "SELECT " . $this->dbPrefix . "_skift.skiftcreated, " . $this->dbPrefix . "_skift.userid, " . $this->dbPrefix . "_skift.skiftclosed, " . $this->dbPrefix . "_skift.israpportert, " . $this->dbPrefix . "_skift.rapportid, internusers.wikiname FROM " . $this->dbPrefix . "_skift LEFT JOIN internusers ON " . $this->dbPrefix . "_skift.userid = internusers.id WHERE skiftid = " . $msdb->quote($id) . ";";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
@@ -19,12 +25,12 @@ class SkiftFactory {
 		
 	}
 	
-	public static function getRapport($rapportid) {
+	public function getRapport($rapportid) {
 		global $msdb;
 		
 		$saferapportid = $msdb->quote($rapportid);
 		
-		$sql = "SELECT rapportid, createtime, rapportowner, templateid FROM feilrap_rapport WHERE rapportid=$saferapportid LIMIT 1;";
+		$sql = "SELECT rapportid, createtime, rapportowner, templateid FROM " . $this->dbPrefix . "_rapport WHERE rapportid=$saferapportid LIMIT 1;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
@@ -35,24 +41,24 @@ class SkiftFactory {
 		
 	}
 	
-	public static function getRapporter($fromtime = null, $totime = null) {
+	public function getRapporter($fromtime = null, $totime = null) {
 		global $msdb;
 		
 		if ($fromtime && $totime) {
 			$safefromtime = $msdb->quote($fromtime);
 			$safetotime = $msdb->quote($totime);
-			$where = " WHERE feilrap_rapport.createtime >= $safefromtime AND feilrap_rapport.createtime <= $safetotime";
+			$where = " WHERE " . $this->dbPrefix . "_rapport.createtime >= $safefromtime AND " . $this->dbPrefix . "_rapport.createtime <= $safetotime";
 		} elseif ($fromtime) {
 			$safefromtime = $msdb->quote($fromtime);
-			$where = " WHERE feilrap_rapport.createtime >= $safefromtime";
+			$where = " WHERE " . $this->dbPrefix . "_rapport.createtime >= $safefromtime";
 		} elseif ($totime) {
 			$safetotime = $msdb->quote($totime);
-			$where = " WHERE feilrap_rapport.createtime <= $safetotime";
+			$where = " WHERE " . $this->dbPrefix . "_rapport.createtime <= $safetotime";
 		} else {
 			$where = '';
 		}
 		
-		$sql = "SELECT feilrap_rapport.rapportid, feilrap_rapport.createtime, feilrap_rapport.rapportowner, feilrap_rapport.templateid, internusers.wikiname FROM feilrap_rapport LEFT JOIN internusers ON feilrap_rapport.rapportowner = internusers.id" . $where . ";";
+		$sql = "SELECT " . $this->dbPrefix . "_rapport.rapportid, " . $this->dbPrefix . "_rapport.createtime, " . $this->dbPrefix . "_rapport.rapportowner, " . $this->dbPrefix . "_rapport.templateid, internusers.wikiname FROM " . $this->dbPrefix . "_rapport LEFT JOIN internusers ON " . $this->dbPrefix . "_rapport.rapportowner = internusers.id" . $where . ";";
 		
 		
 		$data = $msdb->assoc($sql);
@@ -70,7 +76,7 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getRapporterByMonth($inputmonth, $inputyear = null) {
+	public function getRapporterByMonth($inputmonth, $inputyear = null) {
 		
 		if (!$inputyear) $inputyear = date('Y');
 		
@@ -85,7 +91,7 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getNyligeRapporter() {
+	public function getNyligeRapporter() {
 		global $msdb;
 
 		$fromtime = time() - (24 * 60 * 60); // Definer hvor langt tilbake "nylig" er her (i sekunder).
@@ -96,13 +102,13 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getDataForRapport($rapportid) {
+	public function getDataForRapport($rapportid) {
 		global $msdb;
 		
 		$saferapportid = $msdb->quote($rapportid);
 		$outputarray = array();
 		
-		$sql = "SELECT datatype, dataname, datavalue FROM feilrap_rapportdata WHERE rapportid=$saferapportid;";
+		$sql = "SELECT datatype, dataname, datavalue FROM " . $this->dbPrefix . "_rapportdata WHERE rapportid=$saferapportid;";
 		$data = $msdb->assoc($sql);
 	
 		if(is_array($data) && sizeof($data)) {
@@ -118,12 +124,12 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getTellerForSkift($tellerid, $skiftid) {
+	public function getTellerForSkift($tellerid, $skiftid) {
 		global $msdb;
 		$safeskiftid = $msdb->quote($skiftid);
 		$safetellerid = $msdb->quote($tellerid);
 		
-		$sql = "SELECT feilrap_teller.tellertype, feilrap_teller.tellernavn, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$safeskiftid,feilrap_tellerakt.verdi,0)) AS 'tellerverdi', feilrap_teller.isactive FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid WHERE feilrap_teller.tellerid=$safetellerid GROUP BY feilrap_teller.tellerid LIMIT 1;";
+		$sql = "SELECT " . $this->dbPrefix . "_teller.tellertype, " . $this->dbPrefix . "_teller.tellernavn, " . $this->dbPrefix . "_teller.tellerdesc, SUM(IF(" . $this->dbPrefix . "_tellerakt.skiftid=$safeskiftid," . $this->dbPrefix . "_tellerakt.verdi,0)) AS 'tellerverdi', " . $this->dbPrefix . "_teller.isactive FROM " . $this->dbPrefix . "_teller LEFT JOIN " . $this->dbPrefix . "_tellerakt ON " . $this->dbPrefix . "_teller.tellerid = " . $this->dbPrefix . "_tellerakt.tellerid WHERE " . $this->dbPrefix . "_teller.tellerid=$safetellerid GROUP BY " . $this->dbPrefix . "_teller.tellerid LIMIT 1;";
 		
 		$data = $msdb->assoc($sql);
 		
@@ -137,11 +143,11 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getTeller($tellerid) {
+	public function getTeller($tellerid) {
 		global $msdb;
 		$safetellerid = $msdb->quote($tellerid);
 		
-		$sql = "SELECT tellertype, tellernavn, tellerdesc, isactive, tellerorder FROM feilrap_teller WHERE tellerid=$safetellerid LIMIT 1;";
+		$sql = "SELECT tellertype, tellernavn, tellerdesc, isactive, tellerorder FROM " . $this->dbPrefix . "_teller WHERE tellerid=$safetellerid LIMIT 1;";
 		
 		$data = $msdb->assoc($sql);
 		
@@ -156,12 +162,12 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getSkiftForRapport($rapportid, &$col) {
+	public function getSkiftForRapport($rapportid, &$col) {
 		global $msdb;
 		
 		$saferapportid = $msdb->quote($rapportid);
 		
-		$sql = "SELECT skiftid FROM feilrap_skift WHERE rapportid=$saferapportid;";
+		$sql = "SELECT skiftid FROM " . $this->dbPrefix . "_skift WHERE rapportid=$saferapportid;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
@@ -172,10 +178,10 @@ class SkiftFactory {
 		}
 	}
 	
-	public static function getMuligeSkiftForRapport() {
+	public function getMuligeSkiftForRapport() {
 		global $msdb;
 		
-		$sql = "SELECT skiftid FROM feilrap_skift WHERE (skiftcreated > (now() - INTERVAL 48 HOUR)) AND (israpportert = 0)";
+		$sql = "SELECT skiftid FROM " . $this->dbPrefix . "_skift WHERE (skiftcreated > (now() - INTERVAL 48 HOUR)) AND (israpportert = 0)";
 		$data = $msdb->assoc($sql);
 		
 		$col = new SkiftCollection();
@@ -191,10 +197,10 @@ class SkiftFactory {
 		
 	}
 
-	public static function getTellereForSkift($id, &$col) {
+	public function getTellereForSkift($id, &$col) {
 		global $msdb;
 		$id = $msdb->quote($id);
-		$sql = "SELECT feilrap_teller.tellerid, feilrap_teller.tellertype, feilrap_teller.isactive, feilrap_teller.tellernavn, feilrap_teller.tellerdesc, SUM(IF(feilrap_tellerakt.skiftid=$id,feilrap_tellerakt.verdi,0)) AS 'tellerverdi' FROM feilrap_teller LEFT JOIN feilrap_tellerakt ON feilrap_teller.tellerid = feilrap_tellerakt.tellerid GROUP BY feilrap_teller.tellerid ORDER BY feilrap_teller.tellerorder ASC;";
+		$sql = "SELECT " . $this->dbPrefix . "_teller.tellerid, " . $this->dbPrefix . "_teller.tellertype, " . $this->dbPrefix . "_teller.isactive, " . $this->dbPrefix . "_teller.tellernavn, " . $this->dbPrefix . "_teller.tellerdesc, SUM(IF(" . $this->dbPrefix . "_tellerakt.skiftid=$id," . $this->dbPrefix . "_tellerakt.verdi,0)) AS 'tellerverdi' FROM " . $this->dbPrefix . "_teller LEFT JOIN " . $this->dbPrefix . "_tellerakt ON " . $this->dbPrefix . "_teller.tellerid = " . $this->dbPrefix . "_tellerakt.tellerid GROUP BY " . $this->dbPrefix . "_teller.tellerid ORDER BY " . $this->dbPrefix . "_teller.tellerorder ASC;";
 		
 		$data = $msdb->assoc($sql);
 		
@@ -208,12 +214,12 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getAlleTellere() {
+	public function getAlleTellere() {
 		global $msdb;
 		
 		$col = new TellerCollection;
 		
-		$sql = "SELECT tellerid, tellertype, tellernavn, tellerdesc, isactive, tellerorder FROM feilrap_teller ORDER BY tellerorder ASC;";
+		$sql = "SELECT tellerid, tellertype, tellernavn, tellerdesc, isactive, tellerorder FROM " . $this->dbPrefix . "_teller ORDER BY tellerorder ASC;";
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
@@ -228,11 +234,11 @@ class SkiftFactory {
 	
 	}
 	
-	public static function getNotat($notatid) {
+	public function getNotat($notatid) {
 		global $msdb;
 		$safenotatid = $msdb->quote($notatid);
 		
-		$sql = "SELECT skiftid, isactive, notattype, notattekst, inrapport FROM feilrap_notat WHERE notatid=$safenotatid;";
+		$sql = "SELECT skiftid, isactive, notattype, notattekst, inrapport FROM " . $this->dbPrefix . "_notat WHERE notatid=$safenotatid;";
 		
 		$data = $msdb->assoc($sql);
 		
@@ -248,10 +254,10 @@ class SkiftFactory {
 		}	
 	}
 	
-	public static function getNotaterForSkift($skiftid, &$col) {
+	public function getNotaterForSkift($skiftid, &$col) {
 		global $msdb;
 		$safeskiftid = $msdb->quote($skiftid);
-		$sql = "SELECT notatid, isactive, notattype, notattekst, inrapport FROM feilrap_notat WHERE skiftid=$safeskiftid;";
+		$sql = "SELECT notatid, isactive, notattype, notattekst, inrapport FROM " . $this->dbPrefix . "_notat WHERE skiftid=$safeskiftid;";
 		
 		$data = $msdb->assoc($sql);
 		

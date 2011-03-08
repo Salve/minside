@@ -1357,7 +1357,7 @@ class msmodul_rapport implements msmodul{
 		
 		if ($objNotat->getSkiftId() == $skiftid) {
 			try {
-				$objNotat->setNotatTekst($notattekst);
+				$objNotat->setNotatTekst($notattekst, $this->_dbprefix);
 			}
 			catch (Exception $e) {
 				msg($e->getMessage(),-1);

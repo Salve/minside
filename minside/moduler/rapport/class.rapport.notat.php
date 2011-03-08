@@ -52,7 +52,7 @@ class Notat {
 		return nl2br(trim($this->_notatTekst));
 	}
 	
-	public function setNotatTekst($inputtekst) {
+	public function setNotatTekst($inputtekst, $dbprefix) {
 		global $msdb;
 		
 		$inputtekst = trim($inputtekst);
@@ -72,9 +72,9 @@ class Notat {
 		$saferapportert = ($this->isRapportert()) ? 1 : 0;
 		
 		if ($this->_isSaved) {
-			$result = $msdb->exec("UPDATE feilrap_notat SET notattekst=$safenotattekst WHERE notatid=$safenotatid;");
+			$result = $msdb->exec("UPDATE ".$dbprefix."_notat SET notattekst=$safenotattekst WHERE notatid=$safenotatid;");
 		} else {
-			$result = $msdb->exec("INSERT INTO feilrap_notat (isactive, notattype, notattekst, skiftid, inrapport) VALUES ('1', $safenotattype, $safenotattekst, $safeskiftid, '$saferapportert');");
+			$result = $msdb->exec("INSERT INTO ".$dbprefix."_notat (isactive, notattype, notattekst, skiftid, inrapport) VALUES ('1', $safenotattype, $safenotattekst, $safeskiftid, '$saferapportert');");
 		}
 		
 		if ($result != 1) {
@@ -83,7 +83,7 @@ class Notat {
 		} else {
 			$this->_notatTekst = $tekst;
 			return true;
-		}	
+		}
 	}
 	
 	public function modActive($active) {
