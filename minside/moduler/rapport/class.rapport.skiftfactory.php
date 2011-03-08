@@ -2,6 +2,7 @@
 if(!defined('MS_INC')) die();
 
 class SkiftFactory {
+
 	public static function getSkift($id) {
 		global $msdb;
 		

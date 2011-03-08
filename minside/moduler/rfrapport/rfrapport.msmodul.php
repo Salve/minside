@@ -9,6 +9,8 @@ class msmodul_rfrapport extends msmodul_rapport {
 	}
 	
 	public function gen_msmodul($act, $vars){
+        $vars = (array) $vars;
+        $vars['dbprefix'] = 'rfrap';
         return parent::gen_msmodul($act, $vars);
 	}
 	

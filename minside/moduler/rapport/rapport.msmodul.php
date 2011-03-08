@@ -17,12 +17,13 @@ require_once('class.rapport.skiftcollection.php');
 
 class msmodul_rapport implements msmodul{
 
-	protected $_msmodulact; // Holder variablen "act" som kommer inn via url, handling som skal utføres
-	protected $_msmodulvars; // Kan holde data som sendes til modulen sammen med act, brukes kun i "custom" visninger
+	protected $_msmodulact;
+	protected $_msmodulvars;
 	protected $_frapout; // Modulens output bygges opp her
 	protected $_userId; // Numerisk id fra minside, som henter den fra db basert på username gitt fra wikien
 	protected $_accessLvl; // Brukerens ACL-tilgangsnivå på denne modulen, INT, se definisjon øverst i minside.php
 	protected $_currentSkiftId; // Cache verdi av skiftid, bruk accessor, ikke denne verdien
+    public $_dbprefix;
 	protected static $monthnames = array(
 			1 => 'januar',
 			2 => 'februar',
@@ -49,12 +50,13 @@ class msmodul_rapport implements msmodul{
 		return $this->_msmodulact;
 	}
 	
-	public function gen_msmodul($act, $vars){
-        // Denne metoden kjøres når modul loades og output ønskes, altså er
-        // page=feilmrapport i url.
-        
+	public function gen_msmodul($act, $vars){        
 		$this->_msmodulact = $act;
 		$this->_msmodulvars = $vars;
+        if(!array_key_exists('dbprefix', $vars)) {
+            throw new Exception('DbPrefix må angis når rapport-moduler genereres');
+        }
+        $this->_dbprefix = $vars['dbprefix'];
 		
 		if (!$this->_accessLvl > MSAUTH_NONE) return '';
 		
