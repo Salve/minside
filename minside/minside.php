@@ -91,6 +91,10 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	}
     
     public function genModul($page, $act, $vars = array()) {
+        // Når minside lastes "normalt" via do=minside, redirecter vi til login dersom
+        // bruker ikke er logget inn. Det kan vi ikke gjøre her, derfor gir vi feilmelding i stedet.
+        if(empty(self::$username)) return 'Kan ikke laste MinSide-modul "' . $page . '", bruker er ikke logget inn.';
+        
         $this->_lastmoduler();
         $dispatcher = new msdispatcher($page, $this->_msmod, $this, $act, $vars);
         return $dispatcher->dispatch();
@@ -110,7 +114,7 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
 	
 	public static function getUserID($recursion = false) { // returnerer nåværende brukers interne userid, forsøker å opprette ny bruker om den ikke finnes
 		
-		if (self::$username == '') { die('Username not set on minside create'); } // skal i utgangspunktet aldri skje
+		if (self::$username == '') { die('Kritisk feil oppstått i MinSide: Bruker ikke logget inn.'); } // skal i utgangspunktet aldri skje
 			
 		if (isset(self::$UserID)) {
 			return self::$UserID;			// dersom denne funksjonen allerede er kjørt er det bare å svare samme som sist gang
