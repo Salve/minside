@@ -1,8 +1,10 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_KSR_LINK', MS_LINK . "&amp;page=rfrapport");
+require_once(DOKU_PLUGIN.'/minside/minside/moduler/rapport/rapport.msmodul.php');
 
 class msmodul_rfrapport extends msmodul_rapport {
+
+    public $url;
 	
 	public function __construct($UserID, $accesslvl) {
         parent::__construct($UserID, $accesslvl);
@@ -11,6 +13,7 @@ class msmodul_rfrapport extends msmodul_rapport {
 	public function gen_msmodul($act, $vars){
         $vars = (array) $vars;
         $vars['dbprefix'] = 'rfrap';
+        $this->url = MS_LINK . "&amp;page=rfrapport";
         return parent::gen_msmodul($act, $vars);
 	}
 	

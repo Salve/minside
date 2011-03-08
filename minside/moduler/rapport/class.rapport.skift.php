@@ -2,18 +2,20 @@
 if(!defined('MS_INC')) die();
 
 class Skift {
-	private $_id;
-	private $_skiftCreatedTime;
-	private $_skiftClosedTime;
-	private $_skiftOwnerId;
-	private $_skiftOwnerName;
-	private $_skiftLastUpdate;
-	private $_skiftIsRapportert;
-	private $_skiftRapportId;
+	protected $_id;
+	protected $_skiftCreatedTime;
+	protected $_skiftClosedTime;
+	protected $_skiftOwnerId;
+	protected $_skiftOwnerName;
+	protected $_skiftLastUpdate;
+	protected $_skiftIsRapportert;
+	protected $_skiftRapportId;
 	public $checkedLastUpdate = false;
 	
 	public $tellere;
 	public $notater;
+    
+    public $skiftfactory;
 	
 	public function __construct($id, $createdtime, $ownerid, $closedtime = null, $rapportert = null, $rapportid = null) {
 		$this->_id = $id;
@@ -33,6 +35,10 @@ class Skift {
 	public function getId() {
 		return $this->_id;
 	}
+    
+    public function setSkiftFactory(SkiftFactory $objSkiftFactory) {
+        $this->skiftfactory = $objSkiftFactory;
+    }
 	
 	public function getNumActiveTellere() {
 		if ($this->tellere->length() == 0) return 0; // sørger for at tellere er lastet via callback
@@ -84,11 +90,11 @@ class Skift {
 	}
 	
 	public function _loadTellere(Collection $col) {
-		$arTellere = SkiftFactory::getTellereForSkift($this->_id, $col);
+		$arTellere = $this->skiftfactory->getTellereForSkift($this->_id, $col);
 	}
 	
 	public function _loadNotater(Collection $col) {
-		$arNotater = SkiftFactory::getNotaterForSkift($this->_id, $col);
+		$arNotater = $this->skiftfactory->getNotaterForSkift($this->_id, $col);
 	}
     
     public function getLastAct($antall_akt = 1) {

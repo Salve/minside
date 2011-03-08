@@ -1,6 +1,6 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_FMR_LINK', MS_LINK . "&amp;page=rapport");
+
 require_once('class.rapport.skift.php');
 require_once('class.rapport.teller.php');
 require_once('class.rapport.notat.php');
@@ -15,7 +15,7 @@ require_once('class.rapport.notatcollection.php');
 require_once('class.rapport.rapportcollection.php');
 require_once('class.rapport.skiftcollection.php');
 
-class msmodul_rapport implements msmodul{
+abstract class msmodul_rapport implements msmodul{
 
 	protected $_msmodulact;
 	protected $_msmodulvars;
@@ -24,6 +24,7 @@ class msmodul_rapport implements msmodul{
 	protected $_accessLvl; // Brukerens ACL-tilgangsnivå på denne modulen, INT, se definisjon øverst i minside.php
 	protected $_currentSkiftId; // Cache verdi av skiftid, bruk accessor, ikke denne verdien
     public $_dbprefix;
+    protected $skiftfactory;
 	protected static $monthnames = array(
 			1 => 'januar',
 			2 => 'februar',
@@ -57,6 +58,7 @@ class msmodul_rapport implements msmodul{
             throw new Exception('DbPrefix må angis når rapport-moduler genereres');
         }
         $this->_dbprefix = $vars['dbprefix'];
+        $this->skiftfactory = new SkiftFactory($this->_dbprefix);
 		
 		if (!$this->_accessLvl > MSAUTH_NONE) return '';
 		
@@ -190,7 +192,7 @@ class msmodul_rapport implements msmodul{
         
 		if ($edit) {
 			$output .= '<p>';
-			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$output .= '<form action="' . $this->url . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="savenotat" />';
 			if ($objNotat instanceof Notat) $output .= '<input type="hidden" name="notatid" value="' .  $objNotat->getId() . '" />';
 			$output .= '<textarea id="notattekst" class="msedit" style="left:0px;" name="notattekst" rows="3" cols="40">';
@@ -202,8 +204,8 @@ class msmodul_rapport implements msmodul{
 			$output .= '</p>';
 		} else {
 			if ($objNotat instanceof Notat) {
-				$stredit = ' <a href="' . MS_FMR_LINK . '&amp;act=modnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png"></a>';
-				$strslett = ' <a href="' . MS_FMR_LINK . '&amp;act=delnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png"></a>';
+				$stredit = ' <a href="' . $this->url . '&amp;act=modnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png"></a>';
+				$strslett = ' <a href="' . $this->url . '&amp;act=delnotat&amp;notatid=' . $objNotat->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png"></a>';
 			}
 			$output .= '<li>' . $objNotat . $stredit . $strslett . '</li>';
 		}		
@@ -221,7 +223,7 @@ class msmodul_rapport implements msmodul{
 		if ( ($this->_accessLvl < MSAUTH_3) || ( !isset($_REQUEST['arkivmnd']) ) ) {
             // Rapporter generert siste 24 timer
             
-			$rapportcol = SkiftFactory::getNyligeRapporter(); // Returnerer en RapportCollection
+			$rapportcol = $this->skiftfactory->getNyligeRapporter(); // Returnerer en RapportCollection
 			
 			
 			$output .= '<span id="rapportsistedogn">Rapporter opprettet det siste døgnet:</span>' . "\n";
@@ -245,7 +247,7 @@ class msmodul_rapport implements msmodul{
 				die('Ugyldig måned gitt til rapportarkiv');
 			}
 			
-			$rapportcol = SkiftFactory::getRapporterByMonth($inputmonth, $inputyear);
+			$rapportcol = $this->skiftfactory->getRapporterByMonth($inputmonth, $inputyear);
 			$output .= '<span id="rapportarkivheader">Rapporter fra ' . self::$monthnames["$inputmonth"] . ' ' . $inputyear . ':</span>' . "\n";		
 			
 			$output .= $this->_genRapportListe($rapportcol, true);
@@ -371,7 +373,7 @@ class msmodul_rapport implements msmodul{
 				$rapportcounter++;
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 				
-				$output .= '<span class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '"><a href="' . MS_FMR_LINK . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
+				$output .= '<span class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '"><a href="' . $this->url . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
 				$output .= date('H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a></span><br />' . "\n";
 				
@@ -381,7 +383,7 @@ class msmodul_rapport implements msmodul{
 				$rapportspanclass = ($rapportcounter & 1) ? 'rapone' : 'raptwo';
 	
 				$output .= '<span style="font-size:1em;" class="rapportnavn ' . $skiftlang . ' ' . $rapportspanclass . '">';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
+				$output .= '<a href="' . $this->url . '&amp;act=visrapport&amp;rapportid=' . $objRapport->getId() . '">';
 				$output .= $ukedag . date(' (j.n.) \k\l. H:i', $createtime) . ' &mdash; ' . $objRapport->getRapportOwnerName();
 				$output .= '</a>';
 				$output .= '</span><br />';
@@ -406,7 +408,7 @@ class msmodul_rapport implements msmodul{
         
 		global $msdb;
 	
-		$sql = "SELECT YEAR(createtime) AS 'YEAR', GROUP_CONCAT(DISTINCT MONTH(createtime)) AS 'MONTHS' FROM feilrap_rapport GROUP BY `YEAR`;";
+		$sql = "SELECT YEAR(createtime) AS 'YEAR', GROUP_CONCAT(DISTINCT MONTH(createtime)) AS 'MONTHS' FROM " . $this->_dbprefix . "_rapport GROUP BY `YEAR`;";
 		$data = $msdb->assoc($sql);
 		
 		$output = '<span id="rapportarkivmenyheader">Rapportarkiv:</span>' . "\n";
@@ -421,7 +423,7 @@ class msmodul_rapport implements msmodul{
 				$year = $datum['YEAR'];
 				$monthlist = '';
 				foreach ($arMonths as $month) {
-					$monthlist .= '<a href="' . MS_FMR_LINK . '&amp;act=rapportarkiv&amp;arkivmnd=' . $year . '-' . $month . '">' . substr(self::$monthnames["$month"], 0, 3) . '</a> ' . "\n";
+					$monthlist .= '<a href="' . $this->url . '&amp;act=rapportarkiv&amp;arkivmnd=' . $year . '-' . $month . '">' . substr(self::$monthnames["$month"], 0, 3) . '</a> ' . "\n";
 				}
 			
 				$output .= '<span class="yearlist">' . "\n";
@@ -448,7 +450,7 @@ class msmodul_rapport implements msmodul{
 			$rapportid = $_REQUEST['rapportid'];
 			
 			if ($this->_accessLvl <= MSAUTH_2) { // Bruker kan kun vise nylige rapporter
-				$rapcol = SkiftFactory::getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
+				$rapcol = $this->skiftfactory->getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
 				if (!$rapcol->exists($rapportid)) {
 					msg('Du har ikke tilgang til å vise denne rapporten.', -1);
 					return false;
@@ -456,7 +458,7 @@ class msmodul_rapport implements msmodul{
 			}
 		
 			try{
-				$objRapport = SkiftFactory::getRapport($rapportid);
+				$objRapport = $this->skiftfactory->getRapport($rapportid);
 			}
 			catch (Exception $e) {
 				msg('Klarte ikke å hente rapport: ' . $e->getMessage(), -1);
@@ -497,7 +499,7 @@ class msmodul_rapport implements msmodul{
 			
 			$noskift = '
 						<div class="mswarningbar">Ingen skift valgt</div>
-						<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+						<form name="tilbake" action="' . $this->url . '" method="POST">
 							<input type="hidden" name="act" value="genrapportsel" />
 							<input type="submit" class="msbutton" name="subvelgskift" value="Tilbake" />
 						</form>';
@@ -508,7 +510,7 @@ class msmodul_rapport implements msmodul{
 					if (trim($skiftid, '0123456789') != '') die('Ugyldig skiftid oppdaget!');
 					
 					try {
-						$objSkift = SkiftFactory::getSkift($skiftid);
+						$objSkift = $this->skiftfactory->getSkift($skiftid);
 					}
 					catch (Exception $e) {
 						msg($e->getMessage,-1);
@@ -584,7 +586,7 @@ class msmodul_rapport implements msmodul{
 				}			
 			}
 			
-			$output .= '<form name="lagrerapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$output .= '<form name="lagrerapport" action="' . $this->url . '" method="POST">' . "\n";
 			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
 			$output .= $rappoutput;
 			$output .= '<br /><br />' . "\n";
@@ -594,7 +596,7 @@ class msmodul_rapport implements msmodul{
 			}
 			$output .= '</form>' . "\n";
 
-			$output .= '<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$output .= '<form name="tilbake" action="' . $this->url . '" method="POST">' . "\n";
 			if ($validsave) {
 				$output .= '<input type="hidden" name="act" value="show" />' . "\n";
 			} else {
@@ -627,7 +629,7 @@ class msmodul_rapport implements msmodul{
 		}
 		
 		if ($this->_accessLvl <= MSAUTH_2) { // Bruker kan kun vise nylige rapporter
-			$rapcol = SkiftFactory::getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
+			$rapcol = $this->skiftfactory->getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
 			if (!$rapcol->exists($rapportid)) {
 				msg('Du har ikke tilgang til å sende denne rapporten.', -1);
 				return false;
@@ -636,7 +638,7 @@ class msmodul_rapport implements msmodul{
 			}
 		} else { // Bruker har adgang til alle rapporter		
 			try{
-				$objRapport = SkiftFactory::getRapport($rapportid);
+				$objRapport = $this->skiftfactory->getRapport($rapportid);
 			}
 			catch (Exception $e) {
 				msg('Klarte ikke å sende rapport: ' . $e->getMessage(), -1);
@@ -748,7 +750,7 @@ class msmodul_rapport implements msmodul{
 		
 		if (is_array($_POST['rappinn']['selnotat'])) {
 			foreach ($_POST['rappinn']['selnotat'] as $notatid) {
-				$objNotat = SkiftFactory::getNotat($notatid);
+				$objNotat = $this->skiftfactory->getNotat($notatid);
 				if ($skiftcol->exists($objNotat->getSkiftId())) { // Sjekker om skiftiden til notatet er en av de som er valgt for denne rapporten
 					$validinput['selnotat'][] = $notatid;
 				} else {
@@ -764,7 +766,7 @@ class msmodul_rapport implements msmodul{
 	protected function _genRapportSelectSkift(){
         // Genererer oversikt over skift som kan inkluderes i en rapport
 	
-		$skiftcol = SkiftFactory::getMuligeSkiftForRapport();
+		$skiftcol = $this->skiftfactory->getMuligeSkiftForRapport();
 	
 		$output .= '
             <h1>Lag rapport</h1><div class="level2">
@@ -773,7 +775,7 @@ class msmodul_rapport implements msmodul{
 				<legend>
 					Velg skift som skal inkluderes i rapport
 				</legend>
-				<form name="velgskift" action="' . MS_FMR_LINK . '" method="POST">
+				<form name="velgskift" action="' . $this->url . '" method="POST">
 					<input type="hidden" name="act" value="genrapportmod" />';
 		
 		foreach ($skiftcol as $objSkift) {
@@ -811,7 +813,7 @@ class msmodul_rapport implements msmodul{
 			} else {
 				$output .= '<input type="checkbox" name="selskift[]" value="' . $objSkift->getId() . '" disabled />';
                 $output .= '&nbsp;' . '<span class="skift'. $ageclass .'">' . strtoupper($objSkift->getSkiftOwnerName()) . ' &mdash; ' . $this->LesbarTid($starttid) . ' &ndash; Ikke avsluttet! '; 
-				$output .= '(<a href="' . MS_FMR_LINK . '&amp;act=stengskift&amp;skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . $agewarning . "<br />\n";
+				$output .= '(<a href="' . $this->url . '&amp;act=stengskift&amp;skiftid=' . $objSkift->getId() . '">avslutt skift</a>)' . $agewarning . "<br />\n";
 			}
             $output .= '</span>';
 		}			
@@ -819,7 +821,7 @@ class msmodul_rapport implements msmodul{
 		$output .=	'
 					<input type="submit" name="subvelgskift" class="msbutton" value="Gå videre">
 				</form>
-				<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+				<form name="tilbake" action="' . $this->url . '" method="POST">
 					<input type="hidden" name="act" value="show" />
 					<input type="submit" class="msbutton" name="subvelgskift" value="Tilbake" />
 				</form>
@@ -858,7 +860,7 @@ class msmodul_rapport implements msmodul{
 		$skiftout .= '<div class="skift_full">';
 		
 		try{
-			$objSkift = SkiftFactory::getSkift($skiftID);
+			$objSkift = $this->skiftfactory->getSkift($skiftID);
 		} catch(Exception $e) {
 			die($e->getMessage());
 		}
@@ -924,7 +926,7 @@ class msmodul_rapport implements msmodul{
 					if ($objTeller->getTellerVerdi() > 0) $colTellerNotNull->addItem(clone($objTeller));
 									
 					$skiftout .= '<tr>' . "\n";
-					$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+					$skiftout .= '<form action="' . $this->url . '" method="POST">' . "\n";
 					$skiftout .= '<td class="feilmtablecols"><div class="feilmtablecols">' . $objTeller->getTellerDesc() . '</div></td>' . "\n"; // Tellerbeskrivelse
 					$skiftout .= '<td style="text-align:center;"><input type="text" autocomplete="off" maxlength="2" value="1" id="rapverdi" class="msedit" name="modtellerverdi" /></td>' . "\n"; // Tekstfelt med endringsverdi
 					$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
@@ -946,7 +948,7 @@ class msmodul_rapport implements msmodul{
 
 		if ($colSecTeller->length() > 0){
 			$skiftout .= '<tr>' . "\n";
-			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$skiftout .= '<form action="' . $this->url . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 			$skiftout .= '<td><select name="tellerid" class="msedit tellerdropdown">' . "\n";
 			$skiftout .= '<option value="NOSEL">Flere tellere: </option>' . "\n";
@@ -962,7 +964,7 @@ class msmodul_rapport implements msmodul{
 		
 		if ($colUlogget->length() > 0){
 			$skiftout .= '<tr>' . "\n";
-			$skiftout .= '<form action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+			$skiftout .= '<form action="' . $this->url . '" method="POST">' . "\n";
 			$skiftout .= '<input type="hidden" name="act" value="mod_teller" />' . "\n";
 			$skiftout .= '<td><select name="tellerid" class="msedit tellerdropdown">' . "\n";
 			$skiftout .= '<option value="NOSEL">Uloggede samtaler: </option>' . "\n";
@@ -992,7 +994,7 @@ class msmodul_rapport implements msmodul{
                         $skiftout .= str_replace(' ', '&nbsp;', $arAkt['teller']) . "\n";
                         $skiftout .= '</div>'; // tellerakttekst
                         $skiftout .= '<div class="telleraktbilde">';
-                        $skiftout .= '<a href="' . MS_FMR_LINK . '&amp;act=undoakt&amp;aktid=' . $arAkt['id'] . '">' .
+                        $skiftout .= '<a href="' . $this->url . '&amp;act=undoakt&amp;aktid=' . $arAkt['id'] . '">' .
                     '<img style="float:right;margin-top:3px;margin-right:3px;" src="' . MS_IMG_PATH . 'trash.png"></a>';
                         $skiftout .= '</div>'; // telleraktbilde
                         $skiftout .= '</div>'; // tellerakt
@@ -1040,7 +1042,7 @@ class msmodul_rapport implements msmodul{
 		$skiftout .= '</div>'; // tellertable
 
 		// Close skift knapp
-		$skiftout .= '<form method="post" action="' . MS_FMR_LINK . '">' . "\n";
+		$skiftout .= '<form method="post" action="' . $this->url . '">' . "\n";
 		$skiftout .= '<input type="hidden" name="act" value="stengegetskift" />' . "\n";
 		$skiftout .= '<input type="submit" class="msbutton" id="avsluttskift" value="Avslutt skift" />' . "\n";
 		$skiftout .= '</form>' . "\n";
@@ -1062,7 +1064,7 @@ class msmodul_rapport implements msmodul{
 		
 		if (!isset($tellerid)) die('TellerID ikke gitt!');
 		try {
-			$objTeller = SkiftFactory::getTeller($tellerid);
+			$objTeller = $this->skiftfactory->getTeller($tellerid);
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å endre tellerrekkefølge: ' . $e->getMessage(), -1);
@@ -1084,7 +1086,7 @@ class msmodul_rapport implements msmodul{
 	}
 	
 	protected function _genTellerAdm() {
-		$tellercol = SkiftFactory::getAlleTellere(); // type TellerCollection
+		$tellercol = $this->skiftfactory->getAlleTellere(); // type TellerCollection
 		$numAktiveTellere = 0;
 		$numInaktiveTellere = 0;
 		
@@ -1094,10 +1096,10 @@ class msmodul_rapport implements msmodul{
 			$telleroutput .= '<td style="width:15%">' . $objTeller->getTellerType() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:30%">' . $objTeller->getTellerName() . '</td>' . "\n";
 			$telleroutput .= '<td style="width:40%">' . $objTeller->getTellerDesc() . '</td>' . "\n";
-			$telleroutput .= '<td style="width:15%"><a href="' . MS_FMR_LINK . '&amp;act=flipteller&amp;tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" title="Deaktiver teller" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" title="Aktiver teller" alt="aktiver">' ) . '</a>' . "\n";
+			$telleroutput .= '<td style="width:15%"><a href="' . $this->url . '&amp;act=flipteller&amp;tellerid=' . $objTeller->getId() . '">' . (($objTeller->isActive()) ? '<img src="'.MS_IMG_PATH.'trash.png" title="Deaktiver teller" alt="deaktiver">' : '<img src="'.MS_IMG_PATH.'success.png" title="Aktiver teller" alt="aktiver">' ) . '</a>' . "\n";
 			if ($objTeller->isActive()) {
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&amp;act=modtellerorderopp&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'up.png" alt="opp" Title="Flytt oppover"></a>';
-				$telleroutput .= '<a href="'. MS_FMR_LINK.'&amp;act=modtellerorderned&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'down.png" alt="ned" title="Flytt nedover"></a>';
+				$telleroutput .= '<a href="'. $this->url.'&amp;act=modtellerorderopp&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'up.png" alt="opp" Title="Flytt oppover"></a>';
+				$telleroutput .= '<a href="'. $this->url.'&amp;act=modtellerorderned&amp;tellerid='. $objTeller->getId().'"><img src="'.MS_IMG_PATH.'down.png" alt="ned" title="Flytt nedover"></a>';
 			}
 			$telleroutput .= '</td></tr>' . "\n";
 			
@@ -1143,7 +1145,7 @@ class msmodul_rapport implements msmodul{
 		
 		$output .= "</div><h2>Legg til teller:</h2><div class=\"level3\">";
 		$output .= '
-			<form action="' . MS_FMR_LINK . '&amp;act=nyteller" method="POST">
+			<form action="' . $this->url . '&amp;act=nyteller" method="POST">
 			<table>
 				<tr>
 					<td>
@@ -1192,7 +1194,7 @@ class msmodul_rapport implements msmodul{
 		$safetellertype = $msdb->quote($_REQUEST['tellertype']);
 		$safetellerdesc = $msdb->quote(htmlspecialchars(trim($_REQUEST['tellerdesc'])));
 		
-		$sql = "INSERT INTO feilrap_teller (tellernavn, tellerdesc, tellertype, isactive, tellerorder) VALUES ($safetellernavn, $safetellerdesc, $safetellertype, '0', NULL);";
+		$sql = "INSERT INTO " . $this->_dbprefix . "_teller (tellernavn, tellerdesc, tellertype, isactive, tellerorder) VALUES ($safetellernavn, $safetellerdesc, $safetellertype, '0', NULL);";
 		$result = $msdb->exec($sql);
 		
 		if ($result === 1) {
@@ -1214,7 +1216,7 @@ class msmodul_rapport implements msmodul{
 		$tellerid = $_REQUEST['tellerid'];
 		if (preg_match('/^[0-9]{1,4}$/AD', $tellerid)) {
 			
-			$objTeller = SkiftFactory::getTeller($tellerid);
+			$objTeller = $this->skiftfactory->getTeller($tellerid);
 			if (!($objTeller instanceof Teller)) {
 				msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
 				return false;
@@ -1253,7 +1255,7 @@ class msmodul_rapport implements msmodul{
 		global $msdb;
 		$userid = $msdb->quote($userid);
 
-		$result = $msdb->num("SELECT skiftid FROM feilrap_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid AND skiftcreated > (now() - INTERVAL 14 HOUR) ORDER BY skiftid DESC LIMIT 1;");
+		$result = $msdb->num("SELECT skiftid FROM " . $this->_dbprefix . "_skift WHERE israpportert='0' AND skiftclosed IS NULL AND userid=$userid AND skiftcreated > (now() - INTERVAL 14 HOUR) ORDER BY skiftid DESC LIMIT 1;");
 	
 		if (is_numeric($result[0][0])) {
 			$this->_currentSkiftId = $result[0][0];
@@ -1270,10 +1272,10 @@ class msmodul_rapport implements msmodul{
 		$skiftid = $this->getCurrentSkiftId();
 		$safetelleraktid = $msdb->quote($_REQUEST['aktid']);
         
-        $sql = "SELECT skiftid FROM feilrap_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
+        $sql = "SELECT skiftid FROM " . $this->_dbprefix . "_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
         $data = $msdb->num($sql);
         if($data[0][0] === $skiftid) {
-            $sql = "DELETE FROM feilrap_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
+            $sql = "DELETE FROM " . $this->_dbprefix . "_tellerakt WHERE telleraktid=$safetelleraktid LIMIT 1;";
             $res = $msdb->exec($sql);
             if($res) {
                 msg('Aktivitet slettet.', 1);
@@ -1325,7 +1327,7 @@ class msmodul_rapport implements msmodul{
 		}
 		
 		try {
-			$objTeller = SkiftFactory::getTellerForSkift($tellerid, $skiftid);
+			$objTeller = $this->skiftfactory->getTellerForSkift($tellerid, $skiftid);
 			$objTeller->modTeller($inputverdi, $decrease);
 		} 
 		catch (Exception $e){
@@ -1347,7 +1349,7 @@ class msmodul_rapport implements msmodul{
 		
 		if (isset($notatid)) {
 			try {
-				$objNotat = SkiftFactory::getNotat($notatid);
+				$objNotat = $this->skiftfactory->getNotat($notatid);
 			} catch(Exception $e) {
 				die($e->getMessage());
 			}
@@ -1375,7 +1377,7 @@ class msmodul_rapport implements msmodul{
 		
 		if (isset($notatid)) {
 			try {
-				$objNotat = SkiftFactory::getNotat($notatid);
+				$objNotat = $this->skiftfactory->getNotat($notatid);
 			} 
 			catch(Exception $e) {
 				die($e->getMessage());
@@ -1415,7 +1417,7 @@ class msmodul_rapport implements msmodul{
 		$output .= '<li>Skiftet ditt har blitt inkludert i en rapport</li>';
 		$output .= '<li>Skiftet ditt er utløpt &ndash; det har gått mer enn 14 timer siden det ble opprettet</li>';
 		$output .= '</ul><br/>';
-		$output .= '<form method="post" action="' . MS_FMR_LINK . '">';
+		$output .= '<form method="post" action="' . $this->url . '">';
 		$output .= '<input type="hidden" name="act" value="nyttskift" />';
 		$output .= '<input type="submit" class="msbutton" value="Start nytt skift!" />';
 		$output .= '</form>';
@@ -1431,7 +1433,7 @@ class msmodul_rapport implements msmodul{
 		global $msdb;
 		if (!$this->getCurrentSkiftId() === false) { die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.'); }
 		
-		$result = $msdb->exec("INSERT INTO feilrap_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->_userId) . ", now());");
+		$result = $msdb->exec("INSERT INTO " . $this->_dbprefix . "_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->_userId) . ", now());");
 		if ($result != 1) {
 			die('Klarte ikke å opprette skift!');
 		} else {
@@ -1462,7 +1464,7 @@ class msmodul_rapport implements msmodul{
         // Avslutt en hvilken som helst brukers skift
         
 		try {
-			$objSkift = SkiftFactory::getSkift($skiftid);
+			$objSkift = $this->skiftfactory->getSkift($skiftid);
 		}
 		catch (Exception $e) {
 			msg($e->getMessage(), -1);
@@ -1555,8 +1557,8 @@ class msmodul_rapport implements msmodul{
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getLiveDate()) . '</td>' . "\n";
 				$output .= '<td>' . $objTemplate->getNumRapporter() . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
 				$output .= '</td>' . "\n"; // handlinger slutt
 				$output .= '</tr>' . "\n";
 			}
@@ -1580,11 +1582,11 @@ class msmodul_rapport implements msmodul{
 				$output .= '<td>' . $objTemplate->getId() . '</td>' . "\n";
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getCreateDate()) . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=genmodtpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png" height="16" width="16" alt="Rediger" title="Rediger template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=sletttpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png" height="16" width="16" alt="Slett" title="Slett template" /></a>';
-				$output .= '<a href="' . MS_FMR_LINK . '&amp;act=modtpllive&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'success.png" height="16" width="16" alt="Live" title="Go Live! Denne templaten vil bli brukt på nye rapporter" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=genmodtpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png" height="16" width="16" alt="Rediger" title="Rediger template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=sletttpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png" height="16" width="16" alt="Slett" title="Slett template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=modtpllive&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'success.png" height="16" width="16" alt="Live" title="Go Live! Denne templaten vil bli brukt på nye rapporter" /></a>';
 				$output .= '</td>' . "\n"; // handlinger slutt
 				$output .= '</tr>' . "\n";
 			}
@@ -1598,7 +1600,7 @@ class msmodul_rapport implements msmodul{
 		
 		$output .= '</div>' . "\n";
 	
-		$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+		$output .= '<form action="' . $this->url . '" method="POST">';
 		$output .= '<input type="hidden" name="act" value="nyraptpl" />';
 		$output .= '<input type="submit" class="msbutton" name="savetpl" value="Opprett nytt template" />';
 		$output .= '</form>';
@@ -1705,7 +1707,7 @@ class msmodul_rapport implements msmodul{
 			$output .= '<p class="templatemarkup">' . $objRapport->genRapportTemplate() . '</p>';
 		} elseif ($mode == 'edit') {
 			$output .= '<br /><span class="subactheader">Redigerer templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
-			$output .= '<form action="' . MS_FMR_LINK . '" method="POST">';
+			$output .= '<form action="' . $this->url . '" method="POST">';
 			$output .= '<input type="hidden" name="act" value="modraptpl" />';
 			$output .= '<input type="hidden" name="templateid" value="' . $objTemplate->getId() . '" />';
 			$output .= '<textarea name="inputtpl" cols="80" rows="40">' . $objTemplate->getTemplateTekst() . '</textarea>';
@@ -1714,7 +1716,7 @@ class msmodul_rapport implements msmodul{
 		}
 		
 		$output .= '
-			<form name="tilbake" action="' . MS_FMR_LINK . '" method="POST">
+			<form name="tilbake" action="' . $this->url . '" method="POST">
 				<input type="hidden" name="act" value="genmodraptpl" />
 				<input type="submit" class="msbutton" value="Tilbake" />
 			</form>
@@ -1726,7 +1728,7 @@ class msmodul_rapport implements msmodul{
 	protected function _nyRapportTemplate() {
 		global $msdb;
 		
-		$sql = "INSERT INTO feilrap_raptpl (templatetekst, tplisactive, createdate) VALUES ('Ikke noe innhold i rapport-template enda.', '0', now());";
+		$sql = "INSERT INTO " . $this->_dbprefix . "_raptpl (templatetekst, tplisactive, createdate) VALUES ('Ikke noe innhold i rapport-template enda.', '0', now());";
 		$resultat = $msdb->exec($sql);
 		
 		if ($resultat === 1) {

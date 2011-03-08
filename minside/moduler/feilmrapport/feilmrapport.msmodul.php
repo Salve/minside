@@ -1,8 +1,10 @@
 <?php
 if(!defined('MS_INC')) die();
-define('MS_FMR_LINK', MS_LINK . "&amp;page=feilmrapport");
+require_once(DOKU_PLUGIN.'/minside/minside/moduler/rapport/rapport.msmodul.php');
 
 class msmodul_feilmrapport extends msmodul_rapport {
+
+    public $url;
 	
 	public function __construct($UserID, $accesslvl) {
         parent::__construct($UserID, $accesslvl);
@@ -11,6 +13,7 @@ class msmodul_feilmrapport extends msmodul_rapport {
 	public function gen_msmodul($act, $vars){
         $vars = (array) $vars;
         $vars['dbprefix'] = 'feilrap';
+        $this->url = MS_LINK . "&amp;page=feilmrapport";
         return parent::gen_msmodul($act, $vars);
 	}
 	

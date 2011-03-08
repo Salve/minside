@@ -18,6 +18,7 @@ class SkiftFactory {
 		if(is_array($data) && sizeof($data)) {
 			$objSkift = new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed'], $data[0]['israpportert'], $data[0]['rapportid']);
 			$objSkift->setSkiftOwnerName($data[0]['wikiname']);
+            $objSkift->setSkiftFactory($this);
 			return $objSkift;
 		} else {
 			throw new Exception("Skift med id: $id finnes ikke i database");
