@@ -86,7 +86,7 @@ class Notat {
 		}
 	}
 	
-	public function modActive($active) {
+	public function modActive($active, $dbprefix) {
 		global $msdb;
 		
 		if ($active && $this->_isActive) throw new Exception('Notat er allerede aktivt');
@@ -95,7 +95,7 @@ class Notat {
 		$safeactive = $msdb->quote(($active) ? 1 : 0);
 		$safenotatid = $msdb->quote($this->_id);
 		
-		$sql = "UPDATE feilrap_notat SET isactive=$safeactive WHERE notatid=$safenotatid;";
+		$sql = "UPDATE ".$dbprefix."_notat SET isactive=$safeactive WHERE notatid=$safenotatid;";
 		
 		$result = $msdb->exec($sql);
 		

@@ -14,6 +14,7 @@ class Skift {
 	
 	public $tellere;
 	public $notater;
+    public $dbPrefix;
     
     public $skiftfactory;
 	
@@ -109,9 +110,9 @@ class Skift {
                     akt.verdi AS verdi, 
                     teller.tellerdesc AS teller 
                 FROM 
-                        feilrap_tellerakt AS akt 
+                        ". $this->dbPrefix ."_tellerakt AS akt 
                     LEFT JOIN 
-                        feilrap_teller AS teller 
+                        ". $this->dbPrefix ."_teller AS teller 
                     ON 
                         akt.tellerid = teller.tellerid 
                 WHERE 
@@ -138,7 +139,7 @@ class Skift {
 		} else {
 			global $msdb;
 			$safeskiftid = $msdb->quote($this->_id);
-			$result = $msdb->num("SELECT tidspunkt FROM feilrap_tellerakt WHERE skiftid=$safeskiftid ORDER BY telleraktid DESC LIMIT 1;");
+			$result = $msdb->num("SELECT tidspunkt FROM ". $this->dbPrefix ."_tellerakt WHERE skiftid=$safeskiftid ORDER BY telleraktid DESC LIMIT 1;");
 			$this->_skiftLastUpdate = $result[0][0];
 			$this->checkedLastUpdate = true;
 			return $this->getSkiftLastUpdate();
@@ -153,7 +154,7 @@ class Skift {
 		if ($this->isClosed()) return false;
 				
 		$safeskiftid = $msdb->quote($this->_id);
-		$result = $msdb->exec("UPDATE feilrap_skift SET skiftclosed=now() WHERE skiftid=$safeskiftid;");
+		$result = $msdb->exec("UPDATE ". $this->dbPrefix ."_skift SET skiftclosed=now() WHERE skiftid=$safeskiftid;");
 		if ($result != 1) {
 			return false;
 		} else {

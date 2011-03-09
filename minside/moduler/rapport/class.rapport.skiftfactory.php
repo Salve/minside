@@ -17,6 +17,7 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			$objSkift = new Skift($id, $data[0]['skiftcreated'], $data[0]['userid'], $data[0]['skiftclosed'], $data[0]['israpportert'], $data[0]['rapportid']);
+            $objSkift->dbPrefix = $this->dbPrefix;
 			$objSkift->setSkiftOwnerName($data[0]['wikiname']);
             $objSkift->setSkiftFactory($this);
 			return $objSkift;
@@ -35,7 +36,9 @@ class SkiftFactory {
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-			return new Rapport($data[0]['rapportowner'], $data[0]['rapportid'], $data[0]['createtime'], true, $data[0]['templateid']);
+            $objRapport = new Rapport($data[0]['rapportowner'], $data[0]['rapportid'], $data[0]['createtime'], true, $data[0]['templateid']);
+            $objRapport->dbPrefix = $this->dbPrefix;
+			return $objRapport;
 		} else {
 			throw new Exception("Rapport med id: $saferapportid finnes ikke i database");
 		}
@@ -69,6 +72,7 @@ class SkiftFactory {
 		if(is_array($data) && sizeof($data)) {
 			foreach ($data as $datum) {
 				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid'], $datum['wikiname']);
+                $objRapport->dbPrefix = $this->dbPrefix;
 				$col->addItem($objRapport, $datum['rapportid']);
 			}
 		}
@@ -136,6 +140,7 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			$objTeller = new Teller($tellerid, $skiftid, $data[0]['tellernavn'], $data[0]['tellerdesc'], $data[0]['tellertype'], $data[0]['tellerverdi'], $data[0]['isactive']);
+            $objTeller->dbPrefix = $this->dbPrefix;
 			return $objTeller;
 		} else {
 			throw new Exception("Klarte ikke å laste tellerid: $safetellerid for skift: $safeskiftid.");
@@ -155,6 +160,7 @@ class SkiftFactory {
 		if(is_array($data) && sizeof($data)) {
 			$objTeller = new Teller($tellerid, 0, $data[0]['tellernavn'], $data[0]['tellerdesc'], $data[0]['tellertype'], 0, $data[0]['isactive']);
 			$objTeller->setOrder($data[0]['tellerorder']);
+            $objTeller->dbPrefix = $this->dbPrefix;
 			return $objTeller;
 		} else {
 			throw new Exception("Klarte ikke å laste tellerid: $safetellerid");
@@ -209,6 +215,7 @@ class SkiftFactory {
 			foreach($data as $datum) {
 				$isactive = (bool) $datum['isactive'];
 				$objTeller = new Teller($datum['tellerid'], $id, $datum['tellernavn'], $datum['tellerdesc'], $datum['tellertype'], $datum['tellerverdi'], $isactive);
+                $objTeller->dbPrefix = $this->dbPrefix;
 				$col->addItem($objTeller, $datum['tellernavn']);
 			}
 		}
@@ -227,6 +234,7 @@ class SkiftFactory {
 			foreach($data as $datum) {
 				$objTeller = new Teller($datum['tellerid'], 0, $datum['tellernavn'], $datum['tellerdesc'], $datum['tellertype'], 0, (bool) $datum['isactive']);
 				$objTeller->setOrder($datum['tellerorder']);
+                $objTeller->dbPrefix = $this->dbPrefix;
 				$col->addItem($objTeller);
 			}
 		}

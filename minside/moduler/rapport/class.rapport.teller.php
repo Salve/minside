@@ -9,6 +9,7 @@ class Teller {
 	private $_tellerDesc;
 	private $_tellerType;
 	private $_tellerOrder;
+    public $dbPrefix;
 	
 	function __construct($id, $skiftid, $tellerName, $tellerDesc, $tellerType, $tellerVerdi = 0, $isactive = true) {
 		$this->_id = $id;
@@ -93,10 +94,10 @@ class Teller {
 		
 		$msdb->startTrans();
 		
-		$sql = "UPDATE feilrap_teller SET tellerorder = tellerorder - 1 WHERE tellerorder >= $safetellerorder";
+		$sql = "UPDATE ". $this->dbPrefix ."_teller SET tellerorder = tellerorder - 1 WHERE tellerorder >= $safetellerorder";
 		$resultat2 = $msdb->exec($sql);
 		
-		$sql = "UPDATE feilrap_teller SET isactive='0', tellerorder=NULL WHERE tellerid=$safetellerid LIMIT 1;";
+		$sql = "UPDATE ". $this->dbPrefix ."_teller SET isactive='0', tellerorder=NULL WHERE tellerid=$safetellerid LIMIT 1;";
 		$resultat1 = $msdb->exec($sql);
 		
 		if ($resultat1 && $resultat2) {
@@ -112,13 +113,13 @@ class Teller {
 	private function _setActive() {
 		global $msdb;
 		
-		$datum = $msdb->num('SELECT tellerorder FROM feilrap_teller ORDER BY tellerorder DESC LIMIT 1');
+		$datum = $msdb->num('SELECT tellerorder FROM '. $this->dbPrefix .'_teller ORDER BY tellerorder DESC LIMIT 1');
 		$nyorder = $datum[0][0] + 1;
 		
 		$safetellerid = $msdb->quote($this->_id);
 		$safenyorder = $msdb->quote($nyorder);
 		
-		$sql = "UPDATE feilrap_teller SET isactive='1', tellerorder=$safenyorder WHERE tellerid=$safetellerid LIMIT 1;";
+		$sql = "UPDATE ". $this->dbPrefix ."_teller SET isactive='1', tellerorder=$safenyorder WHERE tellerid=$safetellerid LIMIT 1;";
 		$resultat = $msdb->exec($sql);
 		
 		return (bool) $resultat;
@@ -145,13 +146,13 @@ class Teller {
 		$safetellerid = $msdb->quote($this->_id);
 		
 		$msdb->startTrans();
-		$resultat = $msdb->exec("UPDATE feilrap_teller SET tellerorder=$safeoldorder WHERE tellerorder=$safeneworder LIMIT 1;");
+		$resultat = $msdb->exec("UPDATE ". $this->dbPrefix ."_teller SET tellerorder=$safeoldorder WHERE tellerorder=$safeneworder LIMIT 1;");
 		if ($resultat == 0) {
 			$msdb->rollBack();
 			throw new Exception('Ingen teller ' . (($modopp) ? 'over' : 'under') . ' telleren du forsøkte å flytte.');
 		}
 		
-		$resultat = $msdb->exec("UPDATE feilrap_teller SET tellerorder=$safeneworder WHERE tellerorder=$safeoldorder AND tellerid=$safetellerid LIMIT 1;");
+		$resultat = $msdb->exec("UPDATE ". $this->dbPrefix ."_teller SET tellerorder=$safeneworder WHERE tellerorder=$safeoldorder AND tellerid=$safetellerid LIMIT 1;");
 		if ($resultat == 0) {
 			$msdb->rollBack();
 			throw new Exception('Databaseoppdatering feilet.');
@@ -186,7 +187,7 @@ class Teller {
 		$safetellerid = $msdb->quote($this->_id);
 		$safeverdi = $msdb->quote($verdi);
 
-		$result = $msdb->exec("INSERT INTO feilrap_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), $safeskiftid, $safetellerid, $safeverdi);");
+		$result = $msdb->exec("INSERT INTO ". $this->dbPrefix ."_tellerakt (tidspunkt, skiftid, tellerid, verdi) VALUES (now(), $safeskiftid, $safetellerid, $safeverdi);");
 		if ($result != 1) {
 			throw new Exception('Klarte ikke lagre tellerendring i database');
 			return false;

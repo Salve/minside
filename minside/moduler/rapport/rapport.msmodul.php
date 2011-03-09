@@ -25,6 +25,7 @@ abstract class msmodul_rapport implements msmodul{
 	protected $_currentSkiftId; // Cache verdi av skiftid, bruk accessor, ikke denne verdien
     public $_dbprefix;
     protected $skiftfactory;
+    protected $rapporttemplatefactory;
 	protected static $monthnames = array(
 			1 => 'januar',
 			2 => 'februar',
@@ -59,7 +60,8 @@ abstract class msmodul_rapport implements msmodul{
         }
         $this->_dbprefix = $vars['dbprefix'];
         $this->skiftfactory = new SkiftFactory($this->_dbprefix);
-		
+		$this->rapporttemplatefactory = new RapportTemplateFactory($this->_dbprefix);
+        
 		if (!$this->_accessLvl > MSAUTH_NONE) return '';
 		
         // Nye handlinger legges til her, kjør kode som nødvendig, output concates på $this->_frapout
@@ -487,7 +489,7 @@ abstract class msmodul_rapport implements msmodul{
 	protected function _genModRapport(){
             // Genererer output bruker får når han/hun skal opprette rapport (på slutten av hvert skift) 
 			
-			if (RapportTemplateFactory::getCurrentTplId() === false) {
+			if ($this->rapporttemplatefactory->getCurrentTplId() === false) {
 				msg('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.', -1);
 				return false;
 			}
@@ -554,6 +556,7 @@ abstract class msmodul_rapport implements msmodul{
 			// Slutt validation
 			
 			$objRapport = new Rapport($this->_userId);
+            $objRapport->dbPrefix = $this->_dbprefix;
 			$objRapport->setSkiftCol($skiftcol);
 			
 			if ($validsave) { // Inndata er ok, rapport skal lagres
@@ -1390,7 +1393,7 @@ abstract class msmodul_rapport implements msmodul{
 			
 			if ($objNotat->getSkiftId() == $this->getCurrentSkiftId()) {
 				try {
-					$objNotat->modActive(false);
+					$objNotat->modActive(false, $this->_dbprefix);
 				}
 				catch(Exception $e) {
 					msg('Klarte ikke å slette notat: ' . $e->getMessage());
@@ -1503,7 +1506,7 @@ abstract class msmodul_rapport implements msmodul{
 			return false;
 		}
 		
-		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Kan ikke lagre template: Ugyldig templateid.', -1);
@@ -1533,7 +1536,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 		$output .= '<h1>Templateadministrasjon</h1><div class="level2">';
 		
-		$colTemplates = RapportTemplateFactory::getTemplates();
+		$colTemplates = $this->rapporttemplatefactory->getTemplates();
 		$colActiveTemplates = new RapportTemplateCollection();
 		$colInactiveTemplates = new RapportTemplateCollection();
 		
@@ -1619,7 +1622,7 @@ abstract class msmodul_rapport implements msmodul{
 			return false;
 		}
 		
-		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Klarte ikke å markere template som live: Ugyldig templateid.', -1);
@@ -1652,7 +1655,7 @@ abstract class msmodul_rapport implements msmodul{
 			return false;
 		}
 		
-		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Klarte ikke å slette template: Ugyldig templateid.', -1);
@@ -1685,7 +1688,7 @@ abstract class msmodul_rapport implements msmodul{
 			return false;
 		}
 		
-		$objTemplate = RapportTemplateFactory::getTemplate($templateid);
+		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Ugyldig templateid.', -1);
@@ -1700,8 +1703,11 @@ abstract class msmodul_rapport implements msmodul{
 			$output .= '<p class="templatemarkup"><pre>' . htmlspecialchars($objTemplate->getTemplateTekst()) . '</pre></p>';
 		} elseif ($mode == 'preview') {
 			$colskift = new SkiftCollection();
-			$colskift->addItem(new Skift(0, date('Y-m-d H:i:s'), 0));
+            $newskift = new Skift(0, date('Y-m-d H:i:s'), 0);
+            $newskift->dbPrefix = $this->_dbprefix;
+			$colskift->addItem($newskift);
 			$objRapport = new Rapport($this->_userId, null, null, false, $templateid, null);
+            $objRapport->dbPrefix = $this->_dbprefix;
 			$objRapport->skift = $colskift;
 			$output .= '<br /><span class="subactheader">Preview for templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
 			$output .= '<p class="templatemarkup">' . $objRapport->genRapportTemplate() . '</p>';

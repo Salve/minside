@@ -10,6 +10,8 @@ class RapportTemplate {
 	private $_livedate;
 	private $_numrapporter;
 	private $_issaved;
+    
+    public $dbPrefix;
 	
 	public function __construct($id, $isactive, $createdate, $livedate, $templatetekst, $issaved = false) {
 		$this->_id = $id;
@@ -34,7 +36,7 @@ class RapportTemplate {
 		} else {
 			global $msdb;
 			$safetplid = $msdb->quote($this->_id);
-			$sql = "SELECT COUNT(*) FROM (SELECT 'ingenting' FROM feilrap_rapport WHERE templateid=$safetplid) AS T;";
+			$sql = "SELECT COUNT(*) FROM ". $this->dbPrefix ."_rapport WHERE templateid=$safetplid;";
 			$data = $msdb->num($sql);
 			$resultat = $data[0][0];
 			
@@ -50,7 +52,7 @@ class RapportTemplate {
 		if ($this->isActive()) throw new Exception('Template er allerede live.');
 		
 		$safetemplateid = $msdb->quote($this->_id);
-		$sql = "UPDATE feilrap_raptpl SET tplisactive='1', activesince=now() WHERE raptplid=$safetemplateid LIMIT 1;";
+		$sql = "UPDATE ". $this->dbPrefix ."_raptpl SET tplisactive='1', activesince=now() WHERE raptplid=$safetemplateid LIMIT 1;";
 		
 		$resultat = $msdb->exec($sql);
 		
@@ -69,7 +71,7 @@ class RapportTemplate {
 		if ($this->isActive()) throw new Exception('Kan ikke slette live templates.');
 		
 		$safetemplateid = $msdb->quote($this->_id);
-		$sql = "UPDATE feilrap_raptpl SET isdeleted='1' WHERE raptplid=$safetemplateid LIMIT 1;";
+		$sql = "UPDATE ". $this->dbPrefix ."_raptpl SET isdeleted='1' WHERE raptplid=$safetemplateid LIMIT 1;";
 		
 		$resultat = $msdb->exec($sql);
 		
@@ -90,7 +92,7 @@ class RapportTemplate {
 		
 		$safeinputtekst = $msdb->quote($inputtekst);
 		$safetplid = $msdb->quote($this->_id);
-		$sql = "UPDATE feilrap_raptpl SET templatetekst=$safeinputtekst WHERE raptplid=$safetplid;";	
+		$sql = "UPDATE ". $this->dbPrefix ."_raptpl SET templatetekst=$safeinputtekst WHERE raptplid=$safetplid;";	
 		
 		$result = $msdb->exec($sql);
 		

@@ -9,6 +9,7 @@ class Rapport {
 	private $_rapportTemplateId;
 	private $_isSaved = false;
 	
+    public $dbPrefix;
 	public $skift;
 	public $rapportdata = array();
 	private $_rapportdataloaded = false;
@@ -21,7 +22,8 @@ class Rapport {
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
-			$templateid = RapportTemplateFactory::getCurrentTplId();
+            $tplfactory = new RapportTemplateFactory($this->dbPrefix);
+			$templateid = $tplfactory->getCurrentTplId();
 			if (!$templateid === false) $this->_rapportTemplateId = $templateid;
 		}
 		$this->_isSaved = (bool) $issaved;
@@ -112,7 +114,7 @@ class Rapport {
 		$saferapportowner = $msdb->quote($this->_rapportOwnerId);
 		$safetemplateid = $msdb->quote($this->_rapportTemplateId);
 		
-		$sql = "INSERT INTO feilrap_rapport (createtime, rapportowner, templateid) VALUES ($saferapportcreated, $saferapportowner, $safetemplateid);";
+		$sql = "INSERT INTO ". $this->dbPrefix ."_rapport (createtime, rapportowner, templateid) VALUES ($saferapportcreated, $saferapportowner, $safetemplateid);";
 		$msdb->exec($sql);
 		$this->_id = $msdb->getLastInsertId();
 		$saferapportid = $msdb->quote($this->_id);
@@ -122,7 +124,7 @@ class Rapport {
 			$arSkift[] = $objSkift->getId();
 		}
 		$skiftidlist = implode(',', $arSkift);
-		$sql = "UPDATE feilrap_skift SET israpportert=1, rapportid=$saferapportid WHERE skiftid IN ($skiftidlist);";
+		$sql = "UPDATE ". $this->dbPrefix ."_skift SET israpportert=1, rapportid=$saferapportid WHERE skiftid IN ($skiftidlist);";
 		$msdb->exec($sql);
 		
 		// Skittent hack, disse må defineres to plasser atm :\	
@@ -135,7 +137,7 @@ class Rapport {
 			foreach ($arValues as $inputnavn => $inputvalue) {
 				$safeinputnavn = $msdb->quote($inputnavn);
 				$safeinputvalue = $msdb->quote($inputvalue);
-				$sql = "INSERT INTO feilrap_rapportdata (rapportid, dataname, datavalue, datatype) VALUES ($saferapportid, $safeinputnavn, $safeinputvalue, $safeinputtype);";
+				$sql = "INSERT INTO ". $this->dbPrefix ."_rapportdata (rapportid, dataname, datavalue, datatype) VALUES ($saferapportid, $safeinputnavn, $safeinputvalue, $safeinputtype);";
 				$msdb->exec($sql);
 			}
 		}
@@ -197,6 +199,7 @@ class Rapport {
 						} else {
 							// lager ny teller med data fra orginal teller
 							$objColTeller = new Teller($objTeller->getId(), $objSkift->getId(), $objTeller->getTellerName(), $objTeller->getTellerDesc(), $objTeller->getTellerType(), $objTeller->getTellerVerdi());
+                            $objColTeller->dbPrefix = $objTeller->dbPrefix;
 							// legger denne til i rapportens teller-collection, med navnet på teller (eks. "TLSPT") som key.
 							$tellercol->addItem($objColTeller, $objTeller->getTellerName());
 						}
@@ -375,9 +378,9 @@ class Rapport {
 				}
 			};
 			$tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
-		
-			
-			$tmpOutput = RapportTemplateFactory::getTemplateOutput($tplErstatter, $this->_rapportTemplateId);
+            
+			$tplfactory = new RapportTemplateFactory($this->dbPrefix);
+			$tmpOutput = $tplfactory->getTemplateOutput($tplErstatter, $this->_rapportTemplateId);
 			
 			if (!$savedrapport) $output .= $hiddenSkiftider;
 			
