@@ -10,19 +10,22 @@ class Rapport {
 	private $_isSaved = false;
 	
     public $dbPrefix;
+    public $skiftfactory;
 	public $skift;
 	public $rapportdata = array();
 	private $_rapportdataloaded = false;
 	
-	public function __construct($ownerid, $id = null, $createdtime = null, $issaved = false, $templateid = null, $ownername = null) {
+	public function __construct($ownerid, $id=null, $createdtime=null, $issaved=false, $templateid=null, $ownername=null, $dbprefix) {
 		$this->_id = $id;
+        $this->dbPrefix = $dbprefix;
+        $this->skiftfactory = new SkiftFactory($dbprefix);
 		$this->_rapportCreatedTime = $createdtime;
 		$this->_rapportOwnerId = $ownerid;
 		$this->_rapportOwnerName = $ownername;
 		if ($templateid) {
 			$this->_rapportTemplateId = $templateid;
 		} else {
-            $tplfactory = new RapportTemplateFactory($this->dbPrefix);
+            $tplfactory = new RapportTemplateFactory($this->dbPrefix); 
 			$templateid = $tplfactory->getCurrentTplId();
 			if (!$templateid === false) $this->_rapportTemplateId = $templateid;
 		}
@@ -70,13 +73,13 @@ class Rapport {
 	}
 	
 	public function _loadSkift(Collection $col) {
-		$arSkift = SkiftFactory::getSkiftForRapport($this->_id, $col);
+		$arSkift = $this->skiftfactory->getSkiftForRapport($this->_id, $col);
 	}
 	
 	public function getRapportData() {
 		if (!$this->_rapportdataloaded) {
 			$this->_rapportdataloaded = true;
-			$this->rapportdata = SkiftFactory::getDataForRapport($this->_id);
+			$this->rapportdata = $this->skiftfactory->getDataForRapport($this->_id);
 		}
 		return $this->rapportdata;
 	}
@@ -384,12 +387,12 @@ class Rapport {
 			
 			if (!$savedrapport) $output .= $hiddenSkiftider;
 			
-			$output .= '<div class="rapporttpl">' . $tmpOutput . '</div>';
+			$output .= '<div class="rapporttpl">' . $tmpOutput . '</div><div class="msclearer"></div>';
 			
 			return $output;
 	}
 	
-	public function genMailForm() {
+	public function genMailForm($baseurl) {
 		global $msdb;
 		
 		if (!$this->_isSaved) return false;
@@ -423,7 +426,7 @@ class Rapport {
 		
 		$output .= '<span class="subactheader">Send rapport:</span><br /><br />';
 		$output .= 'Hold inne CTRL-knappen for å velge flere personer.<br />';
-		$output .= '<form name="mailrapport" action="' . MS_FMR_LINK . '" method="POST">' . "\n";
+		$output .= '<form name="mailrapport" action="' . $baseurl . '" method="POST">' . "\n";
 		$output .= '<input type="hidden" name="act" value="mailrapport" />' . "\n";
 		$output .= '<input type="hidden" name="rapportid" value="' . $this->_id . '" />' . "\n";
 		$output .= '<select multiple size="'. $size .'" name="mailmottakere[]" />' . "\n";

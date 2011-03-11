@@ -476,7 +476,7 @@ abstract class msmodul_rapport implements msmodul{
 			}
 			
             // Liste med brukere som kan få rapport tilsendt per epost
-			$output .= $objRapport->genMailForm();
+			$output .= $objRapport->genMailForm($this->url);
 			
 			return $output;
 			
@@ -555,8 +555,7 @@ abstract class msmodul_rapport implements msmodul{
 			}
 			// Slutt validation
 			
-			$objRapport = new Rapport($this->_userId);
-            $objRapport->dbPrefix = $this->_dbprefix;
+			$objRapport = new Rapport($this->_userId, null, null, false, null, null, $this->_dbprefix);
 			$objRapport->setSkiftCol($skiftcol);
 			
 			if ($validsave) { // Inndata er ok, rapport skal lagres
@@ -569,7 +568,7 @@ abstract class msmodul_rapport implements msmodul{
 				}
 				
 				$rappoutput = $objRapport->genRapport();
-				$rappoutput .= $objRapport->genMailForm();
+				$rappoutput .= $objRapport->genMailForm($this->url);
 			
 			} elseif ($submitsave) { // Bruker har forsøkt å lagre, men feil/mangler i inndata
 				$rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
@@ -592,6 +591,7 @@ abstract class msmodul_rapport implements msmodul{
 			$output .= '<form name="lagrerapport" action="' . $this->url . '" method="POST">' . "\n";
 			$output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";
 			$output .= $rappoutput;
+            $output .= '<div class="msclearer"></div>';
 			$output .= '<br /><br />' . "\n";
 			if (!$validsave) {
 				$output .= '<input type="submit" class="msbutton" name="genrap" value="Generer rapport" />' . "\n";
@@ -1560,8 +1560,8 @@ abstract class msmodul_rapport implements msmodul{
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getLiveDate()) . '</td>' . "\n";
 				$output .= '<td>' . $objTemplate->getNumRapporter() . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
 				$output .= '</td>' . "\n"; // handlinger slutt
 				$output .= '</tr>' . "\n";
 			}
@@ -1585,8 +1585,8 @@ abstract class msmodul_rapport implements msmodul{
 				$output .= '<td>' . $objTemplate->getId() . '</td>' . "\n";
 				$output .= '<td>' . date('j.n.y \k\l\. H:i', $objTemplate->getCreateDate()) . '</td>' . "\n";
 				$output .= '<td>'; // handlinger start
-				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
-				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplmarkup&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'page.png" height="16" width="16" alt="Kode" title="Se template markup" /></a>';
+				$output .= '<a href="' . $this->url . '&amp;act=showtplpreview&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'magnifier.png" height="16" width="16" alt="Vis" title="Forhåndsvis template" /></a>';
 				$output .= '<a href="' . $this->url . '&amp;act=genmodtpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'pencil.png" height="16" width="16" alt="Rediger" title="Rediger template" /></a>';
 				$output .= '<a href="' . $this->url . '&amp;act=sletttpl&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'trash.png" height="16" width="16" alt="Slett" title="Slett template" /></a>';
 				$output .= '<a href="' . $this->url . '&amp;act=modtpllive&amp;templateid=' . $objTemplate->getId() . '"><img src="' . MS_IMG_PATH . 'success.png" height="16" width="16" alt="Live" title="Go Live! Denne templaten vil bli brukt på nye rapporter" /></a>';
@@ -1705,9 +1705,9 @@ abstract class msmodul_rapport implements msmodul{
 			$colskift = new SkiftCollection();
             $newskift = new Skift(0, date('Y-m-d H:i:s'), 0);
             $newskift->dbPrefix = $this->_dbprefix;
-			$colskift->addItem($newskift);
-			$objRapport = new Rapport($this->_userId, null, null, false, $templateid, null);
-            $objRapport->dbPrefix = $this->_dbprefix;
+            $newskift->skiftfactory = $this->skiftfactory;
+			$colskift->addItem($newskift); 
+			$objRapport = new Rapport($this->_userId, null, null, false, $templateid, null, $this->_dbprefix);
 			$objRapport->skift = $colskift;
 			$output .= '<br /><span class="subactheader">Preview for templateid ' . $objTemplate->getId() . ':</span><br />' . "\n";
 			$output .= '<p class="templatemarkup">' . $objRapport->genRapportTemplate() . '</p>';
@@ -1722,6 +1722,7 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		
 		$output .= '
+            <div class="msclearer"></div>
 			<form name="tilbake" action="' . $this->url . '" method="POST">
 				<input type="hidden" name="act" value="genmodraptpl" />
 				<input type="submit" class="msbutton" value="Tilbake" />

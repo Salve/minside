@@ -8,7 +8,7 @@ class SkiftFactory {
     public function __construct($dbprefix) {
         $this->dbPrefix = $dbprefix;
     }
-
+    
 	public function getSkift($id) {
 		global $msdb;
 		
@@ -36,8 +36,7 @@ class SkiftFactory {
 		$data = $msdb->assoc($sql);
 		
 		if(is_array($data) && sizeof($data)) {
-            $objRapport = new Rapport($data[0]['rapportowner'], $data[0]['rapportid'], $data[0]['createtime'], true, $data[0]['templateid']);
-            $objRapport->dbPrefix = $this->dbPrefix;
+            $objRapport = new Rapport($data[0]['rapportowner'], $data[0]['rapportid'], $data[0]['createtime'], true, $data[0]['templateid'], null, $this->dbPrefix);
 			return $objRapport;
 		} else {
 			throw new Exception("Rapport med id: $saferapportid finnes ikke i database");
@@ -71,8 +70,7 @@ class SkiftFactory {
 		
 		if(is_array($data) && sizeof($data)) {
 			foreach ($data as $datum) {
-				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid'], $datum['wikiname']);
-                $objRapport->dbPrefix = $this->dbPrefix;
+				$objRapport = new Rapport($datum['rapportowner'], $datum['rapportid'], $datum['createtime'], true, $datum['templateid'], $datum['wikiname'], $this->dbPrefix);
 				$col->addItem($objRapport, $datum['rapportid']);
 			}
 		}
