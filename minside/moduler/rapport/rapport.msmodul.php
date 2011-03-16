@@ -24,6 +24,7 @@ abstract class msmodul_rapport implements msmodul{
 	protected $_accessLvl; // Brukerens ACL-tilgangsnivå på denne modulen, INT, se definisjon øverst i minside.php
 	protected $_currentSkiftId; // Cache verdi av skiftid, bruk accessor, ikke denne verdien
     public $_dbprefix;
+    public $dispatcher;
     protected $skiftfactory;
     protected $rapporttemplatefactory;
 	protected static $monthnames = array(
@@ -53,139 +54,85 @@ abstract class msmodul_rapport implements msmodul{
 	}
 	
 	public function gen_msmodul($act, $vars){        
-		$this->_msmodulact = $act;
-		$this->_msmodulvars = $vars;
+		if (!$this->_accessLvl > MSAUTH_NONE) return '';
         if(!array_key_exists('dbprefix', $vars)) {
             throw new Exception('DbPrefix må angis når rapport-moduler genereres');
         }
+        $this->_msmodulact = $act;
+		$this->_msmodulvars = $vars;
         $this->_dbprefix = $vars['dbprefix'];
         $this->skiftfactory = new SkiftFactory($this->_dbprefix);
 		$this->rapporttemplatefactory = new RapportTemplateFactory($this->_dbprefix);
         
-		if (!$this->_accessLvl > MSAUTH_NONE) return '';
-		
-        // Nye handlinger legges til her, kjør kode som nødvendig, output concates på $this->_frapout
-		switch($this->_msmodulact) {
-			case "stengskift":
-				if (isset($_REQUEST[skiftid])) $this->_closeSkift($_REQUEST[skiftid]);
-			case "genrapportsel":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportSelectSkift();
-				break;
-			case "gensaverapport":
-			case "genrapportmod":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genModRapport();
-				break;
-			case "modtpllive":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_modTemplateLive();
-					$this->_frapout .= $this->_genModRapportTemplates();
-				}
-				break;
-			case "sletttpl":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_slettTemplate();
-					$this->_frapout .= $this->_genModRapportTemplates();
-				}
-				break;
-			case "showtplmarkup":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModTemplate('markup');
-				break;
-			case "showtplpreview":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModTemplate('preview');
-				break;
-			case "genmodtpl":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModTemplate('edit');
-				break;
-			case "nyraptpl":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_nyRapportTemplate();
-					$this->_frapout .= $this->_genModRapportTemplates();
-				}
-				break;
-			case "genmodraptpl":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genModRapportTemplates();
-				break;
-			case "modraptpl":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_saveRapportTemplate();
-					$this->_frapout .= $this->_genModRapportTemplates();
-				}
-				break;
-			case "nyteller":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_nyTeller();
-					$this->_frapout .= $this->_genTellerAdm();
-				}
-				break;
-			case "flipteller":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_flipTeller();
-					$this->_frapout .= $this->_genTellerAdm();
-				}
-				break;
-			case "telleradm":
-				if ($this->_accessLvl >= MSAUTH_5) $this->_frapout .= $this->_genTellerAdm();
-				break;
-			case "rapportarkiv":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv(false);
-				break;
-            case "rapportarkivforside":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapportArkiv(true);
-				break;
-			case "visrapport":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_frapout .= $this->_genRapport();
-				break;
-			case "mailrapport":
-				if ($this->_accessLvl >= MSAUTH_2) $this->_sendRapportMail();
-				$this->_frapout .= $this->genSkift();
-				break;
-			case "stengegetskift":
-				$this->_closeCurrSkift();
-				$this->_frapout .= $this->genSkift();
-				break;
-			case "nyttskift":
-				$this->_createNyttSkift();
-				$this->_frapout .= $this->genSkift();
-				break;
-			case "savenotat":
-				$this->_lagreNotat();
-				$this->_frapout .= $this->genSkift();
-				break;
-			case "delnotat":
-				$this->_slettNotat();
-				$this->_frapout .= $this->genSkift();
-				break;
-            case "undoakt":
-                $this->_undoAkt();
-                $this->_frapout .= $this->genSkift();
-                break;
-			case "modtellerorderned":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_modTellerOrder('ned');
-					$this->_frapout .= $this->_genTellerAdm();
-				}
-				break;
-			case "modtellerorderopp":
-				if ($this->_accessLvl >= MSAUTH_5) {
-					$this->_modTellerOrder('opp');
-					$this->_frapout .= $this->_genTellerAdm();
-				}
-				break;
-			case "mod_teller":
-				$this->_changeTeller();
-			case "show":
-			default:
-				$this->_frapout .= $this->genSkift();
-		}
+		if(!isset($this->dispatcher) || !($this->dispatcher instanceof ActDispatcher)) {
+            $objDispatcher = new ActDispatcher($this, $this->_accessLvl);
+            $this->setHandlers($objDispatcher); // by ref - loader inn i objekt
+            $this->dispatcher = $objDispatcher;
+        }
         
-        $output = $this->_frapout;
-        // frapout nullstilles i tillfelle modulen genererer output mer enn en gang
-        $this->_frapout = '';
-		return $output;
-	
+        return $this->dispatcher->dispatch($act);
 	}
+    
+    protected function setHandlers(ActDispatcher &$dispatcher) {
+            // Skift
+            $dispatcher->addActHandler('show', 'genSkift', MSAUTH_1);
+			$dispatcher->addActHandler('stengskift', '_closeSkift', MSAUTH_1, $_REQUEST['skiftid']);
+            $dispatcher->addActHandler('stengegetskift', '_closeCurrSkift', MSAUTH_1);
+            $dispatcher->addActHandler('stengegetskift', 'genSkift', MSAUTH_1);
+            $dispatcher->addActHandler('nyttskift', '_createNyttSkift', MSAUTH_1);
+            $dispatcher->addActHandler('nyttskift', 'genSkift', MSAUTH_1);
+            
+            // Tellere
+            $dispatcher->addActHandler('undoakt', '_undoAkt', MSAUTH_1);
+            $dispatcher->addActHandler('undoakt', 'genSkift', MSAUTH_1);
+            $dispatcher->addActHandler('mod_teller', '_changeTeller', MSAUTH_1);
+            $dispatcher->addActHandler('mod_teller', 'genSkift', MSAUTH_1);
+            
+            // Notat
+            $dispatcher->addActHandler('savenotat', '_lagreNotat', MSAUTH_1);
+            $dispatcher->addActHandler('savenotat', 'genSkift', MSAUTH_1);
+            $dispatcher->addActHandler('delnotat', '_slettNotat', MSAUTH_1);
+            $dispatcher->addActHandler('delnotat', 'genSkift', MSAUTH_1);
+            $dispatcher->addActHandler('modnotat', 'genSkift', MSAUTH_1);
+            
+            // Rapport
+            $dispatcher->addActHandler('genrapportsel', '_genRapportSelectSkift', MSAUTH_2);
+            $dispatcher->addActHandler('gensaverapport', '_genModRapport', MSAUTH_2);
+            $dispatcher->addActHandler('genrapportmod', '_genModRapport', MSAUTH_2);
+            $dispatcher->addActHandler('rapportarkiv', '_genRapportArkiv', MSAUTH_2, false);
+            $dispatcher->addActHandler('rapportarkivforside', '_genRapportArkiv', MSAUTH_2, true);
+            $dispatcher->addActHandler('visrapport', '_genRapport', MSAUTH_2);
+            $dispatcher->addActHandler('mailrapport', '_sendRapportMail', MSAUTH_2);
+            $dispatcher->addActHandler('mailrapport', 'genSkift', MSAUTH_2);
+            
+            // Telleradmin
+            $dispatcher->addActHandler('nyteller', '_nyTeller', MSAUTH_5);
+            $dispatcher->addActHandler('nyteller', '_genTellerAdm', MSAUTH_5);
+            $dispatcher->addActHandler('flipteller', '_flipTeller', MSAUTH_5);
+            $dispatcher->addActHandler('flipteller', '_genTellerAdm', MSAUTH_5);
+            $dispatcher->addActHandler('telleradm', '_genTellerAdm', MSAUTH_5);
+            $dispatcher->addActHandler('modtellerorderned', '_modTellerOrder', MSAUTH_5, 'ned');
+            $dispatcher->addActHandler('modtellerorderned', '_genTellerAdm', MSAUTH_5);
+            $dispatcher->addActHandler('modtellerorderopp', '_modTellerOrder', MSAUTH_5, 'opp');
+            $dispatcher->addActHandler('modtellerorderopp', '_genTellerAdm', MSAUTH_5);
+            
+            // Templateadmin
+            $dispatcher->addActHandler('modtpllive', '_modTemplateLive', MSAUTH_5);
+            $dispatcher->addActHandler('modtpllive', '_genModRapportTemplates', MSAUTH_5);
+            $dispatcher->addActHandler('sletttpl', '_slettTemplate', MSAUTH_5);
+            $dispatcher->addActHandler('sletttpl', '_genModRapportTemplates', MSAUTH_5);
+            $dispatcher->addActHandler('showtplmarkup', '_genModTemplate', MSAUTH_5, 'markup');
+            $dispatcher->addActHandler('showtplpreview', '_genModTemplate', MSAUTH_5, 'preview');
+            $dispatcher->addActHandler('genmodtpl', '_genModTemplate', MSAUTH_5, 'edit');
+            $dispatcher->addActHandler('nyraptpl', '_nyRapportTemplate', MSAUTH_5);
+            $dispatcher->addActHandler('nyraptpl', '_genModRapportTemplates', MSAUTH_5);
+            $dispatcher->addActHandler('genmodraptpl', '_genModRapportTemplates', MSAUTH_5);
+            $dispatcher->addActHandler('modraptpl', '_saveRapportTemplate', MSAUTH_5);
+            $dispatcher->addActHandler('modraptpl', '_genModRapportTemplates', MSAUTH_5);
+
+    }
 	
-	protected function genNotat($objNotat, $edit = false) {
+	public function genNotat($objNotat, $edit = false) {
         // Metode som genererer html gitt et notatobjekt. Gjør en av tre ting:
         // - Genererer en tom form dersom edit er true og objNotat IKKE er et notatobjekt
         // - Genererer en form med gitt notatobjekt fyllt ut for redigering dersom edit er true og objNotat ER et notatobjekt
@@ -215,7 +162,7 @@ abstract class msmodul_rapport implements msmodul{
 		return $output;
 	}
 	
-	protected function _genRapportArkiv($forside = false) {
+	public function _genRapportArkiv($forside = false) {
         // Dersom bruker har tilgang MSAUTH_1 eller 2 vises kun oversikt over rapporter generert det siste døgnet.
         // Dersom bruker har tilgang MSAUTH_3 eller høyere vises oversikt over rapporter i en gitt måned (dersom måned er valgt),
         // eller samme oversikt som normalt, med rapporter fra siste døgn. Uansett får disse brukerne se oversikt over år/måneder som kan
@@ -272,7 +219,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
+	public function _genRapportListe(RapportCollection $rapcol, $sortuke = false) {
 		// Metoden genererer oversikt over alle rapporter i en gitt måned. Sortert etter uke og
         // dato.
         
@@ -404,7 +351,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _genRapportArkivMenu() {
+	public function _genRapportArkivMenu() {
         // Oversikt over alle år og måneder som har genererte rapporter.
         // Kalles fra _genRapportArkiv
         
@@ -445,7 +392,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _genRapport() {
+	public function _genRapport() {
         // Viser en spesifikk rapport
     
 		if (isset($_REQUEST['rapportid'])) {
@@ -455,7 +402,7 @@ abstract class msmodul_rapport implements msmodul{
 				$rapcol = $this->skiftfactory->getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
 				if (!$rapcol->exists($rapportid)) {
 					msg('Du har ikke tilgang til å vise denne rapporten.', -1);
-					return false;
+					return;
 				}
 			}
 		
@@ -486,12 +433,12 @@ abstract class msmodul_rapport implements msmodul{
 		}
 	}
 	
-	protected function _genModRapport(){
+	public function _genModRapport(){
             // Genererer output bruker får når han/hun skal opprette rapport (på slutten av hvert skift) 
 			
 			if ($this->rapporttemplatefactory->getCurrentTplId() === false) {
 				msg('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.', -1);
-				return false;
+				return;
 			}
 	
 	
@@ -516,7 +463,7 @@ abstract class msmodul_rapport implements msmodul{
 					}
 					catch (Exception $e) {
 						msg($e->getMessage,-1);
-						return false;
+						return;
 					}				
 					
 					if ($objSkift instanceof Skift) {
@@ -612,7 +559,7 @@ abstract class msmodul_rapport implements msmodul{
 			
 	}
 	
-	protected function _sendRapportMail() {
+	public function _sendRapportMail() {
         // Mail sender. Denne ble hevet sammen ganske raskt, dersom det oppstår problemer med mailutsendelse
         // bør DokuWikis funksjoner for mailutsendelse sjekkes, disse er mye bedre.
         
@@ -628,14 +575,14 @@ abstract class msmodul_rapport implements msmodul{
 			$mailmottakere = $_REQUEST['mailmottakere'];
 		} else {
 			msg('Kan ikke sende mail: Ingen mottakere valgt.', -1);
-			return false;
+			return;
 		}
 		
 		if ($this->_accessLvl <= MSAUTH_2) { // Bruker kan kun vise nylige rapporter
 			$rapcol = $this->skiftfactory->getNyligeRapporter(); // RapportCollection med alle rapporter bruker har tilgang til å vise
 			if (!$rapcol->exists($rapportid)) {
 				msg('Du har ikke tilgang til å sende denne rapporten.', -1);
-				return false;
+				return;
 			} else {
 				$objRapport = $rapcol->getItem($rapportid);
 			}
@@ -675,15 +622,15 @@ abstract class msmodul_rapport implements msmodul{
 		$resultat = mail($mailto, $subject, $rapporthtml, $headers);
 		if ($resultat) {
 			msg('Rapport sendt til ' . $mailcounter . ' mottakere.', 1);
-			return true;
+			return;
 		} else {
 			msg('Mail-utsendelse feilet!', -1);
-			return false;
+			return;
 		}
 		
 	}
 	
-	protected function _validateRapportInput(&$validinput, &$invalidinput, &$skiftcol) {
+	public function _validateRapportInput(&$validinput, &$invalidinput, &$skiftcol) {
         // Validerer input til nye rapporter, forskjellige validator basert på hver gruppe input(bool, litetall osv.)
         // Faktisk validationlogikk ligger i callsen RappValidator.
         
@@ -766,7 +713,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _genRapportSelectSkift(){
+	public function _genRapportSelectSkift(){
         // Genererer oversikt over skift som kan inkluderes i en rapport
 	
 		$skiftcol = $this->skiftfactory->getMuligeSkiftForRapport();
@@ -1060,7 +1007,7 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _modTellerOrder($orderact) {
+	public function _modTellerOrder($orderact) {
         // Flytter tellere opp/ned (i teller-admin)
         
 		$tellerid = $_GET['tellerid'];
@@ -1071,7 +1018,7 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å endre tellerrekkefølge: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 		if (!($objTeller instanceof Teller)) die('Ugyldig TellerID gitt');
 		
@@ -1084,11 +1031,11 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å endre tellerrekkefølge: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 	}
 	
-	protected function _genTellerAdm() {
+	public function _genTellerAdm() {
 		$tellercol = $this->skiftfactory->getAlleTellere(); // type TellerCollection
 		$numAktiveTellere = 0;
 		$numInaktiveTellere = 0;
@@ -1176,21 +1123,21 @@ abstract class msmodul_rapport implements msmodul{
 		return $output . '</div></div>'; // close level2 og 3
 	}
 	
-	protected function _nyTeller() {
+	public function _nyTeller() {
 		global $msdb;
 		
 		
 		if (!preg_match('/^[A-Z]{3,20}$/AD', strtoupper($_REQUEST['tellernavn']))) {
 			msg('Kan ikke opprette teller, tellernavn er ugyldig. Se hjelpetekst.', -1);
-			return false;
+			return;
 		}
 		if (!preg_match('/^TELLER|SECTELLER|ULOGGET$/AD', $_REQUEST['tellertype'])) {
 			msg('Kan ikke opprette teller, tellertype er ugyldig. Du må gjøre et valg i listen.', -1);
-			return false;
+			return;
 		}
 		if (strlen(trim($_REQUEST['tellerdesc'])) < 2 || strlen(trim($_REQUEST['tellerdesc'])) > 100) {
 			msg('Kan ikke opprette teller, tellerlabel er ugyldig. Se hjelpetekst.', -1);
-			return false;
+			return;
 		}
 		
 		$safetellernavn = $msdb->quote(strtoupper($_REQUEST['tellernavn']));
@@ -1202,16 +1149,16 @@ abstract class msmodul_rapport implements msmodul{
 		
 		if ($result === 1) {
 			msg('Opprettet ny teller: ' . $safetellernavn, 1);
-			return true;
+			return;
 		} else {
 			msg('Klarte ikke å opprette teller', -1);
-			return false;
+			return;
 		}
 		
 	
 	}
 	
-	protected function _flipTeller() {
+	public function _flipTeller() {
         // Deaktiverer/aktiverer teller (motsatt av det den var)
         
 		global $msdb;
@@ -1222,7 +1169,7 @@ abstract class msmodul_rapport implements msmodul{
 			$objTeller = $this->skiftfactory->getTeller($tellerid);
 			if (!($objTeller instanceof Teller)) {
 				msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
-				return false;
+				return;
 			}
 			
 			try {
@@ -1230,21 +1177,21 @@ abstract class msmodul_rapport implements msmodul{
 			}
 			catch (Exception $e) {
 				msg('Klarte ikke å endre teller: ' . $e->getMessage());
-				return false;
+				return;
 			}
 			
 			
 			if ($resultat) {
 				msg('Endret status på teller', 1);
-				return true;
+				return;
 			} else {
 				msg('Klarte ikke å endre tellerstatus', -1);
-				return false;
+				return;
 			}
 			
 		} else {
 			msg('Kan ikke endre teller, ugyldig tellerid gitt', -1);
-			return false;
+			return;
 		}
 	}
 	
@@ -1268,7 +1215,7 @@ abstract class msmodul_rapport implements msmodul{
 		}
 	}
 	
-	protected function _undoAkt() {
+	public function _undoAkt() {
         // Undoer siste aktivitet, tror ikke denne funksjonen brukes direkte etter vi fikk ny oversikt over siste endringer
         
 		global $msdb;
@@ -1294,14 +1241,14 @@ abstract class msmodul_rapport implements msmodul{
 		
 	}
 	
-	protected function _changeTeller() {
+	public function _changeTeller() {
         // Bruker trykker pluss/minus på en teller
 
         $inputverdi = $_REQUEST['modtellerverdi'];
 
 		if (!isset($inputverdi)) {
 			msg('Klarte ikke å endre teller: Ingen verdi angitt', -1);
-			return false;
+			return;
 		}
 		
 		$skiftid = $this->getCurrentSkiftId();
@@ -1311,7 +1258,7 @@ abstract class msmodul_rapport implements msmodul{
 			$tellerid = $_REQUEST['tellerid'];
 		} else {
 			msg('Kan ikke endre teller: ingen teller valgt.', -1);
-			return false;
+			return;
 		}
 		
 		if (array_key_exists('inc_teller', $_REQUEST)) {
@@ -1326,7 +1273,7 @@ abstract class msmodul_rapport implements msmodul{
 		
 		if ($tellerid == 'NOSEL') {
 			msg('Du må gjøre et valg i listen!', -1);
-			return false;
+			return;
 		}
 		
 		try {
@@ -1335,15 +1282,15 @@ abstract class msmodul_rapport implements msmodul{
 		} 
 		catch (Exception $e){
 			msg('Klarte ikke å endre teller: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 		
-		return true;
+		return;
 	}
 	
-	protected function _lagreNotat() {
+	public function _lagreNotat() {
 		if ($_REQUEST['lagre'] == 'Avbryt') {
-			return false;
+			return;
 		}
 		$skiftid = $this->getCurrentSkiftId();
 		$notattype = 'ANNET';
@@ -1366,16 +1313,13 @@ abstract class msmodul_rapport implements msmodul{
 			}
 			catch (Exception $e) {
 				msg($e->getMessage(),-1);
-				return false;
+				return;
 			}
 		}
 		
-		unset($objNotat);
-		return true;
-		
 	}
 	
-	protected function _slettNotat() {
+	public function _slettNotat() {
 		$notatid = $_REQUEST['notatid'];
 		
 		if (isset($notatid)) {
@@ -1388,7 +1332,7 @@ abstract class msmodul_rapport implements msmodul{
 			
 			if (!($objNotat instanceof Notat)) {
 				msg('Kan ikke slette notat, notat finnes ikke', -1);
-				return false;
+				return;
 			}
 			
 			if ($objNotat->getSkiftId() == $this->getCurrentSkiftId()) {
@@ -1397,21 +1341,21 @@ abstract class msmodul_rapport implements msmodul{
 				}
 				catch(Exception $e) {
 					msg('Klarte ikke å slette notat: ' . $e->getMessage());
-					return false;
+					return;
 				}
 				
-				return true;
+				return;
 			} else {
 				msg('Kan ikke slette notat som ikke tilhører ditt aktive skift.', -1);
-				return false;
+				return;
 			}
 		} else {
 			msg('Kan ikke slette notat, notatid ikke angitt',-1);
-			return false;
+			return;
 		}
 	}
 		
-	protected function _genNoCurrSkift() {
+	public function _genNoCurrSkift() {
 	
 		$output .= '<div class="noskift">';
 		$output .= '<p>Du har ikke noe aktivt skift. Det kan være flere årsaker til dette:</p>';
@@ -1432,38 +1376,42 @@ abstract class msmodul_rapport implements msmodul{
 	
 	}
 	
-	protected function _createNyttSkift() {
+	public function _createNyttSkift() {
 		global $msdb;
-		if (!$this->getCurrentSkiftId() === false) { die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.'); }
+		if (!$this->getCurrentSkiftId() === false) { 
+            die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.');
+        }
 		
 		$result = $msdb->exec("INSERT INTO " . $this->_dbprefix . "_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->_userId) . ", now());");
 		if ($result != 1) {
 			die('Klarte ikke å opprette skift!');
 		} else {
-			if (isset($this->_currentSkiftId)) { unset($this->_currentSkiftId); }
-			return true;
+			if (isset($this->_currentSkiftId)) { 
+                unset($this->_currentSkiftId);
+            }
+			return;
 		}
 
 
 		
 	}
 	
-	protected function _closeCurrSkift() {
+	public function _closeCurrSkift() {
         // Avslutt innlogget brukers aktive skift
         
 		if ($this->getCurrentSkiftId() === false) { die('Kan ikke avslutte skift: Finner ikke aktivt skift.'); }
 		
 		if (!$this->_closeSkift($this->getCurrentSkiftId())) {
 			msg('Klarte ikke å lukke skift med id: ' . $this->getCurrentSkiftId());
-			return false;
+			return;
 		} else {
 			if (isset($this->_currentSkiftId)) { unset($this->_currentSkiftId); }
-			return true;
+			return;
 		}
 	
 	}
 	
-	protected function _closeSkift($skiftid) {	
+	public function _closeSkift($skiftid) {	
         // Avslutt en hvilken som helst brukers skift
         
 		try {
@@ -1484,17 +1432,13 @@ abstract class msmodul_rapport implements msmodul{
 				msg('Du har ikke adgang til å lukke skift som ikke er ditt eget.', -1);
 				return false;
 			}
-			
 			return $objSkift->closeSkift();
-			
 		} else {
 			return $objSkift->closeSkift();
 		}
-		
-	
 	}
 	
-	protected function _saveRapportTemplate() {
+	public function _saveRapportTemplate() {
         // Lagre template via template admin
 		
 		$templateid = (int) $_REQUEST['templateid'];
@@ -1503,14 +1447,14 @@ abstract class msmodul_rapport implements msmodul{
 		if ((!isset($templateid)) || ($templateid == 0)) die('Kan ikke lagre template: TemplateID ikke gitt');
 		if (!isset($inputtekst)) {
 			msg('Kan ikke lagre template: Ingen input gitt', -1);
-			return false;
+			return;
 		}
 		
 		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Kan ikke lagre template: Ugyldig templateid.', -1);
-			return false;
+			return;
 		}
 		
 		try {
@@ -1518,21 +1462,21 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å endre template: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 		
 		if ($resultat) {
 			msg('Endret template med id: ' . $objTemplate->getId() . '.', 1);
-			return true;
+			return;
 		} else {
 			msg('Klarte ikke å endre template med id: ' . $objTemplate->getId() . '.', -1);
-			return false;
+			return;
 		}
 		
 		
 	}
 	
-	protected function _genModRapportTemplates() {
+	public function _genModRapportTemplates() {
 	
 		$output .= '<h1>Templateadministrasjon</h1><div class="level2">';
 		
@@ -1611,7 +1555,7 @@ abstract class msmodul_rapport implements msmodul{
 		return $output . '</div>';
 	}
 	
-	protected function _modTemplateLive() {
+	public function _modTemplateLive() {
         // Endre template fra draft til live.
         // Når template går live blir det automatisk gjeldende template.
         
@@ -1619,14 +1563,14 @@ abstract class msmodul_rapport implements msmodul{
 			$templateid = $_REQUEST['templateid'];
 		} else {
 			msg('Klarte ikke å markere template som live: Template ID ikke angitt.', -1);
-			return false;
+			return;
 		}
 		
 		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Klarte ikke å markere template som live: Ugyldig templateid.', -1);
-			return false;
+			return;
 		}
 		
 		try {
@@ -1634,32 +1578,32 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å markere template som live: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 		
 		if ($resultat) {
 			msg('Template med id: ' . $objTemplate->getId() . ' er nå live!', 1);
-			return true;
+			return;
 		} else {
 			msg('Klarte ikke å markere template som live.', -1);
-			return false;
+			return;
 		}
 	
 	}
 	
-	protected function _slettTemplate() {
+	public function _slettTemplate() {
 		if (isset($_REQUEST['templateid'])) {
 			$templateid = $_REQUEST['templateid'];
 		} else {
 			msg('Klarte ikke å slette template: Template ID ikke angitt.', -1);
-			return false;
+			return;
 		}
 		
 		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Klarte ikke å slette template: Ugyldig templateid.', -1);
-			return false;
+			return;
 		}
 		
 		try {
@@ -1667,32 +1611,32 @@ abstract class msmodul_rapport implements msmodul{
 		}
 		catch (Exception $e) {
 			msg('Klarte ikke å slette template: ' . $e->getMessage(), -1);
-			return false;
+			return;
 		}
 		
 		if ($resultat) {
 			msg('Slettet template med id: ' . $objTemplate->getId(), 1);
-			return true;
+			return;
 		} else {
 			msg('Klarte ikke å slette template', -1);
-			return false;
+			return;
 		}
 	
 	}
 	
-	protected function _genModTemplate($mode) {
+	public function _genModTemplate($mode) {
 		if (isset($_REQUEST['templateid'])) {
 			$templateid = $_REQUEST['templateid'];
 		} else {
 			msg('Kan ikke vise template, templateid ikke gitt.', -1);
-			return false;
+			return;
 		}
 		
 		$objTemplate = $this->rapporttemplatefactory->getTemplate($templateid);
 		
 		if (!($objTemplate instanceof RapportTemplate)) {
 			msg('Ugyldig templateid.', -1);
-			return false;
+			return;
 		}
 
 
@@ -1732,7 +1676,7 @@ abstract class msmodul_rapport implements msmodul{
 		return $output;
 	}
 	
-	protected function _nyRapportTemplate() {
+	public function _nyRapportTemplate() {
 		global $msdb;
 		
 		$sql = "INSERT INTO " . $this->_dbprefix . "_raptpl (templatetekst, tplisactive, createdate) VALUES ('Ikke noe innhold i rapport-template enda.', '0', now());";
@@ -1740,10 +1684,10 @@ abstract class msmodul_rapport implements msmodul{
 		
 		if ($resultat === 1) {
 			msg('Ny rapport-template opprettet', 1);
-			return true;
+			return;
 		} else {
 			msg('Klarte ikke å opprette ny rapport-template', -1);
-			return false;
+			return;
 		}
 	
 	}	
