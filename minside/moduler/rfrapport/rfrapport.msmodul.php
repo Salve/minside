@@ -5,18 +5,18 @@ require_once(DOKU_PLUGIN.'/minside/minside/moduler/rapport/rapport.msmodul.php')
 class msmodul_rfrapport extends msmodul_rapport {
 
     public $url;
-	
-	public function __construct($UserID, $accesslvl) {
+    
+    public function __construct($UserID, $accesslvl) {
         parent::__construct($UserID, $accesslvl);
-	}
-	
-	public function gen_msmodul($act, $vars){
+    }
+    
+    public function gen_msmodul($act, $vars){
         $vars = (array) $vars;
         $vars['dbprefix'] = 'rfrap';
         $this->url = MS_LINK . "&amp;page=rfrapport";
         return parent::gen_msmodul($act, $vars);
-	}
-	
+    }
+    
     public function registrer_meny(MenyitemCollection &$meny){
         $lvl = $this->_accessLvl;
         $act = $this->getMsmodulact();
