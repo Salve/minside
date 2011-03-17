@@ -24,7 +24,7 @@ class RapportTeam {
         $this->_id = $id;
         $this->_dbprefix = $dbprefix;
         
-        $this->members = new Collection();
+        $this->members = new BrukerCollection();
         $this->members->setLoadCallback('loadMembers', $this);
 
     }
@@ -129,7 +129,7 @@ class RapportTeam {
         return ($navnA > $navnB) ? +1 : -1;
     }
     
-    public function loadMembers(Collection $col) {
+    public function loadMembers(BrukerCollection $col) {
         global $msdb;
         
         if(!$this->isSaved()) return;
@@ -140,7 +140,9 @@ class RapportTeam {
                     bruker.wikiname AS navn,
                     bruker.wikifullname AS fullnavn,
                     bruker.wikiepost AS epost,
-                    bruker.wikigroups AS groups
+                    bruker.wikigroups AS groups,
+                    bruker.createtime AS createtime,
+                    bruker.isactive AS isactive
                 FROM
                         '.$this->_dbprefix.'_team_x_bruker AS team
                     LEFT JOIN
@@ -159,7 +161,7 @@ class RapportTeam {
             foreach($data as $datum) {
                 $objBruker = new Bruker(
                     $datum['brukerid'], $datum['navn'], $datum['fullnavn'], 
-                    $datum['groups'], $datum['epost']);
+                    $datum['groups'], $datum['epost'], $datum['isactive'], $datum['createtime']);
                 $col->addItem($objBruker, $datum['navn']);
             }
         }

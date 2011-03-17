@@ -239,6 +239,7 @@ class msmodul_rfrapport extends msmodul_rapport {
     }
     
     public function genTeamAdmin() {
+        
         $colTeam = RapportTeam::getAlleTeams('rfrap');
         foreach($colTeam as $objTeam) {
             $output .= "<strong>".$objTeam->getNavn() . "</strong><br />\n";
@@ -248,6 +249,57 @@ class msmodul_rfrapport extends msmodul_rapport {
             $output .= '<br /><br />';
         }
         
-        return $output;
+        // Rediger teamnavn
+        foreach($colTeam as $objTeam) {
+            $html_team_options .= '<option value="'.$objTeam->getId().'">'.$objTeam->getNavn().'</option>' . "\n";
+        }
+        
+        // Rediger rapportmottakere (team)
+        foreach($colTeam as $objTeam) {
+            $html_mottakere .= '
+                
+            ';
+        }
+        
+        $template = '
+        <div class="teamadm">
+            <h1>Team-administrasjon</h1>
+            <div class="level1">
+                <h2>Nytt team</h2>
+                <div class="level2">
+                    <form method="post" action="' . $this->url . '">
+                    <input type="hidden" name="act" value="nyttteam" />
+                    <label for="teamnavnid">Team-navn:</label>
+                    <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
+                    <input type="submit" class="msbutton" id="subnyttteam" value="Opprett team" 
+                        onClick="return heltSikker(\'opprette nytt team\')" />
+                </form>
+                </div>
+                
+                <h2>Rediger team-navn</h2>
+                <div class="level2">
+                    <form method="post" action="' . $this->url . '">
+                        <input type="hidden" name="act" value="modteamnavn" />
+                        <label for="teamselect">Nytt navn for team:</label>
+                        <select name="teamid" class="msedit" id="teamselect">
+                            '.$html_team_options.'
+                        </select>
+                        <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
+                        <input type="submit" class="msbutton" id="subnyttteam" value="Lagre" 
+                            onClick="return heltSikker(\'endre navn på team\')" />
+                    </form>
+                </div>
+                
+                <h2>Rapportmottakere per team</h2>
+                <div class="level2">
+                    '.$html_mottakere.'
+                </form>
+                </div>
+            </div>
+        </div>
+        '.$output.'
+        ';
+        
+        return $template;
     }
 }
