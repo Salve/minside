@@ -191,3 +191,110 @@ CREATE TABLE `nyheter_minenyheter` (
   UNIQUE KEY `brukernyhet` (`brukerid`,`nyhetid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `rfrap_skift`;
+CREATE TABLE `rfrap_skift` (
+  `skiftid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `skiftcreated` datetime NOT NULL,
+  `skiftclosed` datetime DEFAULT NULL,
+  `israpportert` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `userid` int(10) unsigned NOT NULL,
+  `rapportid` int(10) unsigned DEFAULT NULL,
+  `skiftlastupdate` datetime DEFAULT NULL,
+  PRIMARY KEY (`skiftid`),
+  UNIQUE KEY `skiftid_UNIQUE` (`skiftid`),
+  KEY `skift_eier` (`userid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_teller`;
+CREATE TABLE `rfrap_teller` (
+  `tellerid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tellernavn` varchar(20) NOT NULL,
+  `tellerdesc` varchar(200) DEFAULT 'TELLER UTEN NAVN',
+  `tellertype` varchar(20) NOT NULL,
+  `isactive` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `tellerorder` int(6) unsigned DEFAULT NULL,
+  PRIMARY KEY (`tellerid`),
+  UNIQUE KEY `tellerid_UNIQUE` (`tellerid`),
+  UNIQUE KEY `tellernavn_UNIQUE` (`tellernavn`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_tellerakt`;
+CREATE TABLE `rfrap_tellerakt` (
+  `telleraktid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tidspunkt` datetime NOT NULL,
+  `skiftid` int(10) unsigned NOT NULL,
+  `tellerid` int(10) unsigned NOT NULL,
+  `verdi` tinyint(4) NOT NULL,
+  PRIMARY KEY (`telleraktid`),
+  UNIQUE KEY `telleraktid_UNIQUE` (`telleraktid`),
+  KEY `skiftid` (`skiftid`),
+  KEY `tellertypeid` (`tellerid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_notat`;
+CREATE TABLE `rfrap_notat` (
+  `notatid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `isactive` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `notattype` varchar(45) NOT NULL,
+  `notattekst` text,
+  `skiftid` int(10) unsigned NOT NULL,
+  `inrapport` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`notatid`),
+  UNIQUE KEY `notatid_UNIQUE` (`notatid`),
+  KEY `skiftid_KEY` (`skiftid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_rapport`;
+CREATE TABLE `rfrap_rapport` (
+  `rapportid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `createtime` datetime NOT NULL,
+  `skiftnavn` varchar(20) DEFAULT NULL,
+  `rapportowner` int(10) unsigned NOT NULL,
+  `templateid` int(10) NOT NULL,
+  PRIMARY KEY (`rapportid`),
+  UNIQUE KEY `rapportid_UNIQUE` (`rapportid`),
+  KEY `rapportowner` (`rapportowner`),
+  KEY `timeindex` (`createtime`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_rapportdata`;
+CREATE TABLE `rfrap_rapportdata` (
+  `rapportdataid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `rapportid` int(10) unsigned NOT NULL,
+  `dataname` varchar(100) NOT NULL,
+  `datavalue` varchar(2000) NOT NULL,
+  `datatype` varchar(45) NOT NULL,
+  PRIMARY KEY (`rapportdataid`),
+  UNIQUE KEY `rapportdataid_UNIQUE` (`rapportdataid`),
+  KEY `rapportid` (`rapportid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_raptpl`;
+CREATE TABLE `rfrap_raptpl` (
+  `raptplid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `templatetekst` text,
+  `tplisactive` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `createdate` datetime NOT NULL,
+  `activesince` datetime DEFAULT NULL,
+  `isdeleted` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`raptplid`),
+  UNIQUE KEY `raptplid_UNIQUE` (`raptplid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_team`;
+CREATE TABLE `rfrap_team` (
+  `teamid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `teamnavn` varchar(45) NOT NULL,
+  `isactive` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`teamid`),
+  UNIQUE KEY `teamid_UNIQUE` (`teamid`),
+  UNIQUE KEY `teamnavn_UNIQUE` (`teamnavn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `rfrap_team_x_bruker`;
+CREATE TABLE `rfrap_team_x_bruker` (
+  `teamid` int(10) NOT NULL,
+  `brukerid` int(10) NOT NULL,
+  UNIQUE KEY `team_bruker` (`teamid`,`brukerid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
