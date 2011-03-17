@@ -511,6 +511,22 @@ div.notater {
 	width: 100%;	
 }
 
+div.minside div.teamadm_brukerliste {
+    float: left;
+    margin-right: 2em;
+}
+
+div.minside div.teamadm_brukerliste select, 
+div.minside div.teamadm_brukerliste input {
+    width: 15em;
+    overflow: hidden;
+}
+
+div.minside div.teamadm div.level2 {
+    margin-bottom: 2em;
+}
+
+
 /* Nyheter */
 
 div.minside div.nyhet {

@@ -47,7 +47,6 @@ class RapportTeam {
         return (bool) $this->_issaved;
     }
     public function getId() {
-        if (!$this->isSaved()) return false;
         return $this->_id;
     }
     
@@ -131,10 +130,9 @@ class RapportTeam {
     
     public function loadMembers(BrukerCollection $col) {
         global $msdb;
-        
-        if(!$this->isSaved()) return;
-        
-        $safe_teamid = $msdb->quote($this->getId());
+
+        if(!$this->isSaved() && ($this->_id !== 0)) return;
+        $safe_teamid = $msdb->quote($this->_id);
         $sql = 'SELECT
                     bruker.id AS brukerid,
                     bruker.wikiname AS navn,
@@ -167,9 +165,12 @@ class RapportTeam {
         }
     }
     
-    public static function getAlleTeams($dbprefix) {
+    public static function getAlleTeams($dbprefix, $getFelles=false) {
         global $msdb;
         $teamcollection = new RapportTeamCollection();
+        if($getFelles) {
+            $teamcollection->addItem(self::getFellesTeam($dbprefix));
+        }
         
         $sql = "
             SELECT
@@ -226,6 +227,16 @@ class RapportTeam {
         } else {
             throw new Exception('Klarte ikke å hente team med id: ' . $teamid);
         }
+    }
+    
+    public static function getFellesTeam($dbprefix) {
+        $objTeam = new RapportTeam($dbprefix, false, 0);
+        
+        $objTeam->under_construction = true; // Lar denne stå på så ikke endringer blir forsøkt lagret uten videre
+        $objTeam->setNavn('daglig oppsummering');
+        $objTeam->setIsDeleted(false);
+        
+        return $objTeam;
     }
 
 }

@@ -28,6 +28,8 @@ class msmodul_rfrapport extends msmodul_rapport {
         parent::setHandlers($dispatcher);
         
         $dispatcher->addActHandler('teamadm', 'genTeamAdmin', MSAUTH_5);
+        $dispatcher->addActHandler('addteammedlem', 'legg_til_team_medlem', MSAUTH_5);
+        $dispatcher->addActHandler('addteammedlem', 'genTeamAdmin', MSAUTH_5);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
@@ -239,25 +241,53 @@ class msmodul_rfrapport extends msmodul_rapport {
     }
     
     public function genTeamAdmin() {
-        
-        $colTeam = RapportTeam::getAlleTeams('rfrap');
-        foreach($colTeam as $objTeam) {
-            $output .= "<strong>".$objTeam->getNavn() . "</strong><br />\n";
-            foreach($objTeam->members as $objBruker) {
-                $output .= $objBruker->getMailLink();
-            }
-            $output .= '<br /><br />';
-        }
+        $colTeam = RapportTeam::getAlleTeams('rfrap', true);
+        $colBrukere = Bruker::getAlleBrukere();
+
         
         // Rediger teamnavn
         foreach($colTeam as $objTeam) {
+            if(!$objTeam->getId()) continue;
             $html_team_options .= '<option value="'.$objTeam->getId().'">'.$objTeam->getNavn().'</option>' . "\n";
         }
         
         // Rediger rapportmottakere (team)
+        foreach($colBrukere as $objBruker) {
+            $brukeroptions .= '<option value="'.$objBruker->getId().'">'.$objBruker->getFullNavn().'</option>';
+        }
+        $html_brukerselect = '<select multiple="multiple" size="15" name="brukerid[]">'.$brukeroptions.'</select>';
+        
         foreach($colTeam as $objTeam) {
+            $mottakeroptions = '';
+            foreach($objTeam->members as $objBruker) {
+                $mottakeroptions .= '<option value="'.$objBruker->getId().'">' . $objBruker->getFullNavn() . '</option>';
+            }
+            
             $html_mottakere .= '
-                
+                <h3>Rapportmottakere '.$objTeam->getNavn().'</h3>
+                <div class="level3">
+                    <div class="teamadm_brukerliste">
+                        <form method="post" action="' . $this->url . '">
+                            <input type="hidden" name="act" value="fjernteammedlem" />
+                            <input type="hidden" name="teamid" value="'.$objTeam->getId().'" />
+                            <select multiple="multiple" size="15" name="brukerid[]">
+                                '.$mottakeroptions.'
+                            </select>
+                            <br />
+                            <input type="submit" class="msbutton" id="subtabortmedlem" value="Ta bort ----->" />
+                        </form>
+                    </div>
+                    
+                    <div class="teamadm_brukerliste">
+                        <form method="post" action="' . $this->url . '">
+                            <input type="hidden" name="act" value="addteammedlem" />
+                            <input type="hidden" name="teamid" value="'.$objTeam->getId().'" />
+                            '.$html_brukerselect.'
+                            <br />
+                            <input type="submit" class="msbutton" id="subleggtilmedlem" value="<----- Legg til" />
+                        </form>
+                    </div>
+                </div>
             ';
         }
         
@@ -268,12 +298,12 @@ class msmodul_rfrapport extends msmodul_rapport {
                 <h2>Nytt team</h2>
                 <div class="level2">
                     <form method="post" action="' . $this->url . '">
-                    <input type="hidden" name="act" value="nyttteam" />
-                    <label for="teamnavnid">Team-navn:</label>
-                    <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
-                    <input type="submit" class="msbutton" id="subnyttteam" value="Opprett team" 
-                        onClick="return heltSikker(\'opprette nytt team\')" />
-                </form>
+                        <input type="hidden" name="act" value="nyttteam" />
+                            <label for="teamnavnid">Team-navn:</label>
+                        <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
+                        <input type="submit" class="msbutton" id="subnyttteam" value="Opprett team" 
+                            onClick="return heltSikker(\'opprette nytt team\')" />
+                    </form>
                 </div>
                 
                 <h2>Rediger team-navn</h2>
@@ -281,11 +311,11 @@ class msmodul_rfrapport extends msmodul_rapport {
                     <form method="post" action="' . $this->url . '">
                         <input type="hidden" name="act" value="modteamnavn" />
                         <label for="teamselect">Nytt navn for team:</label>
-                        <select name="teamid" class="msedit" id="teamselect">
+                        <select name="teamid" id="teamselect">
                             '.$html_team_options.'
                         </select>
                         <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
-                        <input type="submit" class="msbutton" id="subnyttteam" value="Lagre" 
+                        <input type="submit" class="msbutton" id="modteamnavn" value="Lagre" 
                             onClick="return heltSikker(\'endre navn på team\')" />
                     </form>
                 </div>
@@ -297,9 +327,13 @@ class msmodul_rfrapport extends msmodul_rapport {
                 </div>
             </div>
         </div>
-        '.$output.'
         ';
         
         return $template;
+    }
+    
+    public function legg_til_team_medlem() {
+        msg('Team: ' . $_POST['teamid']);
+        msg('Brukere: ' . implode(', ', $_POST['brukerid']));
     }
 }

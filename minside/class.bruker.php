@@ -28,7 +28,6 @@ class Bruker {
     }
 
     public function getId() {
-        if (!$this->isSaved()) return false;
         return $this->_id;
     }
     public function getNavn() {
@@ -74,7 +73,7 @@ class Bruker {
                 $bruker['wikigroups'], 
                 $bruker['wikiepost'], 
                 $bruker['isactive'], 
-                $bruker['createtime']);
+                $bruker['createtime']
             );
             $colBrukere->addItem($objBruker, $objBruker->getId());
         }
