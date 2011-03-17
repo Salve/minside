@@ -1,6 +1,8 @@
 <?php
 if(!defined('MS_INC')) die();
 require_once(DOKU_PLUGIN.'/minside/minside/moduler/rapport/rapport.msmodul.php');
+require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rapportteam.php');
+require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rapportteamcollection.php');
 
 class msmodul_rfrapport extends msmodul_rapport {
 
@@ -24,6 +26,8 @@ class msmodul_rfrapport extends msmodul_rapport {
     
     protected function setHandlers(ActDispatcher &$dispatcher) {
         parent::setHandlers($dispatcher);
+        
+        $dispatcher->addActHandler('teamadm', 'genTeamAdmin', MSAUTH_5);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
@@ -38,17 +42,11 @@ class msmodul_rfrapport extends msmodul_rapport {
             // IKKE skal vise utvidet meny i sidebaren, selv om en feilmrapport-handlig utføres.
             if (isset($act) && array_search('notoc', (array) $this->_msmodulvars) === false) {
                 $telleradmin = new Menyitem('Rediger tellere','&amp;page=rfrapport&amp;act=telleradm');
-                $genrapport = new Menyitem('Lag rapport','&amp;page=rfrapport&amp;act=genrapportsel');
                 $rapportarkiv = new Menyitem('Rapportarkiv','&amp;page=rfrapport&amp;act=rapportarkiv');
                 $tpladmin = new Menyitem('Rapporttemplates','&amp;page=rfrapport&amp;act=genmodraptpl');
+                $teamadmin = new Menyitem('Administrer team','&amp;page=rfrapport&amp;act=teamadm');
                 
                 switch($act) {
-                    case 'stengskift':
-                    case 'genrapportsel':
-                    case 'gensaverapport':
-                    case 'genrapportmod':
-                        $objSelected = $genrapport;
-                        break;
                     case 'rapportarkiv':
                     case 'visrapport':
                         $objSelected = $rapportarkiv;
@@ -70,6 +68,9 @@ class msmodul_rfrapport extends msmodul_rapport {
                     case 'modraptpl':
                         $objSelected = $tpladmin;
                         break;
+                    case 'teamadm':
+                        $objSelected = $teamadmin;
+                        break;
                     case 'stengegetskift':
                     case 'nyttskift':
                     case 'savenotat':
@@ -87,17 +88,15 @@ class msmodul_rfrapport extends msmodul_rapport {
                 }
             
                 if ($lvl >= MSAUTH_2) {
-                    $toppmeny->addChild($genrapport);
                     $toppmeny->addChild($rapportarkiv);
                 }
                 if ($lvl >= MSAUTH_5) {
                     $toppmeny->addChild($telleradmin);
                     $toppmeny->addChild($tpladmin);
+                    $toppmeny->addChild($teamadmin);
                 }
-            }
-            
+            }      
             $meny->addItem($toppmeny); 
-            
         }
     
     }
@@ -239,4 +238,16 @@ class msmodul_rfrapport extends msmodul_rapport {
         return $template;
     }
     
+    public function genTeamAdmin() {
+        $colTeam = RapportTeam::getAlleTeams('rfrap');
+        foreach($colTeam as $objTeam) {
+            $output .= "<strong>".$objTeam->getNavn() . "</strong><br />\n";
+            foreach($objTeam->members as $objBruker) {
+                $output .= $objBruker->getMailLink();
+            }
+            $output .= '<br /><br />';
+        }
+        
+        return $output;
+    }
 }
