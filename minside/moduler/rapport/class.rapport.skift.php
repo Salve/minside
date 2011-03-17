@@ -53,6 +53,13 @@ class Skift {
         return $this->_skiftCreatedTime;
     }
     
+    public function getSkiftAgeHours() {
+        $skiftcreate = strtotime($this->getSkiftCreatedTime());
+        $skiftage = time() - $skiftcreate;
+        $skifthours = $skiftage / 60 / 60; // Sekund til timer
+        return floor($skifthours);
+    }
+    
     public function getSkiftOwnerName() {
         return $this->_skiftOwnerName;
     }
