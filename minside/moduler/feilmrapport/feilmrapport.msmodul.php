@@ -14,7 +14,18 @@ class msmodul_feilmrapport extends msmodul_rapport {
         $vars = (array) $vars;
         $vars['dbprefix'] = 'feilrap';
         $this->url = MS_LINK . "&amp;page=feilmrapport";
+        
+        $objDispatcher = new ActDispatcher($this, $this->_accessLvl);
+        $this->setHandlers($objDispatcher); // by ref - loader inn i objekt
+        $this->dispatcher = $objDispatcher;
+        
         return parent::gen_msmodul($act, $vars);
+    }
+    
+    protected function setHandlers(ActDispatcher &$dispatcher) {
+        parent::setHandlers($dispatcher);
+        
+        $dispatcher->addActHandler('genrapportsel', '_genRapportSelectSkift', MSAUTH_2);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){

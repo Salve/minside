@@ -96,7 +96,6 @@ abstract class msmodul_rapport implements msmodul{
             $dispatcher->addActHandler('modnotat', 'genSkift', MSAUTH_1);
             
             // Rapport
-            $dispatcher->addActHandler('genrapportsel', '_genRapportSelectSkift', MSAUTH_2);
             $dispatcher->addActHandler('stengskift', '_closeSkift', MSAUTH_2, $_REQUEST['skiftid']);
             $dispatcher->addActHandler('stengskift', '_genRapportSelectSkift', MSAUTH_2);
             $dispatcher->addActHandler('gensaverapport', '_genModRapport', MSAUTH_2);

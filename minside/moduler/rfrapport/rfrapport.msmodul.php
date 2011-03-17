@@ -14,7 +14,16 @@ class msmodul_rfrapport extends msmodul_rapport {
         $vars = (array) $vars;
         $vars['dbprefix'] = 'rfrap';
         $this->url = MS_LINK . "&amp;page=rfrapport";
+        
+        $objDispatcher = new ActDispatcher($this, $this->_accessLvl);
+        $this->setHandlers($objDispatcher); // by ref - loader inn i objekt
+        $this->dispatcher = $objDispatcher;
+        
         return parent::gen_msmodul($act, $vars);
+    }
+    
+    protected function setHandlers(ActDispatcher &$dispatcher) {
+        parent::setHandlers($dispatcher);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
