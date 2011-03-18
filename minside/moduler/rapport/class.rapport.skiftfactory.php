@@ -279,4 +279,19 @@ class SkiftFactory {
         }
     }
     
+    public function nyttSkiftForBruker($brukerid) {
+         global $msdb;
+        $safe_brukerid = $msdb->quote($brukerid);
+        
+        $result = $msdb->exec("INSERT INTO " . $this->dbPrefix 
+            . "_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " 
+            . $safe_brukerid . ", now());");
+            
+        if ($result != 1) {
+            throw new Exception('Klarte ikke å opprette skift!');
+        } else {
+            return true;
+        }
+    }
+    
 }

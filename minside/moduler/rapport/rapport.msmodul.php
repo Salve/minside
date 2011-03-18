@@ -62,7 +62,9 @@ abstract class msmodul_rapport implements msmodul{
         $this->_msmodulact = $act;
         $this->_msmodulvars = $vars;
         $this->_dbprefix = $vars['dbprefix'];
-        $this->skiftfactory = new SkiftFactory($this->_dbprefix);
+        if(!isset($this->skiftfactory)) {
+            $this->skiftfactory = new SkiftFactory($this->_dbprefix);
+        }
         $this->rapporttemplatefactory = new RapportTemplateFactory($this->_dbprefix);
         
         if(!isset($this->dispatcher) || !($this->dispatcher instanceof ActDispatcher)) {
@@ -1152,43 +1154,34 @@ abstract class msmodul_rapport implements msmodul{
         
     public function _genNoCurrSkift() {
     
-        $output .= '<div class="noskift">';
-        $output .= '<p>Du har ikke noe aktivt skift. Det kan være flere årsaker til dette:</p>';
-        $output .= '<ul class="msul">';
-        $output .= '<li>Du har avsluttet skiftet ditt</li>';
-        $output .= '<li>Skiftet ditt har blitt inkludert i en rapport</li>';
-        $output .= '<li>Skiftet ditt er utløpt &ndash; det har gått mer enn 14 timer siden det ble opprettet</li>';
-        $output .= '</ul><br/>';
-        $output .= '<form method="post" action="' . $this->url . '">';
-        $output .= '<input type="hidden" name="act" value="nyttskift" />';
-        $output .= '<input type="submit" class="msbutton" value="Start nytt skift!" />';
-        $output .= '</form>';
-        $output .= '</div>';
-        
-        $pre = '<h1>Rapport - Feilmeldingstjenesten</h1><div class="level2">';
-        $post = '</div>';
-        return $pre . $output . $post;
-    
+        return '
+        <h1>Rapport - Feilmeldingstjenesten</h1>
+        <div class="level2">
+            <div class="noskift">
+                <p>Du har ikke noe aktivt skift. Det kan være flere årsaker til dette:</p>
+                <ul class="msul">
+                    <li>Du har avsluttet skiftet ditt</li>
+                    <li>Skiftet ditt har blitt inkludert i en rapport</li>
+                    <li>Skiftet ditt er utløpt &ndash; det har gått mer enn 14 timer siden det ble opprettet</li>
+                </ul><br/>
+                <form method="post" action="' . $this->url . '">
+                    <input type="hidden" name="act" value="nyttskift" />
+                    <input type="submit" class="msbutton" value="Start nytt skift!" />
+                </form>
+            </div>
+        </div>    
+        ';
     }
     
     public function _createNyttSkift() {
-        global $msdb;
         if (!$this->getCurrentSkiftId() === false) { 
-            die('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.');
+            throw new Exception('Kan ikke opprette nytt skift når det allerede finnes et aktivt skift.');
         }
         
-        $result = $msdb->exec("INSERT INTO " . $this->_dbprefix . "_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " . $msdb->quote($this->_userId) . ", now());");
-        if ($result != 1) {
-            die('Klarte ikke å opprette skift!');
-        } else {
-            if (isset($this->_currentSkiftId)) { 
-                unset($this->_currentSkiftId);
-            }
-            return;
+        $this->skiftfactory->nyttSkiftForBruker($this->_userId);
+        if (isset($this->_currentSkiftId)) { 
+            unset($this->_currentSkiftId);
         }
-
-
-        
     }
     
     public function _closeCurrSkift() {
