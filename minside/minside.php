@@ -22,6 +22,8 @@ require_once('class.actdispatcher.php');
 require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
+require_once('class.bruker.php');
+require_once('class.brukercollection.php');
 require_once('class.calendar.php');
 
 class AdgangsException extends Exception { }
@@ -287,6 +289,8 @@ private $toc; // inneholder xhtml for ms-toc når den er generert
                 wikigroups
             FROM 
                 internusers
+            ORDER BY
+                wikifullname ASC
             ;";
 		$data = $msdb->assoc($sql);
 		

@@ -30,6 +30,8 @@ class msmodul_rfrapport extends msmodul_rapport {
         $dispatcher->addActHandler('teamadm', 'genTeamAdmin', MSAUTH_5);
         $dispatcher->addActHandler('addteammedlem', 'legg_til_team_medlem', MSAUTH_5);
         $dispatcher->addActHandler('addteammedlem', 'genTeamAdmin', MSAUTH_5);
+        $dispatcher->addActHandler('fjernteammedlem', 'fjern_team_medlem', MSAUTH_5);
+        $dispatcher->addActHandler('fjernteammedlem', 'genTeamAdmin', MSAUTH_5);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
@@ -71,6 +73,8 @@ class msmodul_rfrapport extends msmodul_rapport {
                         $objSelected = $tpladmin;
                         break;
                     case 'teamadm':
+                    case 'addteammedlem':
+                    case 'fjernteammedlem':
                         $objSelected = $teamadmin;
                         break;
                     case 'stengegetskift':
@@ -333,7 +337,40 @@ class msmodul_rfrapport extends msmodul_rapport {
     }
     
     public function legg_til_team_medlem() {
-        msg('Team: ' . $_POST['teamid']);
-        msg('Brukere: ' . implode(', ', $_POST['brukerid']));
+        $teamid = (int) $_POST['teamid'];
+        $brukerider = $_POST['brukerid'];
+    
+        if(MinSide::DEBUG) {
+            msg('Legger til brukere i team.');
+            msg('Team: ' . $_POST['teamid']);
+            msg('Brukere: ' . implode(', ', $_POST['brukerid']));
+        }
+        
+        $colTeams = RapportTeam::getAlleTeams('rfrap', true);
+        if($objTeam = $colTeams->getItem($teamid)) {
+            $res = $objTeam->add_members($brukerider);
+            msg($res . ' brukere lagt til.', 1);
+        } else {
+            throw new Exception('Ukjent team id: ' . $teamid);
+        }
+    }
+    
+    public function fjern_team_medlem() {
+        $teamid = (int) $_POST['teamid'];
+        $brukerider = $_POST['brukerid'];
+    
+        if(MinSide::DEBUG) {
+            msg('Fjerner brukere fra team.');
+            msg('Team: ' . $_POST['teamid']);
+            msg('Brukere: ' . implode(', ', $_POST['brukerid']));
+        }
+        
+        $colTeams = RapportTeam::getAlleTeams('rfrap', true);
+        if($objTeam = $colTeams->getItem($teamid)) {
+            $res = $objTeam->remove_members($brukerider);
+            msg($res . ' brukere fjernet fra ' . $objTeam->getNavn(), 1);
+        } else {
+            throw new Exception('Ukjent team id: ' . $teamid);
+        }
     }
 }

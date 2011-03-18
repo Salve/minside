@@ -61,11 +61,12 @@ class Bruker {
         return ($navnA > $navnB) ? +1 : -1;
     }
     
-    public static function getAlleBrukere() {
+    public static function getAlleBrukere($skipInactive=true) {
         $arBrukere = MinSide::getUsers();
         $colBrukere = new BrukerCollection();
         
         foreach($arBrukere as $bruker) {
+            if($skipInactive && (!$bruker['isactive'])) continue;
             $objBruker = new Bruker(
                 $bruker['id'], 
                 $bruker['wikiname'], 

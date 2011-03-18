@@ -9,11 +9,11 @@ class RapportTeam {
     protected $_dbprefix;
     
     public $members;
+    public $under_construction = false;
     
     protected $_issaved = false;
     protected $_hasunsavedchanges = false;
     
-    public $under_construction = false;
     
     public function __construct($dbprefix, $issaved=false, $id=null) {
         if ($issaved xor $id) {
@@ -126,6 +126,52 @@ class RapportTeam {
         $navnB = strtoupper($b->getNavn());
         if($navnA == $navnB) return 0;
         return ($navnA > $navnB) ? +1 : -1;
+    }
+    
+    public function add_members($arMembers) {
+        global $msdb;
+        $colBrukere = Bruker::GetAlleBrukere();
+        $gyldige_ider = array();
+        foreach($colBrukere as $objBruker) {
+            $gyldige_ider[] = $objBruker->getId();
+        }
+        
+        $values = array();
+        foreach($arMembers as $brukerid) {
+            $brukerid = (int) $brukerid;
+            if(!in_array($brukerid, $gyldige_ider)) throw new Exception('Ugyldig brukerid: ' . $brukerid);
+            $values[] = "('".$this->_id."', '".$brukerid."')";
+        }
+        if(!count($values)) throw new Exception('Ingen brukere valgt');
+        
+        $sql = 'INSERT INTO '.$this->_dbprefix.'_team_x_bruker (teamid, brukerid) VALUES '
+            . implode(', ', $values);
+            
+        return $msdb->exec($sql);
+    }
+    
+    public function remove_members($arMembers) {
+        global $msdb;
+        
+        $gyldige_ider = array();
+        foreach($this->members as $objBruker) {
+            $gyldige_ider[] = $objBruker->getId();
+        }
+        
+        $values = array();
+        foreach($arMembers as $brukerid) {
+            $brukerid = (int) $brukerid;
+            if(!in_array($brukerid, $gyldige_ider)) throw new Exception('Ugyldig brukerid: ' . $brukerid);
+            $values[] = $msdb->quote($brukerid);
+        }
+        if(!count($values)) throw new Exception('Ingen brukere valgt');
+        
+        $sql = 'DELETE FROM '.$this->_dbprefix.'_team_x_bruker
+                WHERE teamid=\''.$this->_id.'\'
+                AND brukerid IN('.implode(', ', $values).')
+                ;';
+            
+        return $msdb->exec($sql);
     }
     
     public function loadMembers(BrukerCollection $col) {
