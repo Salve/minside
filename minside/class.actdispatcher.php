@@ -50,7 +50,7 @@ class ActDispatcher {
             if(substr((string) $e->getCode(), 0, 1) == '9') throw $e;
             return '<div class="mswarningbar"><strong>En feil har oppstått:</strong>' .
                     '<br /><br /><em>'. $e->getMessage() . '</em>' .
-                    '<br /><br />Feil oppstod under behandling av: ' . $inputact . '</div><br />';
+                    '<br /><br />Feil oppstod under behandling av: ' . hsc($inputact) . '</div><br />';
         }
 		
 	}
