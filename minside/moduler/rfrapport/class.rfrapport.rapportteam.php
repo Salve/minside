@@ -225,6 +225,8 @@ class RapportTeam {
                 isactive 
             FROM 
                 ".$dbprefix."_team
+            ORDER BY
+                teamnavn ASC
         ;";
         $data = $msdb->assoc($sql);
         

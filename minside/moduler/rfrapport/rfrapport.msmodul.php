@@ -34,6 +34,10 @@ class msmodul_rfrapport extends msmodul_rapport {
         $dispatcher->addActHandler('fjernteammedlem', 'genTeamAdmin', MSAUTH_5);
         $dispatcher->addActHandler('flipteamactive', 'flip_team_active', MSAUTH_5);
         $dispatcher->addActHandler('flipteamactive', 'genTeamAdmin', MSAUTH_5);
+        $dispatcher->addActHandler('modteamnavn', 'endre_team_navn', MSAUTH_5);
+        $dispatcher->addActHandler('modteamnavn', 'genTeamAdmin', MSAUTH_5);
+        $dispatcher->addActHandler('nyttteam', 'opprett_team', MSAUTH_5);
+        $dispatcher->addActHandler('nyttteam', 'genTeamAdmin', MSAUTH_5);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
@@ -77,7 +81,9 @@ class msmodul_rfrapport extends msmodul_rapport {
                     case 'teamadm':
                     case 'addteammedlem':
                     case 'fjernteammedlem':
+                    case 'modteamnavn':
                     case 'flipteamactive':
+                    case 'nyttteam':
                         $objSelected = $teamadmin;
                         break;
                     case 'stengegetskift':
@@ -307,6 +313,7 @@ class msmodul_rfrapport extends msmodul_rapport {
         
         // Rediger rapportmottakere (team)
         foreach($colTeam as $objTeam) {
+            if(!$objTeam->isActive()) continue;
             $mottakeroptions = '';
             $brukeroptions = '';
             foreach($objTeam->members as $objBruker) {
@@ -434,6 +441,45 @@ class msmodul_rfrapport extends msmodul_rapport {
             }
         } else {
             throw new Exception('Ukjent team-id: ' . $teamid);
+        }
+    }
+    
+    public function endre_team_navn() {
+        $teamid = (int) $_POST['teamid'];
+        $teamnavn = hsc(trim($_POST['teamnavn']));
+    
+        if(MinSide::DEBUG) msg('Endrer navn på team: '. $teamid);
+        
+        $colTeams = RapportTeam::getAlleTeams('rfrap', true);
+        if($objTeam = $colTeams->getItem($teamid)) {
+            $oldnavn = $objTeam->getNavn();
+            $objTeam->setNavn($teamnavn);
+            if ($objTeam->updateDb()) {
+                msg('Endret teamnavn fra ' . $oldnavn . ' til ' . $teamnavn, 1);
+            } else {
+                msg('Team-navn ikke endret!', -1);
+            }
+        } else {
+            throw new Exception('Ukjent team-id: ' . $teamid);
+        }
+    }
+    
+    public function opprett_team() {
+        $teamnavn = hsc(trim($_POST['teamnavn']));
+    
+        if(MinSide::DEBUG) msg('Oppretter team: '. $teamnavn);
+        
+        if(strlen($teamnavn)) {
+            $objTeam = new RapportTeam('rfrap');
+            $objTeam->setNavn($teamnavn);
+            $objTeam->setIsActive(true);
+            if ($objTeam->updateDb()) {
+                msg('Opprettet team: ' . $teamnavn, 1);
+            } else {
+                throw new Exception('Klarte ikke å opprette team.');
+            }
+        } else {
+            throw new Exception('Klarte ikke å opprette team: Ugyldig teamnavn.');
         }
     }
 }
