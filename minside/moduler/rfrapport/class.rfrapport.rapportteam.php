@@ -5,7 +5,7 @@ class RapportTeam {
     
     protected $_id;
     protected $_navn;
-    protected $_isdeleted;
+    protected $_isactive;
     protected $_dbprefix;
     
     public $members;
@@ -57,12 +57,12 @@ class RapportTeam {
         return $this->_navn;
     }
     
-    public function setIsDeleted($input) {
+    public function setIsActive($input) {
         $input = (bool) $input;
-        $this->set_var($this->_isdeleted, $input);
+        $this->set_var($this->_isactive, $input);
     }
-    public function isDeleted() {
-        return (bool) $this->_isdeleted;
+    public function isActive() {
+        return (bool) $this->_isactive;
     }
     
     protected function set_var(&$var, &$value) {
@@ -89,7 +89,7 @@ class RapportTeam {
         
         $safenavn = $msdb->quote($this->getNavn());
         $safeid = $msdb->quote($this->getId());
-        $safeactive = ($this->isDeleted()) ? '1' : '0';
+        $safeactive = ($this->isActive()) ? '1' : '0';
         
         $midsql = " SET
                     teamnavn=$safenavn,
@@ -114,10 +114,10 @@ class RapportTeam {
     }
     
     public function slett() {
-        if ($this->isDeleted()) throw new Exception('Kan ikke slette team som allerede er slettet.');
+        if (!$this->isActive()) throw new Exception('Kan ikke slette team som allerede er slettet.');
         if ($this->under_construction) throw new Exception('Kan ikke slette team som er under construction');
         
-        $this->setIsDeleted(true);
+        $this->setIsActive(false);
         return $this->updateDb();
     }
     
@@ -206,7 +206,7 @@ class RapportTeam {
                 $objBruker = new Bruker(
                     $datum['brukerid'], $datum['navn'], $datum['fullnavn'], 
                     $datum['groups'], $datum['epost'], $datum['isactive'], $datum['createtime']);
-                $col->addItem($objBruker, $datum['navn']);
+                $col->addItem($objBruker, $datum['brukerid']);
             }
         }
     }
@@ -234,7 +234,7 @@ class RapportTeam {
                 
                 $objTeam->under_construction = true;
                 $objTeam->setNavn($datum['teamnavn']);
-                $objTeam->setIsDeleted($datum['isactive']);
+                $objTeam->setIsActive($datum['isactive']);
                 $objTeam->under_construction = false;
                 
                 $teamcollection->addItem($objTeam, $datum['teamid']);
@@ -266,7 +266,7 @@ class RapportTeam {
             
             $objTeam->under_construction = true;
             $objTeam->setNavn($data[0]['teamnavn']);
-            $objTeam->setIsDeleted($data[0]['isactive']);
+            $objTeam->setIsActive($data[0]['isactive']);
             $objTeam->under_construction = false;
             
             return $objTeam;
@@ -280,7 +280,7 @@ class RapportTeam {
         
         $objTeam->under_construction = true; // Lar denne stå på så ikke endringer blir forsøkt lagret uten videre
         $objTeam->setNavn('daglig oppsummering');
-        $objTeam->setIsDeleted(false);
+        $objTeam->setIsActive(true);
         
         return $objTeam;
     }

@@ -32,6 +32,8 @@ class msmodul_rfrapport extends msmodul_rapport {
         $dispatcher->addActHandler('addteammedlem', 'genTeamAdmin', MSAUTH_5);
         $dispatcher->addActHandler('fjernteammedlem', 'fjern_team_medlem', MSAUTH_5);
         $dispatcher->addActHandler('fjernteammedlem', 'genTeamAdmin', MSAUTH_5);
+        $dispatcher->addActHandler('flipteamactive', 'flip_team_active', MSAUTH_5);
+        $dispatcher->addActHandler('flipteamactive', 'genTeamAdmin', MSAUTH_5);
     }
     
     public function registrer_meny(MenyitemCollection &$meny){
@@ -75,6 +77,7 @@ class msmodul_rfrapport extends msmodul_rapport {
                     case 'teamadm':
                     case 'addteammedlem':
                     case 'fjernteammedlem':
+                    case 'flipteamactive':
                         $objSelected = $teamadmin;
                         break;
                     case 'stengegetskift':
@@ -248,24 +251,73 @@ class msmodul_rfrapport extends msmodul_rapport {
         $colTeam = RapportTeam::getAlleTeams('rfrap', true);
         $colBrukere = Bruker::getAlleBrukere();
 
-        
-        // Rediger teamnavn
+        // Rediger team
         foreach($colTeam as $objTeam) {
             if(!$objTeam->getId()) continue;
-            $html_team_options .= '<option value="'.$objTeam->getId().'">'.$objTeam->getNavn().'</option>' . "\n";
+            if ($objTeam->isActive()) {
+                $html_aktiv_team_options .= '<option value="'.$objTeam->getId().'">'.$objTeam->getNavn().'</option>' . "\n";
+            } else {
+                $html_inaktiv_team_options .= '<option value="'.$objTeam->getId().'">'.$objTeam->getNavn().'</option>' . "\n";
+            }
+        }
+        
+        // Endre team navn
+        if($html_aktiv_team_options) {
+            $html_rename_team = '
+                <form method="post" action="' . $this->url . '">
+                    <input type="hidden" name="act" value="modteamnavn" />
+                    <label for="teamselect">Nytt navn for team:</label>
+                    <select name="teamid" id="teamselect">
+                        '.$html_aktiv_team_options.'
+                    </select>
+                    <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
+                    <input type="submit" class="msbutton" id="modteamnavn" value="Lagre" 
+                        onClick="return heltSikker(\'endre navn på team\')" />
+                </form><br />
+            ';
+        }
+        // Deaktiver team
+        if($html_aktiv_team_options) {
+            $html_deaktiver_team = '
+                <form method="post" action="' . $this->url . '">
+                    <input type="hidden" name="act" value="flipteamactive" />
+                    <label for="deaktiverselect">Deaktiver team: </label>
+                    <select name="teamid" id="deaktiverselect">
+                        '.$html_aktiv_team_options.'
+                    </select>
+                    <input type="submit" class="msbutton" id="subdeaktiverselect" value="Deaktiver" 
+                        onClick="return heltSikker(\'deaktivere team\')" />
+                </form><br />
+            ';
+        }
+        //Aktiver team
+        if($html_inaktiv_team_options) {
+            $html_aktiver_team = '
+                <form method="post" action="' . $this->url . '">
+                    <input type="hidden" name="act" value="flipteamactive" />
+                    <label for="aktiverselect">Aktiver team: </label>
+                    <select name="teamid" id="aktiverselect">
+                        '.$html_inaktiv_team_options.'
+                    </select>
+                    <input type="submit" class="msbutton" id="subaktiverselect" value="Aktiver" 
+                        onClick="return heltSikker(\'aktivere team\')" />
+                </form><br />
+            ';
         }
         
         // Rediger rapportmottakere (team)
-        foreach($colBrukere as $objBruker) {
-            $brukeroptions .= '<option value="'.$objBruker->getId().'">'.$objBruker->getFullNavn().'</option>';
-        }
-        $html_brukerselect = '<select multiple="multiple" size="15" name="brukerid[]">'.$brukeroptions.'</select>';
-        
         foreach($colTeam as $objTeam) {
             $mottakeroptions = '';
+            $brukeroptions = '';
             foreach($objTeam->members as $objBruker) {
                 $mottakeroptions .= '<option value="'.$objBruker->getId().'">' . $objBruker->getFullNavn() . '</option>';
             }
+            foreach($colBrukere as $objBruker) {
+                // Ikke list brukere som er på teamet fra før.
+                if($objTeam->members->exists($objBruker->getId())) continue;
+                $brukeroptions .= '<option value="'.$objBruker->getId().'">'.$objBruker->getFullNavn().'</option>';
+            }
+            $html_brukerselect = '<select multiple="multiple" size="15" name="brukerid[]">'.$brukeroptions.'</select>';
             
             $html_mottakere .= '
                 <h3>Rapportmottakere '.$objTeam->getNavn().'</h3>
@@ -308,20 +360,12 @@ class msmodul_rfrapport extends msmodul_rapport {
                         <input type="submit" class="msbutton" id="subnyttteam" value="Opprett team" 
                             onClick="return heltSikker(\'opprette nytt team\')" />
                     </form>
+                    <p>OBS! Team kan ikke slettes helt, kun deaktiveres! Ikke opprett unødvendige team.</p>
                 </div>
                 
-                <h2>Rediger team-navn</h2>
+                <h2>Rediger team</h2>
                 <div class="level2">
-                    <form method="post" action="' . $this->url . '">
-                        <input type="hidden" name="act" value="modteamnavn" />
-                        <label for="teamselect">Nytt navn for team:</label>
-                        <select name="teamid" id="teamselect">
-                            '.$html_team_options.'
-                        </select>
-                        <input type="text" id="teamnavnid" name="teamnavn" class="msedit" />
-                        <input type="submit" class="msbutton" id="modteamnavn" value="Lagre" 
-                            onClick="return heltSikker(\'endre navn på team\')" />
-                    </form>
+                    '.$html_rename_team.$html_deaktiver_team.$html_aktiver_team.'
                 </div>
                 
                 <h2>Rapportmottakere per team</h2>
@@ -338,12 +382,12 @@ class msmodul_rfrapport extends msmodul_rapport {
     
     public function legg_til_team_medlem() {
         $teamid = (int) $_POST['teamid'];
-        $brukerider = $_POST['brukerid'];
+        $brukerider = (array) $_POST['brukerid'];
     
         if(MinSide::DEBUG) {
             msg('Legger til brukere i team.');
-            msg('Team: ' . $_POST['teamid']);
-            msg('Brukere: ' . implode(', ', $_POST['brukerid']));
+            msg('Team: ' . $teamid);
+            msg('Brukere: ' . implode(', ', $brukerider));
         }
         
         $colTeams = RapportTeam::getAlleTeams('rfrap', true);
@@ -351,18 +395,18 @@ class msmodul_rfrapport extends msmodul_rapport {
             $res = $objTeam->add_members($brukerider);
             msg($res . ' brukere lagt til.', 1);
         } else {
-            throw new Exception('Ukjent team id: ' . $teamid);
+            throw new Exception('Ukjent team-id: ' . $teamid);
         }
     }
     
     public function fjern_team_medlem() {
         $teamid = (int) $_POST['teamid'];
-        $brukerider = $_POST['brukerid'];
+        $brukerider = (array) $_POST['brukerid'];
     
         if(MinSide::DEBUG) {
             msg('Fjerner brukere fra team.');
-            msg('Team: ' . $_POST['teamid']);
-            msg('Brukere: ' . implode(', ', $_POST['brukerid']));
+            msg('Team: ' . $teamid);
+            msg('Brukere: ' . implode(', ', $brukerider));
         }
         
         $colTeams = RapportTeam::getAlleTeams('rfrap', true);
@@ -370,7 +414,26 @@ class msmodul_rfrapport extends msmodul_rapport {
             $res = $objTeam->remove_members($brukerider);
             msg($res . ' brukere fjernet fra ' . $objTeam->getNavn(), 1);
         } else {
-            throw new Exception('Ukjent team id: ' . $teamid);
+            throw new Exception('Ukjent team-id: ' . $teamid);
+        }
+    }
+    
+    public function flip_team_active() {
+        $teamid = (int) $_POST['teamid'];
+    
+        if(MinSide::DEBUG) msg('Endrer status på team: '. $teamid);
+        
+        $colTeams = RapportTeam::getAlleTeams('rfrap', true);
+        if($objTeam = $colTeams->getItem($teamid)) {
+            $status = $objTeam->isActive();
+            $objTeam->setIsActive(!$status);
+            if ($objTeam->updateDb()) {
+                msg($objTeam->getNavn() . ' er nå ' . (($status) ? 'inaktivt' : 'aktivt'), 1);
+            } else {
+                throw new Exception('Klarte ikke å endre status på team.');
+            }
+        } else {
+            throw new Exception('Ukjent team-id: ' . $teamid);
         }
     }
 }
