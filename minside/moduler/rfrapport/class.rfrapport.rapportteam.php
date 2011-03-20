@@ -211,11 +211,14 @@ class RapportTeam {
         }
     }
     
-    public static function getAlleTeams($dbprefix, $getFelles=false) {
+    public static function getAlleTeams($dbprefix, $getFelles=false, $getInaktive=true) {
         global $msdb;
         $teamcollection = new RapportTeamCollection();
         if($getFelles) {
             $teamcollection->addItem(self::getFellesTeam($dbprefix));
+        }
+        if(!$getInaktive) {
+            $where = "WHERE isactive='1'";
         }
         
         $sql = "
@@ -225,6 +228,7 @@ class RapportTeam {
                 isactive 
             FROM 
                 ".$dbprefix."_team
+            $where
             ORDER BY
                 teamnavn ASC
         ;";

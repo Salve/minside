@@ -4,6 +4,7 @@ require_once(DOKU_PLUGIN.'/minside/minside/moduler/rapport/rapport.msmodul.php')
 require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rapportteam.php');
 require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rapportteamcollection.php');
 require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rfskift.php');
+require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rfrapport.php');
 require_once(DOKU_PLUGIN.'/minside/minside/moduler/rfrapport/class.rfrapport.rfskiftfactory.php');
 
 class msmodul_rfrapport extends msmodul_rapport {
@@ -135,7 +136,7 @@ class msmodul_rfrapport extends msmodul_rapport {
             2 => 'Ettermiddag',
             3 => 'Kveld'
         );
-        $skiftnavn = $arSkiftNavn[$objSkift->getSkiftType()];
+        //$skiftnavn = $arSkiftNavn[$objSkift->getSkiftType()];
 
         // Nylig aktivitet
         $arSisteEndringer = (array) $objSkift->getLastAct(6);
@@ -334,7 +335,7 @@ class msmodul_rfrapport extends msmodul_rapport {
     
         if(MinSide::DEBUG) msg('Endrer navn på team: '. $teamid);
         
-        $colTeams = RapportTeam::getAlleTeams('rfrap', true);
+        $colTeams = RapportTeam::getAlleTeams('rfrap');
         if($objTeam = $colTeams->getItem($teamid)) {
             $oldnavn = $objTeam->getNavn();
             $objTeam->setNavn($teamnavn);
@@ -381,9 +382,15 @@ class msmodul_rfrapport extends msmodul_rapport {
             return;
         }
         
-
+        // Validate team
+        $teamid = (int) $_POST['team'];
+        $colTeams = RapportTeam::getAlleTeams('rfrap', false, false); // alle aktive teams - ikke felles
+        if(!$colTeams->exists($teamid)) {
+            msg('Du må velge team for å fortsette!', -1);
+            return;
+        }
         
-        $this->skiftfactory->nyttSkiftForBruker($this->_userId, $skifttype);
+        $this->skiftfactory->nyttSkiftForBruker($this->_userId, $skifttype, $teamid);
         if (isset($this->_currentSkiftId)) { 
             unset($this->_currentSkiftId);
         }

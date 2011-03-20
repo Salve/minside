@@ -248,9 +248,11 @@ DROP TABLE IF EXISTS `rfrap_rapport`;
 CREATE TABLE `rfrap_rapport` (
   `rapportid` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `createtime` datetime NOT NULL,
-  `skiftnavn` varchar(20) DEFAULT NULL,
+  `skifttype` tinyint(3) unsigned NOT NULL,
   `rapportowner` int(10) unsigned NOT NULL,
   `templateid` int(10) NOT NULL,
+  `avsluttet` datetime DEFAULT NULL,
+  `team` int(10) unsigned NOT NULL,
   PRIMARY KEY (`rapportid`),
   UNIQUE KEY `rapportid_UNIQUE` (`rapportid`),
   KEY `rapportowner` (`rapportowner`),

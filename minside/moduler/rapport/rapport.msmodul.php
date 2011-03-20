@@ -5,9 +5,13 @@ require_once('class.rapport.skift.php');
 require_once('class.rapport.teller.php');
 require_once('class.rapport.notat.php');
 require_once('class.rapport.rapport.php');
+require_once('class.rapport.rapportdata.php');
+require_once('class.rapport.rapportdatainputbool.php');
+require_once('class.rapport.rapportdatainputtekst.php');
+require_once('class.rapport.rapportdatainputlitetall.php');
+require_once('class.rapport.rapportdatainputdesimaltall.php');
 require_once('class.rapport.rapportgen.php');
 require_once('class.rapport.skiftfactory.php');
-require_once('class.rapport.rappvalidator.php');
 require_once('class.rapport.rapporttemplate.php');
 require_once('class.rapport.rapporttemplatefactory.php');
 require_once('class.rapport.rapporttemplatecollection.php');
@@ -15,6 +19,7 @@ require_once('class.rapport.tellercollection.php');
 require_once('class.rapport.notatcollection.php');
 require_once('class.rapport.rapportcollection.php');
 require_once('class.rapport.skiftcollection.php');
+require_once('class.rapport.rapportdatacollection.php');
 
 abstract class msmodul_rapport implements msmodul{
 
@@ -437,17 +442,13 @@ abstract class msmodul_rapport implements msmodul{
     }
     
     public function _genModRapport(){
-            // Genererer output bruker får når han/hun skal opprette rapport (på slutten av hvert skift) 
+            // Genererer redigerbar rapport-output
             
             if ($this->rapporttemplatefactory->getCurrentTplId() === false) {
-                msg('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.', -1);
-                return;
+                throw new Exception('Finner ikke noe aktivt rapport-template. Dette må opprettes for å kunne generere rapport.');
             }
     
-    
             $skiftcol = new SkiftCollection();
-            
-            $validationerrors = 0;
             
             $noskift = '
                         <div class="mswarningbar">Ingen skift valgt</div>
@@ -459,16 +460,10 @@ abstract class msmodul_rapport implements msmodul{
             
             if (is_array($_POST['selskift'])) {
                 foreach ($_POST['selskift'] as $skiftid) {
-                    if (trim($skiftid, '0123456789') != '') die('Ugyldig skiftid oppdaget!');
+                    if (trim($skiftid, '0123456789') != '') throw new Exception('Ugyldig skiftid oppdaget!');
                     
-                    try {
-                        $objSkift = $this->skiftfactory->getSkift($skiftid);
-                    }
-                    catch (Exception $e) {
-                        msg($e->getMessage,-1);
-                        return;
-                    }                
-                    
+                    $objSkift = $this->skiftfactory->getSkift($skiftid);
+
                     if ($objSkift instanceof Skift) {
                         if ($objSkift->isClosed() && !$objSkift->isRapportert()) {
                             $skiftcol->addItem($objSkift, $objSkift->getId());
@@ -483,60 +478,22 @@ abstract class msmodul_rapport implements msmodul{
                 return $noskift;
             }
             
-            /*
-             *    Input validation
-             * 
-             * All data som gis til objRapport skal være validert
-             */
-            // Validerer kun dersom bruker har submittet form
             if ($_REQUEST['genrap'] == 'Generer rapport') {
-            
                 $submitsave = true; // bruker har forsøkt å lagre rapport
-                
-                $validinput = array();
-                $invalidinput = array();
-                $validationerrors = $this->_validateRapportInput($validinput, $invalidinput, $skiftcol); // parameters by ref
-                
-                
-                if ($validationerrors === 0) {
-                    $validsave = true;
-                }
-                            
             }
-            // Slutt validation
             
             $objRapport = new Rapport($this->_userId, null, null, false, null, null, $this->_dbprefix);
             $objRapport->setSkiftCol($skiftcol);
             
-            if ($validsave) { // Inndata er ok, rapport skal lagres
-            
-                try {
-                    $objRapport->lagreRapport($validinput);
-                }
-                catch (Exception $e) {
-                    die('Input ok, men klarte ikke å lagre rapport: ' . $e->getMessage());
-                }
+            $objRapport->lagreRapport($validinput);
                 
-                $rappoutput = $objRapport->genRapport();
-                $rappoutput .= $objRapport->genMailForm($this->url);
+            $rappoutput = $objRapport->genRapport();
+            $rappoutput .= $objRapport->genMailForm($this->url);
             
-            } elseif ($submitsave) { // Bruker har forsøkt å lagre, men feil/mangler i inndata
-                $rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
-                try {
-                    $rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
-                }
-                catch (Exception $e) {
-                    die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
-                }
-                
-            } else { // Bruker har ikke forsøkt å lagre, vis rapport med tomme inndata-felt
-                try {
-                    $rappoutput = $objRapport->genRapportTemplate();
-                }
-                catch (Exception $e) {
-                    die('Klarte ikke å vise rapport-template: ' . $e->getMessage());
-                }            
-            }
+            $rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
+            $rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
+            $rappoutput = $objRapport->genRapportTemplate();
+            
             
             $output .= '<form name="lagrerapport" action="' . $this->url . '" method="POST">' . "\n";
             $output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";

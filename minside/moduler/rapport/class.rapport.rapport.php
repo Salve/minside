@@ -2,18 +2,18 @@
 if(!defined('MS_INC')) die();
 
 class Rapport {
-    private $_id;
-    private $_rapportCreatedTime;
-    private $_rapportOwnerId;
-    private $_rapportOwnerName;
-    private $_rapportTemplateId;
-    private $_isSaved = false;
+    protected $_id;
+    protected $_rapportCreatedTime;
+    protected $_rapportOwnerId;
+    protected $_rapportOwnerName;
+    protected $_rapportTemplateId;
+    protected $_isSaved = false;
     
     public $dbPrefix;
     public $skiftfactory;
     public $skift;
     public $rapportdata = array();
-    private $_rapportdataloaded = false;
+    protected $_rapportdataloaded = false;
     
     public function __construct($ownerid, $id=null, $createdtime=null, $issaved=false, $templateid=null, $ownername=null, $dbprefix) {
         $this->_id = $id;
@@ -150,7 +150,7 @@ class Rapport {
     }
     
     
-    private function _genRapport($validinput = array(), $invalidinput = array(), $savedrapport = false) {
+    protected function _genRapport($validinput = array(), $invalidinput = array(), $savedrapport = false) {
             global $INFO;
             $totaltellere = array();
             $brukertellere = array();
