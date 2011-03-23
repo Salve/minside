@@ -19,7 +19,6 @@ require_once('msconfig.php');
 require_once('class.database.php');
 require_once('class.msdispatcher.php');
 require_once('class.actdispatcher.php');
-require_once('class.erstatter.php');
 require_once('class.menyitem.php');
 require_once('class.menyitemcollection.php');
 require_once('class.bruker.php');

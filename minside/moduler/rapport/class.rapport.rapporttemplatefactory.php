@@ -16,14 +16,6 @@ class RapportTemplateFactory {
     
     }
     
-    public function getTemplateOutput(Erstatter $objErstatter, $tplid = null) {
-
-        $rawtpl = $this->getRawTemplate($tplid);
-        
-        return $objErstatter->erstatt($rawtpl);
-    
-    }
-    
     public function getTemplate($tplid = null) {
         global $msdb;
         if (!isset($tplid)) $tplid = $this->getCurrentTplId();

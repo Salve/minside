@@ -68,9 +68,9 @@ abstract class RapportData {
     public function needsValidation() {
         return (bool) $this->needsvalidation;
     }
-    public function isValid() {
+    public function isValid($allowempty=false) {
         if($this->_needsvaliation) {
-            $this->validate();
+            $this->validate($allowempty);
         }
         
         return $this->isvalid;
@@ -137,10 +137,12 @@ abstract class RapportData {
         }
     }
     
-    public static function getRapportDataObject($type) {
+    public static function getRapportDataClass($type) {
         $type = 'RapportData'.$type;
         if(class_exists($type) && is_subclass_of($type, 'RapportData')) {
-            return new $type();
+            return $type;
+        } else {
+            return false;
         }
     }
 

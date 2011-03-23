@@ -120,8 +120,4 @@ class RapportTemplate {
         return $this->_issaved;
     }
     
-    public function getTemplateOutput(Erstatter $objErstatter) {
-        return $objErstatter->erstatt($this->_templatetkest);
-    }
-    
 }

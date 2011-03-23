@@ -111,7 +111,7 @@ class SkiftFactory {
         $saferapportid = $msdb->quote($rapportid);
         $outputarray = array();
         
-        $sql = "SELECT datatype, dataname, datavalue FROM " . $this->dbPrefix . "_rapportdata WHERE rapportid=$saferapportid;";
+        $sql = "SELECT datatype, dataname, datavalue, rapportdataid FROM " . $this->dbPrefix . "_rapportdata WHERE rapportid=$saferapportid;";
         $data = $msdb->assoc($sql);
     
         if(is_array($data) && sizeof($data)) {
@@ -119,7 +119,9 @@ class SkiftFactory {
                 $type = $row['datatype'];
                 $name = $row['dataname'];
                 $value = $row['datavalue'];
-                $outputarray["$type"]["$name"] = $value;
+                $id = $row['rapportdataid'];
+                $outputarray["$type"]["$name"]['verdi'] = $value;
+                $outputarray["$type"]["$name"]['id'] = $id;
             }
         }
         

@@ -16,7 +16,7 @@ class RapportDataInputLiteTall extends RapportData {
         $datavalue = ($this->isValid()) ? $this->getDataValue() : '';
         
         $output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' 
-            . $dataname .  ']" value="' . $datavalue . '" />'
+            . $dataname .  ']" value="' . $datavalue . '" />';
         
         return $output;
     }

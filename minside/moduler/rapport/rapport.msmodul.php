@@ -485,15 +485,15 @@ abstract class msmodul_rapport implements msmodul{
             $objRapport = new Rapport($this->_userId, null, null, false, null, null, $this->_dbprefix);
             $objRapport->setSkiftCol($skiftcol);
             
-            $objRapport->lagreRapport($validinput);
+            //$objRapport->lagreRapport($validinput);
                 
             $rappoutput = $objRapport->genRapport();
-            $rappoutput .= $objRapport->genMailForm($this->url);
+            //$rappoutput .= $objRapport->genMailForm($this->url);
             
-            $rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
+            /*$rappoutput = '<div class="mswarningbar" id="rapporthaserrors"><strong>Rapporten kunne ikke genereres!</strong><br /><br />Ett eller flere av inputfeltene inneholder ugyldig data, eller er tomme.</div><br />' . "\n";
             $rappoutput .= $objRapport->genRapportTemplateErrors($validinput, $invalidinput);
             $rappoutput = $objRapport->genRapportTemplate();
-            
+            */
             
             $output .= '<form name="lagrerapport" action="' . $this->url . '" method="POST">' . "\n";
             $output .= '<input type="hidden" name="act" value="gensaverapport" />' . "\n";

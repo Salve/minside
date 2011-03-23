@@ -12,7 +12,8 @@ class Rapport {
     public $dbPrefix;
     public $skiftfactory;
     public $skift;
-    public $rapportdata = array();
+    public $rapportdata;
+    public $rapportnotater = array();
     protected $_rapportdataloaded = false;
     
     public function __construct($ownerid, $id=null, $createdtime=null, $issaved=false, $templateid=null, $ownername=null, $dbprefix) {
@@ -76,17 +77,42 @@ class Rapport {
         $arSkift = $this->skiftfactory->getSkiftForRapport($this->_id, $col);
     }
     
-    public function getRapportData() {
-        if (!$this->_rapportdataloaded) {
-            $this->_rapportdataloaded = true;
-            $this->rapportdata = $this->skiftfactory->getDataForRapport($this->_id);
+    public function dataLoaded() {
+        return $this->_rapportdataloaded;
+    }
+    
+    public function loadRapportData() {
+        if(!$this->_isSaved) throw new Exception('Kan ikke laste data for rapport som ikke er lagret.');
+        $data = $this->skiftfactory->getDataForRapport($this->_id);
+        $colData = new RapportDataCollection();
+        foreach ($data as $type => $datum) {
+            foreach ($datum as $navn => $info) {
+                if($type == 'selnotat') {
+                    $this->rapportnotater[] = $info['verdi'];
+                } else {
+                    $class = RapportData::getRapportDataClass('input'.$type);
+                    if($class === false) {
+                        msg('Ukjent data-type: ' . hsc($type), -1);
+                        break 1;
+                    } else {
+                        $objRapportData = new $class($this->dbPrefix, $this->_id, true, $info['id']);
+                        $objRapportData->under_construction = true;
+                        $objRapportData->setDataName($navn);
+                        $objRapportData->setDataValue($info['verdi']);
+                        $objRapportData->under_construction = false;
+                        $colData->addItem($objRapportData, $navn);
+                    }
+                }
+            }
         }
-        return $this->rapportdata;
+        $this->rapportdata = $colData;
+        $this->_rapportdataloaded = true;
     }
     
     public function genRapport() {
         if (!$this->_isSaved) die('Funksjonen genRapport() kan kun vise rapporter fra database');
-        return $this->_genRapport($this->getRapportData(), array(), true);
+        if (!$this->dataLoaded()) $this->loadRapportData();
+        return $this->_genRapport();
     
     }
     
@@ -100,6 +126,89 @@ class Rapport {
         
         return $this->_genRapport($validinput, $invalidinput, false);
     }
+    
+    public function _genRapport() {
+        $tellertotaler = array();
+        $uloggettotaler = array();
+                    
+        if (!($this->skift->length() > 0)) throw new Exception('Kan ikke vise rapport - ingen skift er lastet inn.');
+        
+        foreach ($this->skift as $objSkift) {
+            $hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
+        
+            foreach ($objSkift->notater as $objNotat) {
+                if (!$objNotat->isActive()) continue;
+                
+                // Sjekk om notat er valgt - vis med eller uten checkbox
+                $notatsaveoutput .= '<li>' . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")</li>\n";
+                    
+                $notatoutput .= '<input type="checkbox" ' . $checked . 'name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> '
+                    . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
+                
+            }
+            
+            foreach ($objSkift->tellere as $objTeller) {
+                if ($objTeller->getTellerType() == 'ULOGGET') {
+                    $uloggettotaler[$objTeller->getTellerName()]['verdi'] += $objTeller->getTellerVerdi();
+                    $uloggettotaler[$objTeller->getTellerName()]['desc'] = $objTeller->getTellerDesc();
+                } else {
+                    $tellertotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();                        
+                }
+            }
+        }
+        
+        $uloggetoutput = '';
+        foreach ($uloggettotaler as $tellernavn => $data) {
+            if($data['verdi'] <= 0) continue;
+            $uloggetoutput .= $data['desc'] . ': ' . $data['verdi'] . "<br />\n";
+        }
+        
+        if (!$notatoutput) $notatoutput = 'Ingen notater.';
+        if (!$notatsaveoutput) {
+            $notatsaveoutput = 'Ingen notater.';
+        } else {
+            $notatsaveoutput = '<ul class="msul">' . $notatsaveoutput . '</ul>';
+        }
+        if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
+        
+        $self = $this;
+        $funcReplacer = function ($matches) use ($tellertotaler, $uloggetoutput, $self) {
+            $type = $matches[1];
+            $name = $matches[2];
+            switch ($type) {
+                case 'teller':
+                    return $tellertotaler[$name] ?: '0';
+                    break;
+                case 'ulogget':
+                    return $uloggetoutput;
+                    break;
+                case 'notater':
+                    return 'notater SALVE SALVE her';
+                    break;
+                default:
+                    if($self->rapportdata->exists($name)) {
+                        $objRapportData = $self->rapportdata->getItem($name);
+                        return $objRapportData->genFinal();
+                    } elseif ($class = RapportData::getRapportDataClass($type)) {
+                        $objRapportData = new $class($this->dbPrefix, $this->_id);
+                        $objRapportData->setDataName($name);
+                        return $objRapportData->genEdit();
+                    } else {
+                        return '<strong>Ukjent/manglende data<strong>';
+                    }
+            }
+        };
+             
+        $tplfactory = new RapportTemplateFactory($this->dbPrefix);
+        $tmpOutput = $tplfactory->getRawTemplate($this->_rapportTemplateId);
+        
+        $tmpOutput = preg_replace_callback('/\[\[([A-Za-z]+):?([A-Za-z]+)?\]\]/u', $funcReplacer, $tmpOutput);
+        
+        $output .= '<div class="rapporttpl">' . $tmpOutput . '</div><div class="msclearer"></div>';
+        
+        return $output;
+    }
+
     
     public function lagreRapport($validinput) {
         global $INFO;
@@ -148,250 +257,7 @@ class Rapport {
         $this->_isSaved = true;
         
     }
-    
-    
-    protected function _genRapport($validinput = array(), $invalidinput = array(), $savedrapport = false) {
-            global $INFO;
-            $totaltellere = array();
-            $brukertellere = array();
-            
-            $tellercol = new TellerCollection();
-            $notatcol = new NotatCollection();
-            
-            $tplErstatter = new Erstatter();
-            
-            if (!($this->skift->length() > 0)) throw new Exception('Ingen skift lastet i rapportobjekt');
-            
-            $skiftcol = $this->skift;
-            
-            // for hvert skift som er gitt funksjonen
-            foreach ($skiftcol as $objSkift) {
-                
-                $hiddenSkiftider .= '<input type="hidden" name="selskift[]" value="' . $objSkift->getId() . "\" />\n";
-            
-                // for hvert notat i hvert skift (disse blir hentet fra db her,  via callback på collection)
-                foreach ($objSkift->notater as $objNotat) {
-                    // ignorer inaktive notater (de som er slettet av bruker)
-                    if ($objNotat->isActive()) {
-                        // hvis dette notatet er markert som valgt
-                        if (is_array($validinput['selnotat']) && in_array($objNotat->getId(), $validinput['selnotat'])) {
-                            // til bruk når det er validation errors og rapport-in-progress skal vises
-                            $checked = 'checked="yes" ';
-                            // til bruk når det ikke er noen validation errors og rapport skal lagres (altså uten checkbox)
-                            $notatsaveoutput .= '<li>' . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")</li>\n";
-                        } else {
-                            $checked = '';
-                        }
-                        // til bruk når rapport ikke er forsøkt lagret enda, eller forsøkt lagret med validation errors
-                        $notatoutput .= '<input type="checkbox" ' . $checked . 'name="rappinn[selnotat][]" value="' . $objNotat->getId() . '" /> '
-                            . $objNotat . ' (' . $objSkift->getSkiftOwnerName() . ")<br />\n";
-                        
-                    }
-                }
-                // for hver teller for hver skift (db load her)
-                foreach ($objSkift->tellere as $objTeller) {
-                    // ignorer tellere som ikke er økt
-                    if ($objTeller->getTellerVerdi() > 0) {
-                        // hvis denne telleren allerede har blitt lagt til teller-collection for dette skiftet (fra et annnet skift, tidligere i loopen)
-                        if ($tellercol->exists($objTeller->getTellerName())) {
-                            // hent ut telleren som allerede er lagt til (by ref)
-                            $objColTeller = $tellercol->getItem($objTeller->getTellerName());
-                            // endre verdien på denne telleren
-                            $objColTeller->setTellerVerdi($objColTeller->getTellerVerdi() + $objTeller->getTellerVerdi());
-                        // denne telleren er ikke sett før for denne rapporten
-                        } else {
-                            // lager ny teller med data fra orginal teller
-                            $objColTeller = new Teller($objTeller->getId(), $objSkift->getId(), $objTeller->getTellerName(), $objTeller->getTellerDesc(), $objTeller->getTellerType(), $objTeller->getTellerVerdi());
-                            $objColTeller->dbPrefix = $objTeller->dbPrefix;
-                            // legger denne til i rapportens teller-collection, med navnet på teller (eks. "TLSPT") som key.
-                            $tellercol->addItem($objColTeller, $objTeller->getTellerName());
-                        }
-                        
-                        if ($objTeller->getTellerType() == 'ULOGGET') {
-                            // bygger opp et array med navn => verdi for alle tellere av type ulogget.
-                            $uloggettotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();
-                        }
-                        
-                        $tellertotaler[$objTeller->getTellerName()] += $objTeller->getTellerVerdi();                        
-                        $brukertellere[$objTeller->getTellerName()][$objSkift->getSkiftOwnerName()] += $objTeller->getTellerVerdi();
-                    }
-                }
-            }
-            
-            
-            foreach ($brukertellere as $tellername => $bruker) {
-                
-                foreach ($bruker as $brukernavn => $brukertotal) {
-                    if ($brukertotal > 0) {
-                        $brukertellernotater["$tellername"] .= $brukernavn . ': ' . $brukertotal . ' (' . round($brukertotal / $tellertotaler[$tellername] * 100) . '%) ';
-                    }
-                }
-                
-                if ($uloggettotaler[$tellername] > 0) {
-                    $objTeller = $tellercol->getItem($tellername);
-                    $uloggetoutput .= '<span title="' . $brukertellernotater[$tellername] . '">' . $objTeller->getTellerDesc() . ': ' . $objTeller->getTellerVerdi() . "</span><br />\n";
-                }
 
-            }
-            
-            
-            // Definer [[data:datumnavn]] som skal replaces her.
-            if ($savedrapport) {
-                $tpldata = $validinput['tpldata'];
-            } else {
-                $tpldata['fulltnavn'] = $INFO['userinfo']['name'];
-                $tpldata['datotid'] = date('dmy \&\n\d\a\s\h\; H:i');
-            }
-            
-            if (!$notatoutput) $notatoutput = 'Ingen notater.';
-            if (!$notatsaveoutput) {
-                $notatsaveoutput = 'Ingen notater.';
-            } else {
-                $notatsaveoutput = '<ul class="msul">' . $notatsaveoutput . '</ul>';
-            }
-            if (!$uloggetoutput) $uloggetoutput = 'Ingen uloggede samtaler.';
-            
-    
-            
-            // Erstatter [[notater:annet]] med notat-output. 
-            $funcErstattNotat = function ($matches) use (&$notatoutput, &$notatsaveoutput, $savedrapport) {
-                if ($savedrapport) {
-                    return $notatsaveoutput;
-                } else {
-                    return $notatoutput;
-                }
-            };
-            $tplErstatter->addErstattning('/\[\[notater:[A-Za-z]+\]\]/u', $funcErstattNotat);
-            
-            // Erstatter [[ulogget]] med ulogget-output. 
-            $funcErstattUlogget = function ($matches) use (&$uloggetoutput) {
-                return $uloggetoutput;
-            };
-            $tplErstatter->addErstattning('/\[\[ulogget\]\]/u', $funcErstattUlogget);
-            
-            // Erstatter [[teller:TELLERNAVN]] med tallverdien til telleren
-            $funcErstattTeller = function ($matches) use (&$brukertellernotater, &$tellercol) {
-                $key = $matches[1];
-                $objTeller = $tellercol->getItem($key);
-                if ($objTeller instanceof Teller) {
-                    //$telleroutput = '<span title="' . $brukertellernotater[$key] . '">' . ((string) $objTeller->getTellerVerdi()) . '</span>';
-                    $telleroutput = '<span>' . ((string) $objTeller->getTellerVerdi()) . '</span>';
-                } else {
-                    $telleroutput = '<span>0</span>';
-                }
-                return $telleroutput;
-            };
-            $tplErstatter->addErstattning('/\[\[teller:([A-Z]+)\]\]/u', $funcErstattTeller); 
-            
-            // Erstatter [[inputbool:varname]] med ja/nei dropdown input
-            $funcErstattInputBool = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
-                $varname = $matches[1];
-                if ($savedrapport) {
-                    $output = ($validinput['bool']["$varname"]) ? 'Ja' : 'Nei';
-                } else {
-                    if (isset($validinput['bool']["$varname"])) {
-                        $output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True" ' . (($validinput['bool']["$varname"]) ? 'selected="yes"' : '') . '>Ja</option><option value="False"' . (($validinput['bool']["$varname"]) ? '' : 'selected="yes"') . '>Nei</option></select>';
-                    } else {
-                        $output = '<select name="rappinn[bool][' . $varname . ']"><option value="NOSEL">Velg:</option><option value="True">Ja</option><option value="False">Nei</option></select>';
-                        if (isset($invalidinput['bool']["$varname"])) {
-                            $output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['bool']["$varname"] . '">';
-                        }
-                    }
-                }
-                
-                if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
-                
-                return $output;
-            };
-            $tplErstatter->addErstattning('/\[\[inputbool:([A-Za-z]+)\]\]/u', $funcErstattInputBool);
-            
-            // Erstatter [[inputtekst:varname]] med tekst-input felt
-            $funcErstattInputTekst = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
-                $varname = $matches[1];
-                if ($savedrapport) {
-                    $output = $validinput['tekst']["$varname"];
-                } else {
-                    if (isset($validinput['tekst']["$varname"])) {
-                        $output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" value="' . $validinput['tekst']["$varname"] . '" />';
-                    } else {
-                        $output = '<input type="text" maxlength="250" name="rappinn[tekst][' . $varname . ']" />';
-                        if (isset($invalidinput['tekst']["$varname"])) {
-                            $output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['tekst']["$varname"] . '">';
-                        }
-                    }
-                }
-                
-                if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
-                
-                return $output;
-            };
-            $tplErstatter->addErstattning('/\[\[inputtekst:([A-Za-z]+)\]\]/u', $funcErstattInputTekst);
-            
-            // Erstatter [[inputlitetall:varname]] med 3-siffret tekst-input
-            $funcErstattInputLiteTall = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
-                $varname = $matches[1];
-                if ($savedrapport) {
-                    $output = $validinput['litetall']["$varname"];
-                } else {
-                    if (isset($validinput['litetall']["$varname"])) {
-                        $output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname .  ']" value="' . $validinput['litetall']["$varname"] . '" />';
-                    } else {
-                        $output = '<input type="text" maxlength="3" size="2" name="rappinn[litetall][' . $varname . ']" />';
-                        if (isset($invalidinput['litetall']["$varname"])) {
-                            $output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['litetall']["$varname"] . '">';
-                        }
-                    }
-                }
-                
-                if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
-                
-                return $output;
-            };
-            $tplErstatter->addErstattning('/\[\[inputlitetall:([A-Za-z]+)\]\]/u', $funcErstattInputLiteTall);
-            
-            // Erstatter [[inputdesimaltall:varname]] med tekst-input. 1-99999 pluss evt desimaltegn og 1-3 siffer bak dette.
-            $funcErstattInputDesimalTall = function ($matches) use (&$validinput, &$invalidinput, $savedrapport, $validationerrors) {
-                $varname = $matches[1];
-                if ($savedrapport) {
-                    $output = str_replace('.', ',', $validinput['desimaltall']["$varname"]);
-                } else {
-                    if (isset($validinput['desimaltall']["$varname"])) {
-                        $output = '<input type="text" maxlength="9" size="8" name="rappinn[desimaltall][' . $varname .  ']" value="' . str_replace('.', ',', $validinput['desimaltall']["$varname"]) . '" />';
-                    } else {
-                        $output = '<input type="text" maxlength="9" size="8" name="rappinn[desimaltall][' . $varname . ']" />';
-                        if (isset($invalidinput['desimaltall']["$varname"])) {
-                            $output .= '<img src="' . MS_IMG_PATH . 'error.png" title="' . $invalidinput['desimaltall']["$varname"] . '">';
-                        }
-                    }
-                }
-                
-                if ($output == '') $output = '<span title="Verdien av ' . $varname . ' er ikke lagret i denne rapporten.">N/A</span>';
-                
-                return $output;
-            };
-            $tplErstatter->addErstattning('/\[\[inputdesimaltall:([A-Za-z]+)\]\]/u', $funcErstattInputDesimalTall);
-
-            // Erstatter [[data:varname]] med $tpldata[varname]
-            $funcErstattData = function ($matches) use (&$tpldata) {
-                $varname = $matches[1];
-                if (isset($tpldata[$varname])) {
-                    return $tpldata[$varname];
-                } else {
-                    return "Verdi av \"$varname\" ikke funnet";
-                }
-            };
-            $tplErstatter->addErstattning('/\[\[data:([A-Za-z]+)\]\]/u', $funcErstattData);
-            
-            $tplfactory = new RapportTemplateFactory($this->dbPrefix);
-            $tmpOutput = $tplfactory->getTemplateOutput($tplErstatter, $this->_rapportTemplateId);
-            
-            if (!$savedrapport) $output .= $hiddenSkiftider;
-            
-            $output .= '<div class="rapporttpl">' . $tmpOutput . '</div><div class="msclearer"></div>';
-            
-            return $output;
-    }
-    
     public function genMailForm($baseurl) {
         global $msdb;
         

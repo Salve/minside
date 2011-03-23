@@ -260,5 +260,6 @@ class RapportGen {
         
         return $template;
     }
+    
 
 }
