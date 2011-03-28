@@ -45,7 +45,7 @@ class msmodul_nyheter implements msmodul {
         $dispatcher->addActHandler('list', 'gen_nyheter_full', MSAUTH_1);
         $dispatcher->addActHandler('show', 'gen_nyheter_full', MSAUTH_1);
         // Uleste nyheter / merk lest
-        $dispatcher->addActHandler('forside', 'gen_nyheter_ulest', MSAUTH_1, 'redirforside');
+        $dispatcher->addActHandler('forside', 'gen_nyheter_forside', MSAUTH_1);
         $dispatcher->addActHandler('redirforside', 'gen_redirect_forside', MSAUTH_1);
         $dispatcher->addActHandler('ulest', 'gen_nyheter_ulest', MSAUTH_1);
         $dispatcher->addActHandler('lest', 'merk_nyhet_lest', MSAUTH_1);
@@ -221,12 +221,9 @@ class msmodul_nyheter implements msmodul {
         $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
         $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
         
-        if ($returnto == 'redirforside') {
-            $pre = $post = '';
-        } else {
-            $pre = '<h1>Uleste nyheter</h1><div class="level2">';
-            $post = '</div>';
-        }
+
+        $pre = '<h1>Uleste nyheter</h1><div class="level2">';
+        $post = '</div>';
         
 		if ($objNyhetCol->length() === 0) {
 			return $pre . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest.<br /><br /> '.
@@ -247,6 +244,56 @@ class msmodul_nyheter implements msmodul {
 		return $pre . $output . $post;
 		
 	}
+    
+    public function gen_nyheter_forside() {
+        $objNyhetCol = NyhetFactory::getUlesteNyheterForBrukerId($this->_userID);
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
+        $objStickyCol = NyhetFactory::getStickyNyheter();
+        
+        $html_ulest_start = '<h2 class="sectionedit1"><a name="dine_uleste_nyheter" id="dine_uleste_nyheter">Dine uleste nyheter</a></h2>
+                            <div class="level2">';
+        $html_ulest_slutt = '</div>';
+        
+        $html_sticky_start = '<h2 class="sectionedit1"><a name="sticky_nyheter" id="sticky_nyheter">Sticky nyheter</a></h2>
+                            <div class="level2">';
+        $html_sticky_slutt = '</div>';
+        
+		if ($objNyhetCol->length() === 0 && $objStickyCol->length() === 0) {
+			return $html_ulest_start . NyhetGen::genIngenNyheter('Her vises kun nyheter du ikke har market som lest og nyheter som er <em>&quot;sticky&quot;</em>.<br /><br /> '.
+                'For andre nyheter, se: <li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=show">Aktuelle nyheter</a></li><li class="msnyhetmsg"><a href="'.MS_NYHET_LINK.'&amp;act=arkiv">Arkivet</a></li>') . $html_ulest_slutt;
+		}
+		
+        if ($objNyhetCol->length() !== 0) {
+            $output .= $html_ulest_start . '<p><a href="'.MS_NYHET_LINK.'&amp;returnto=redirforside&amp;act=allelest">Merk alle nyheter lest</a></p>';
+            foreach ($objNyhetCol as $objNyhet) {
+                $options = array('lest');
+                if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                    $options[] = 'fjernmine';
+                }
+                
+                $output .= NyhetGen::genFullNyhet($objNyhet, $options, 'redirforside');
+            }
+            $output .= $html_ulest_slutt;
+        }
+        
+        $minst_en_sticky = false;
+        foreach ($objStickyCol as $objNyhet) {
+            if($objNyhetCol->exists( $objNyhet->getId() )) {
+                continue;
+            }
+            $options = array();
+            if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                    $options[] = 'fjernmine';
+            }
+            $minst_en_sticky = true;
+            $stickyoutput .= NyhetGen::genFullNyhet($objNyhet, $options, 'redirforside');
+        }
+        if ($minst_en_sticky) {
+            $output .= $html_sticky_start . $stickyoutput . $html_sticky_slutt;
+        }
+        
+		return $output;
+    }
     
     public function gen_admin($force_reload=false) {
         $output = '';

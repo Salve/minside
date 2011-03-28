@@ -167,6 +167,25 @@ class NyhetFactory {
         
     }
     
+    public static function getStickyNyheter() {
+        global $msdb;
+		
+		$omrader = self::getSafeOmrader(MSAUTH_1);
+        
+        $sql = "SELECT " . self::SQL_NYHET_FIELDS . 
+			" FROM nyheter_nyhet " . self::SQL_FULLNAME_JOINS .
+			" WHERE issticky = 1
+                AND pubtime < NOW()
+				AND nyheter_nyhet.omrade IN ($omrader)
+				AND deletetime IS NULL
+			ORDER BY pubtime DESC, nyhetid DESC
+            LIMIT 100;";
+        $res = $msdb->assoc($sql);
+        
+        return self::createNyhetCollectionFromDbResult($res);
+        
+    }
+    
     public static function getMineNyheterForBrukerId($brukerid, $attachtags=true) {
         global $msdb;
         
