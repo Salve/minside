@@ -24,4 +24,18 @@ class RFSkiftFactory extends SkiftFactory {
         
     }
     
+    public function nyttSkiftForBruker($brukerid, $skifttype, $teamid) {
+        global $msdb;
+        $safe_brukerid = $msdb->quote($brukerid);
+        
+        // Opprett rapport
+        $objRapport = new RFRapport(
+        
+        $result = $msdb->exec("INSERT INTO " . $this->dbPrefix 
+            . "_skift (skiftcreated, israpportert, userid, skiftlastupdate) VALUES (now(), '0', " 
+            . $safe_brukerid . ", now());")
+            
+        if ($result != 1) throw new Exception('Klarte ikke å opprette skift!');
+                
+    }
 }
