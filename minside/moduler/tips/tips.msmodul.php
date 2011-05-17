@@ -50,6 +50,8 @@ class msmodul_tips implements msmodul{
 			break;
 			
 			case 'tipsadmshw':
+			$lvl = $this->_adgang;
+			if ($lvl == MSAUTH_ADMIN) {
 				if (isset($settepost)) {
 					if (isset($setnewrow)){
 					    $this->newSetting($kategori, $epostadr);
@@ -84,6 +86,8 @@ class msmodul_tips implements msmodul{
 					$this->_tipsOut .= '</form>
 					</fieldset>
 					';
+				}
+				else $this->_tipsOut .= 'Ingen adgang';
 			break;
 
 			default:
