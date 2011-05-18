@@ -191,3 +191,11 @@ CREATE TABLE `nyheter_minenyheter` (
   UNIQUE KEY `brukernyhet` (`brukerid`,`nyhetid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `wikitips`;
+CREATE TABLE IF NOT EXISTS `wikitips` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `setting` varchar(100) DEFAULT NULL,
+  `value` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf-8;
+
