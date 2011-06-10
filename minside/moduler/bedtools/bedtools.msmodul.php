@@ -83,14 +83,13 @@ class msmodul_bedtools implements msmodul{
         $antall_blanke = 0;
         msg('Input er p&aring; ' . count($data) . ' linjer.');
         foreach($data as $datum) {
-            $kid = (string) (double) trim($datum);
+            $kid = (string) trim($datum);
             $len = strlen($kid);
-            if($len != 8) {
-                if($datum == 0) {
+            if($len != 8 || !ctype_digit($kid)) {
+                if(empty($kid)) {
                     $antall_blanke += 1;
                     continue;
                 }
-                // Ikke 8 siffer, men heller ikke blankt
                 msg("Ugyldig KID: " . hsc($kid) . "! Hopper over dette.", -1);
                 continue;
             }
