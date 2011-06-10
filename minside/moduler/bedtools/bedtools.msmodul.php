@@ -38,7 +38,7 @@ class msmodul_bedtools implements msmodul{
 	
 	public function registrer_meny(MenyitemCollection &$meny){
 		$lvl = $this->_adgang;
-        $menynavn = 'Bedriftsverktøy';
+        $menynavn = 'Bedriftsverkt&oslash;y';
 
         if(isset($this->_act)) {
             $menynavn = '<span class="selected">'.$menynavn.'</span>';
@@ -81,7 +81,7 @@ class msmodul_bedtools implements msmodul{
         $data = explode("\n", $inn_data);
         $ut_data = array();
         $antall_blanke = 0;
-        msg('Input er på ' . count($data) . ' linjer.');
+        msg('Input er p&aring; ' . count($data) . ' linjer.');
         foreach($data as $datum) {
             $kid = (string) (double) trim($datum);
             $len = strlen($kid);
@@ -99,7 +99,7 @@ class msmodul_bedtools implements msmodul{
             $ut_data[] = '\'' . $kid . '\'';
         }
         msg($antall_blanke . ' blanke linjer ignorert.');
-        msg('Spørring med ' . count($ut_data) . ' kundenummer generert!', 1);
+        msg('Sp&oslash;rring med ' . count($ut_data) . ' kundenummer generert!', 1);
         $kid_streng = implode(', ', $ut_data);
         $output = '"Customer Profile"."Account Nr" IN (' . $kid_streng . ')'; 
         
@@ -110,7 +110,7 @@ class msmodul_bedtools implements msmodul{
         $data = explode("\n", $inn_data);
         $ut_data = array();
         $antall_blanke = 0;
-        msg('Input er på ' . count($data) . ' linjer.');
+        msg('Input er p&aring; ' . count($data) . ' linjer.');
         foreach($data as $datum) {
             $tlf = (string) (double) trim($datum);
             if(strlen($tlf) == 10) {
