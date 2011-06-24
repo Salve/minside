@@ -133,7 +133,7 @@ class msmodul_bedtools implements msmodul{
         msg('Liste med ' . count($ut_data) . ' mobilnummer generert!', 1);
         $tlf_streng = implode(';', $ut_data);
         
-        return '<br /><br /><br />' . $tlf_streng;
+        return '<br /><br /><br />' . '<span style="white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrap;word-wrap: break-word;">' . $tlf_streng . '</span>';
         
     }
 }
