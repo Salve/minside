@@ -341,14 +341,20 @@ class NyhetFactory {
             $where[] = "nyhettitle LIKE " . $msdb->quote($overskrift_sok);
         }
         // Sortorder
-        $safesortorder = ($limits['sortorder']) ?: 'DESC';
+        if (array_key_exists('sortorder', $limits)) {
+            $safesortorder = ($limits['sortorder']) ?: 'DESC';
+        } else {
+            $safesortorder = 'DESC';
+        }
         // Limit
         if ($getcount) {
             $sql_limit = '';
-        } else {
+        } elseif (array_key_exists('pages', $limits)) {
             $sql_limit = 'LIMIT ' . 
                 (($limits['pages']['currpage'] - 1) * $limits['pages']['perside']) . ', ' .
                 $limits['pages']['perside'];
+        } else {
+            $sql_limit = '';
         }
         // Områder
         if (array_key_exists('fomrader', $limits)) {

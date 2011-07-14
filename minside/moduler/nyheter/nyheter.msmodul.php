@@ -60,6 +60,7 @@ class msmodul_nyheter implements msmodul {
         $dispatcher->addActHandler('subedit', 'save_nyhet_changes', MSAUTH_2);
         // Arkiv
         $dispatcher->addActHandler('arkiv', 'gen_nyhet_arkiv', MSAUTH_1);
+        $dispatcher->addActHandler('arkivintegrert', 'gen_nyhet_arkiv_integrert', MSAUTH_1);
         // Upubliserte
         $dispatcher->addActHandler('upub', 'gen_nyheter_upub', MSAUTH_3);
         $dispatcher->addActHandler('pubnaa', 'publiser_nyhet', MSAUTH_3);
@@ -395,6 +396,125 @@ class msmodul_nyheter implements msmodul {
         }
         
         return NyhetGen::genNyhetStats($objNyhet, $mode, $fratid, $tiltid);
+    }
+    
+    public function gen_nyhet_arkiv_integrert() {
+        if(in_array('nopagination', $this->_msmodulvars)) {
+            $show_pagination = false;
+        } else {
+            $show_pagination = true;
+        }
+        $params = $this->_msmodulvars[0];
+        $parsed_vars = array();
+        parse_str($params, $parsed_vars);
+        
+        $limits = array();
+        
+        // Fradato
+        if (!empty($parsed_vars['fdato'])) {
+            $timestamp = strtotime($parsed_vars['fdato']);
+            if($timestamp !== false) {
+                $limits['fdato'] = $timestamp;
+            }
+        }
+        // Tildato
+        if (!empty($parsed_vars['tdato'])) {
+            $timestamp = strtotime($parsed_vars['tdato']);
+            if($timestamp !== false) {
+                $limits['tdato'] = $timestamp;
+            }
+        }
+        // Overskriftsøk
+        if (!empty($parsed_vars['oskrift'])) {
+            $limits['oskrift'] = $parsed_vars['oskrift'];
+        }
+        // Kategori
+        $arInputKat = (array) $parsed_vars['fkat'];
+        if (!empty($arInputKat)) {
+            $limits['fkat'] = $arInputKat;
+        }
+        // Tags
+        $arInputTag = (array) $parsed_vars['ftag'];
+        if (!empty($arInputTag)) {
+            $limits['ftag']['data'] = $arInputTag;
+            $limits['ftag']['mode'] = ($parsed_vars['tagfilter'] == 'AND') ? 'AND' : 'OR';
+        }
+        // Sortorder - DESC er default
+        if($parsed_vars['sortorder'] == 'ASC') {
+            $limits['sortorder'] = 'ASC';
+        }
+        // Publisher
+        $arInputPublishers = (array) $parsed_vars['fpublishers'];
+        if (!empty($arInputPublishers)) {
+            $limits['fpublishers'] = $arInputPublishers;
+        }
+        // Områder
+        $arInputOmrader = (array) $parsed_vars['fomrader'];
+        if (!empty($arInputOmrader)) {
+            $limits['fomrader'] = $arInputOmrader;
+        }
+        // Nyheter vist per side
+        $perside = (int) $parsed_vars['perside'];
+        $limits['pages']['perside'] = ($perside > 0) ? $perside : 10;
+        
+        // Pagination
+        $limits['pages']['count'] = NyhetFactory::getNyheterMedLimits($limits, true);
+
+        // Antall sider (ingen integer division i php, slapp av)
+        $limits['pages']['numpages'] = ceil($limits['pages']['count'] / $limits['pages']['perside']);
+        // Current page
+        
+        if ($show_pagination && (((int) $_GET['visside']) > 0)) {
+            $currpage = (int) $_GET['visside'];
+        } elseif (!empty($parsed_vars['visside'])) {
+            $currpage = $parsed_vars['visside'];
+        }
+        if($currpage > 1 && !($currpage > $limits['pages']['numpages'])) {
+            $limits['pages']['currpage'] = $currpage;
+        } else {
+            $limits['pages']['currpage'] = 1;
+        }
+        
+        if(MinSide::DEBUG) {
+            msg('Laster customvisning av nyheter i wiki-side');
+            msg('OBS! Ved problemer, husk ~~NOCACHE~~ i wikiside!');
+            msg('Pagination er: ' . (($show_pagination) ? 'enabled' : 'disabled'));
+            msg('Bruker requested side nr: '. $_GET['visside']);
+            msg('Syntax requested side nr: '.$parsed_vars['visside']);
+            msg('Viser side nr: '. $limits['pages']['currpage']);
+        }
+
+        $objNyhetCol = NyhetFactory::getNyheterMedLimits($limits);
+        $objMineNyheterCol = NyhetFactory::getMineNyheterForBrukerId($this->_userID, false);
+        
+        if ($show_pagination) {
+            // Fjern evt visside param
+            $stripped_req_uri = preg_replace('/&?visside=([0-9]*)/', '', $_SERVER['REQUEST_URI']);
+            $selflink = hsc($stripped_req_uri);
+            $html_pagination = '<br />' . NyhetGen::getPagination($limits['pages']['numpages'], $limits['pages']['currpage'], $selflink.'&amp;visside=');
+        } else {
+            $html_pagination = '';
+        }
+        
+		if ($objNyhetCol->length() === 0) {
+			return $output . '<br />' . NyhetGen::genIngenNyheter('<br />Ingen nyheter å vise.');
+		}
+        foreach ($objNyhetCol as $objNyhet) {
+            $options = array();
+            if($objMineNyheterCol->exists( $objNyhet->getId() )) {
+                $options[] = 'fjernmine';
+            }
+            $output .= NyhetGen::genFullNyhet($objNyhet, $options);
+        }
+        
+        $pre = '<div class="integrert_nyhetsvisning">';
+        $post = '</div>';
+        
+		return $pre . $output . $html_pagination . $post;
+        
+        
+        
+        
     }
     
     public function gen_nyhet_arkiv() {

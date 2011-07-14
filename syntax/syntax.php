@@ -30,11 +30,11 @@ class syntax_plugin_minside_syntax extends DokuWiki_Syntax_Plugin {
     function getSort() { return 32; }
  
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\{\{minside:[a-zA-Z0-9_:]*?\}\}',$mode,'plugin_minside_syntax');
+        $this->Lexer->addSpecialPattern('\{\{minside:[a-zA-Z0-9\_\:\=\?\&\[\]\"\?]*?\}\}',$mode,'plugin_minside_syntax');
     }
  
     function handle($match, $state, $pos, &$handler) {
-        preg_match_all('/(?:\:([a-z0-9_]+\b))/i',$match,$matches, PREG_PATTERN_ORDER);
+        preg_match_all('/(?:\:([a-zA-Z0-9\_\=\?\&\[\]\"\?]+\b))/i',$match,$matches, PREG_PATTERN_ORDER);
         $data['modul'] = $matches[1][0];
         $data['act'] = $matches[1][1];
         $data['param'] = array_slice($matches[1], 2);
