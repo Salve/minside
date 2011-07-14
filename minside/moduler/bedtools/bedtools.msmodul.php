@@ -59,26 +59,28 @@ class msmodul_bedtools implements msmodul{
     
     public function gen_varsling() {
         $type = $_POST['type_input'];
-        $data = trim($_POST['varsel_data']);
+        $inndata = trim($_POST['varsel_data']);
+        $filterdata = trim($_POST['filter_data']);
         
         if ($type != "KID" && $type != "TLF") {
             throw new Exception('Ukjent handling, velg kundenummer eller telefonnummer');
         }
         
-        if(!strlen($data)) {
+        if(!strlen($inndata)) {
             throw new Exception('Ingen input gitt!');
         }
         
         if ($type == "KID") {
-            return $this->genKID($data);
+            return $this->genKID($inndata, $filterdata);
         } elseif ($type == "TLF") {
-            return $this->genTLF($data);
+            return $this->genTLF($inndata, $filterdata);
         }
                 
     }
     
-    protected function genKID($inn_data) {
+    protected function genKID($inn_data, $filter_data) {
         $data = explode("\n", $inn_data);
+        $filter = array_map(array('msmodul_bedtools', 'cleaninput'), explode("\n", $filter_data));
         $ut_data = array();
         $antall_blanke = 0;
         msg('Input er p&aring; ' . count($data) . ' linjer.');
@@ -94,6 +96,16 @@ class msmodul_bedtools implements msmodul{
                 continue;
             }
             
+            if(in_array($kid, $filter)) {
+                msg('Filtrert KID pga. treff i filterdata: ' . hsc($kid), -1);
+                continue;
+            }
+            
+            if(in_array($kid, $ut_data)) {
+                msg('Hoppet over KID som lå flere ganger i inndata: ' . hsc($kid), -1);
+                continue;
+            }
+            
             // Gyldig KID
             $ut_data[] = '\'' . $kid . '\'';
         }
@@ -105,8 +117,9 @@ class msmodul_bedtools implements msmodul{
         return '<br /><br /><br />' . $output;
     }
     
-    protected function genTLF($inn_data) {
+    protected function genTLF($inn_data, $filter_data) {
         $data = explode("\n", $inn_data);
+        $filter = array_map(array('msmodul_bedtools', 'cleaninput'), explode("\n", $filter_data));
         $ut_data = array();
         $antall_blanke = 0;
         msg('Input er p&aring; ' . count($data) . ' linjer.');
@@ -125,6 +138,16 @@ class msmodul_bedtools implements msmodul{
                 continue;
             }
             
+            if(in_array($tlf, $filter)) {
+                msg('Filtrert nummer pga. treff i filterdata: ' . hsc($tlf), -1);
+                continue;
+            }
+            
+            if(in_array($tlf, $ut_data)) {
+                msg('Hoppet over nummer som lå flere ganger i inndata: ' . hsc($tlf), -1);
+                continue;
+            }
+            
             // Gyldig TLF
             $ut_data[] = $tlf;
         }
@@ -135,5 +158,13 @@ class msmodul_bedtools implements msmodul{
         
         return '<br /><br /><br />' . '<span style="white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrap;word-wrap: break-word;">' . $tlf_streng . '</span>';
         
+    }
+    
+    public static function cleaninput($input) {
+        $input = (string) (double) trim($input);
+        if(strlen($input) == 10) {
+            $input = substr($input, 2);
+        }
+        return $input;
     }
 }

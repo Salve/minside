@@ -21,8 +21,19 @@ class BedToolsGen {
                 <input type="radio" id="radio_kid" name="type_input" value="KID" />
                 <label for="radio_kid">Kundenummer til Siebel Answers</label><br />
                 <input type="radio" id="radio_tlf" name="type_input" value="TLF" />
-                <label for="radio_tlf">Telefonnummer til sms-utsendelse</label><br />
-                <textarea name="varsel_data" cols="14" rows="10"></textarea><br />
+                <label for="radio_tlf">Telefonnummer til sms-utsendelse</label><br /><br />
+                <table>
+                    <tr>
+                        <td>
+                            Inndata:<br />
+                            <textarea name="varsel_data" cols="14" rows="10"></textarea><br />
+                        </td>
+                        <td>
+                            Filterdata:<br />
+                            <textarea name="filter_data" cols="14" rows="10"></textarea><br />
+                        </td>
+                    </tr>
+                </table>
                 <br /><br /><input type="submit" value="Generer streng" class="button" />
             </form>
         
