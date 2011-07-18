@@ -625,7 +625,7 @@ class msmodul_nyheter implements msmodul {
     }
     
     public function gen_ext_view() {
-        $inputpath = ($this->_msmodulvars) ?: $_REQUEST['id'];
+        $inputpath = ($this->_msmodulvars[0]) ?: $_REQUEST['id'];
         
         try{
             $objNyhet = NyhetFactory::getNyhetByWikiPath($inputpath);
