@@ -132,7 +132,7 @@ class SidebarGen {
 		$opt['move'] = '<input type="submit" title="Flytt blokk til valgt posisjon" name="movblokkid" value="' . 
                     $objMenyitem->getId() . '" class="reorder" />&nbsp;';
 		$opt['trash'] = '<a href="'. MS_LINK.'&amp;page=sidebar&amp;act=sidebarrem&amp;blokkid='. $objMenyitem->getId() .
-					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" title="Slett blokk"></a>';
+					'"><img src="'.MS_IMG_PATH.'trash.png" width=16 height=16 alt="slett" onclick="return heltSikker(\'slette sidebar item\')" title="Slett blokk"></a>';
 		
 		switch ($objMenyitem->getType()) {
 			case Menyitem::TYPE_HEADER:
