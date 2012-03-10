@@ -59,11 +59,14 @@ class msmodul_bedtools implements msmodul{
     
     public function gen_varsling() {
         $type = $_POST['type_input'];
+        $outputcustomskille = ($_POST['outputskille_custom']) ?: '';
         $inndata = trim($_POST['varsel_data']);
+        $inputskille = ($_POST['type_inputskille'] = 'NEWLINE') ? "\n" : $_POST['inputskille_custom']; 
         $filterdata = trim($_POST['filter_data']);
+        $filterskille = ($_POST['type_filterskille'] = 'NEWLINE') ? "\n" : $_POST['filterskille_custom']; 
         
-        if ($type != "KID" && $type != "TLF") {
-            throw new Exception('Ukjent handling, velg kundenummer eller telefonnummer');
+        if (!in_array($type, array('TLF', 'KID', 'TLF', 'OBI', 'CUSTOM'))) {
+            throw new Exception('Ukjent handling, velg datatype øverst');
         }
         
         if(!strlen($inndata)) {
