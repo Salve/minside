@@ -86,6 +86,7 @@ class msmodul_bedtools implements msmodul{
         $pre_element = ($_POST['custom_preelement']) ?: '';
         $post_element = ($_POST['custom_postelement']) ?: '';
         $joinstring = ($_POST['custom_joinstring']) ?: '';
+        if ($joinstring == '\n') $joinstring = "\n";
         
         msg('Input er p&aring; ' . count($arInndata) . ' linjer.');
         $arValidData = $this->valider($type, $arInndata);
@@ -127,7 +128,7 @@ class msmodul_bedtools implements msmodul{
             
             array_walk($arValidData, $addPrePost, array($pre_element, $post_element));
         }
-        
+
         $output = implode($joinstring, $arValidData);
         
         return BedToolsGen::genVarslingOutput($pre_string . $output . $post_string);
@@ -143,8 +144,8 @@ class msmodul_bedtools implements msmodul{
             msg('Validerer input som mobilnummer');
         }
         else {
+            $fnValidator = 'validerINGEN';
             msg('Ingen validering av inndata');
-            return $input;
         }
         
         $output = array();
@@ -179,5 +180,10 @@ class msmodul_bedtools implements msmodul{
         }
         
         return $tlf;
+    }
+    
+    public static function validerINGEN($input) {
+        $output = trim($input, "\n\r");
+        return (strlen($output)) ? $output : false;
     }
 }
