@@ -59,115 +59,125 @@ class msmodul_bedtools implements msmodul{
     
     public function gen_varsling() {
         $type = $_POST['type_input'];
-        $outputcustomskille = ($_POST['outputskille_custom']) ?: '';
         $inndata = trim($_POST['varsel_data']);
-        $inputskille = ($_POST['type_inputskille'] = 'NEWLINE') ? "\n" : $_POST['inputskille_custom']; 
+        $inputskille = ($_POST['type_inputskille'] == 'NEWLINE') ? "\n" : $_POST['inputskille_custom']; 
         $filterdata = trim($_POST['filter_data']);
-        $filterskille = ($_POST['type_filterskille'] = 'NEWLINE') ? "\n" : $_POST['filterskille_custom']; 
+        $filterskille = ($_POST['type_filterskille'] == 'NEWLINE') ? "\n" : $_POST['filterskille_custom']; 
         
-        if (!in_array($type, array('TLF', 'KID', 'TLF', 'OBI', 'CUSTOM'))) {
-            throw new Exception('Ukjent handling, velg datatype øverst');
+        if (!in_array($type, array('TLF', 'KID', 'CUSTOM'))) {
+            throw new Exception('Ukjent handling, velg valideringstype øverst');
         }
         
         if(!strlen($inndata)) {
             throw new Exception('Ingen input gitt!');
         }
         
-        if ($type == "KID") {
-            return $this->genKID($inndata, $filterdata);
-        } elseif ($type == "TLF") {
-            return $this->genTLF($inndata, $filterdata);
+        $arInndata = explode($inputskille, $inndata);
+        
+        if(strlen(trim($filterdata))) {
+            $arRawFilter = explode($filterskille, $filterdata);
+            $arFilterData = $this->valider($type, $arRawFilter);
+        } else {
+            $arFilterData = array();
         }
-                
+        
+        $pre_string = ($_POST['custom_prestring']) ?: '';
+        $post_string = ($_POST['custom_poststring']) ?: '';
+        $pre_element = ($_POST['custom_preelement']) ?: '';
+        $post_element = ($_POST['custom_postelement']) ?: '';
+        $joinstring = ($_POST['custom_joinstring']) ?: '';
+        
+        msg('Input er p&aring; ' . count($arInndata) . ' linjer.');
+        $arValidData = $this->valider($type, $arInndata);
+        
+        if(!count($arValidData)) throw new Exception('Ingen gyldig data i input!');
+        
+        // Filtrer hvis nødvendig
+        if(count($arFilterData)) {
+            $count_prefilter = count($arValidData);
+            $arValidData = array_diff($arValidData, $arFilterData);
+            $count_postfilter = count($arValidData);
+            msg('Filtrert ut ' . ($count_prefilter - $count_postfilter) . ' elementer, grunnet treff i filterdata');
+        }
+        // Fjern duplikater
+        $count_predupes = count($arValidData);
+        $arValidData = array_unique($arValidData);
+        $count_postdupes = count($arValidData);
+        msg('Fjernet ' . ($count_predupes - $count_postdupes) . ' element(er), grunnet duplikater');
+        
+        msg(count($arValidData) . ' elementer i output.', 1);
+        
+        switch($type) {
+            case 'KID':
+                $pre_string = ($pre_string) ?: 'Customer Profile"."Account Nr" IN (';
+                $post_string = ($post_string) ?: ')';
+                $pre_element = ($pre_element) ?: "'";
+                $post_element = ($post_element) ?: "'";
+                $joinstring = ($joinstring) ?: ', ';
+                break;
+            case 'TLF':
+                $joinstring = ($joinstring) ?: ';';
+                break;
+        }
+
+        if ($pre_element || $post_element) {
+            $addPrePost = function(&$value, $key, $prepost){
+                $value = $prepost[0] . $value . $prepost[1];
+            };
+            
+            array_walk($arValidData, $addPrePost, array($pre_element, $post_element));
+        }
+        
+        $output = implode($joinstring, $arValidData);
+        
+        return BedToolsGen::genVarslingOutput($pre_string . $output . $post_string);
     }
     
-    protected function genKID($inn_data, $filter_data) {
-        $data = explode("\n", $inn_data);
-        $filter = array_map(array('msmodul_bedtools', 'cleaninput'), explode("\n", $filter_data));
-        $ut_data = array();
-        $antall_blanke = 0;
-        msg('Input er p&aring; ' . count($data) . ' linjer.');
-        foreach($data as $datum) {
-            $kid = (string) trim($datum);
-            $len = strlen($kid);
-            if($len != 8 || !ctype_digit($kid)) {
-                if(empty($kid)) {
-                    $antall_blanke += 1;
-                    continue;
-                }
-                msg("Ugyldig KID: " . hsc($kid) . "! Hopper over dette.", -1);
-                continue;
-            }
-            
-            if(in_array($kid, $filter)) {
-                msg('Filtrert KID pga. treff i filterdata: ' . hsc($kid), -1);
-                continue;
-            }
-            
-            if(in_array($kid, $ut_data)) {
-                msg('Hoppet over KID som lå flere ganger i inndata: ' . hsc($kid), -1);
-                continue;
-            }
-            
-            // Gyldig KID
-            $ut_data[] = '\'' . $kid . '\'';
+    protected function valider($type, array $input) {        
+        if($type == "KID") {
+            $fnValidator = 'validerKID';
+            msg('Validerer input som kundenummer');
         }
-        msg($antall_blanke . ' blanke linjer ignorert.');
-        msg('Sp&oslash;rring med ' . count($ut_data) . ' kundenummer generert!', 1);
-        $kid_streng = implode(', ', $ut_data);
-        $output = '"Customer Profile"."Account Nr" IN (' . $kid_streng . ')'; 
+        elseif($type == "TLF") {
+            $fnValidator = 'validerTLF';
+            msg('Validerer input som mobilnummer');
+        }
+        else {
+            msg('Ingen validering av inndata');
+            return $input;
+        }
         
-        return '<br /><br /><br />' . $output;
+        $output = array();
+        foreach($input as $element) {
+            $validation_output = self::$fnValidator($element);
+            if($validation_output === false) continue;
+            $output[] = $validation_output;
+        }
+        return $output;
     }
     
-    protected function genTLF($inn_data, $filter_data) {
-        $data = explode("\n", $inn_data);
-        $filter = array_map(array('msmodul_bedtools', 'cleaninput'), explode("\n", $filter_data));
-        $ut_data = array();
-        $antall_blanke = 0;
-        msg('Input er p&aring; ' . count($data) . ' linjer.');
-        foreach($data as $datum) {
-            $tlf = (string) (double) trim($datum);
-            if(strlen($tlf) == 10) {
-                $tlf = substr($tlf, 2);
-            }
-            $forste_siffer = substr($tlf, 0, 1);
-            if(strlen($tlf) != 8 || ($forste_siffer != 4 && $forste_siffer != 9)) {
-                if($datum == 0) {
-                    $antall_blanke += 1;
-                    continue;
-                }
-                msg("Ugyldig mobilnummer: " . hsc($tlf) . "! Hopper over dette.", -1);
-                continue;
-            }
-            
-            if(in_array($tlf, $filter)) {
-                msg('Filtrert nummer pga. treff i filterdata: ' . hsc($tlf), -1);
-                continue;
-            }
-            
-            if(in_array($tlf, $ut_data)) {
-                msg('Hoppet over nummer som lå flere ganger i inndata: ' . hsc($tlf), -1);
-                continue;
-            }
-            
-            // Gyldig TLF
-            $ut_data[] = $tlf;
+    public static function validerKID($input) {
+        $input = (string) trim($input);
+        $len = strlen($input);
+        if($len != 8 || !ctype_digit($input)) {
+            msg("Ugyldig KID: '" . hsc($input) . "'! Hopper over dette.", -1);
+            return false;
         }
-        sort($ut_data, SORT_NUMERIC);
-        msg($antall_blanke . ' blanke linjer ignorert.');
-        msg('Liste med ' . count($ut_data) . ' mobilnummer generert!', 1);
-        $tlf_streng = implode(';', $ut_data);
-        
-        return '<br /><br /><br />' . '<span style="white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrap;word-wrap: break-word;">' . $tlf_streng . '</span>';
-        
+        return $input;        
     }
     
-    public static function cleaninput($input) {
-        $input = (string) (double) trim($input);
-        if(strlen($input) == 10) {
-            $input = substr($input, 2);
+    public static function validerTLF($input) {
+        $input = explode(' ', trim($input)); // ignorerer eventuelle tegn etter mellomrom
+        $tlf = (string) (double) trim($input[0]);
+        if(strlen($tlf) == 10) {
+            $tlf = substr($tlf, 2);
         }
-        return $input;
+        $forste_siffer = substr($tlf, 0, 1);
+        if(strlen($tlf) != 8 || ($forste_siffer != 4 && $forste_siffer != 9)) {
+            msg("Ugyldig mobilnummer: '" . hsc($tlf) . "'! Hopper over dette.", -1);
+            return false;
+        }
+        
+        return $tlf;
     }
 }
